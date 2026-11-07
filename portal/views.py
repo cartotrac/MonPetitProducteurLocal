@@ -134,10 +134,14 @@ def _recherche_producteurs(q, dept, modes, activites):
     if dept:
         # Département saisi (« 81 », « Tarn »…) OU code postal commençant
         # par ces chiffres : un exploitant sans champ département rempli
-        # reste trouvable depuis son code postal.
+        # reste trouvable depuis son code postal — et les cas NOMADES
+        # (foodtrucks) restent aussi trouvable par les codes postaux et
+        # villes de leurs emplacements et points déclarés.
         exploitants = exploitants.filter(
             Q(departement__iexact=dept)
-            | Q(code_postal__istartswith=dept)).distinct()
+            | Q(code_postal__istartswith=dept)
+            | Q(points_livraison__code_postal__istartswith=dept)
+            | Q(points_livraison__ville__icontains=dept)).distinct()
     if modes:
         exploitants = exploitants.filter(mode_production__in=modes)
     if activites:
@@ -307,19 +311,32 @@ def producer_search(request):
             "horaires_txt": m["horaires_txt"][:4],
         } for m in marches]
     else:
-        carte_data = [{
-            "nom_ferme": e.nom_ferme,
-            "mode_production": e.mode_production,
-            "activite": e.activite,
-            "specialite": e.specialite if e.activite == Exploitant.Activite.FOODTRUCK else "",
-            "symbole": e.emoji_vitrine,
-            "ville": e.ville,
-            "latitude": e.latitude,
-            "longitude": e.longitude,
-            "est_demo": e.est_demo,
-            "url": e.get_absolute_url(),
-        } for e in exploitants
-            if e.latitude is not None and e.longitude is not None]
+        # Position dynamique des foodtrucks : emplacement du créneau
+        # en cours ou du prochain arrêt s'ils sont définis, adresse
+        # déclarée sinon — la carte retranscrit leur emplacement au
+        # moment de la recherche (cas nomades).
+        carte_data = []
+        for e in exploitants:
+            lat, lon, libelle_position = e.latitude, e.longitude, ""
+            if e.activite == Exploitant.Activite.FOODTRUCK:
+                position = _position_dynamique_foodtruck(e)
+                if position:
+                    lat, lon, libelle_position = position
+            if lat is None or lon is None:
+                continue
+            carte_data.append({
+                "nom_ferme": e.nom_ferme,
+                "mode_production": e.mode_production,
+                "activite": e.activite,
+                "specialite": e.specialite if e.activite == Exploitant.Activite.FOODTRUCK else "",
+                "symbole": e.emoji_vitrine,
+                "ville": e.ville,
+                "latitude": lat,
+                "longitude": lon,
+                "position_libelle": libelle_position,
+                "est_demo": e.est_demo,
+                "url": e.get_absolute_url(),
+            })
     # Liste de choix d'activités adaptée au mode : seuls les deux
     # foodtruck / traiteur en mode restauration, tous les autres en
     # mode producteurs.
@@ -360,22 +377,33 @@ def producer_search(request):
 
 
 def producteurs_geojson(request):
-    """Données carte : exploitants visibles avec coordonnées."""
-    exploitants = (Exploitant.objects.filter(visible=True)
-                   .exclude(latitude=None, longitude=None))
-    data = [{
-        "slug": e.slug,
-        "nom_ferme": e.nom_ferme,
-        "mode_production": e.mode_production,
-        "activite": e.activite,
-        "specialite": e.specialite if e.activite == Exploitant.Activite.FOODTRUCK else "",
-        "symbole": e.emoji_vitrine,
-        "ville": e.ville,
-        "latitude": e.latitude,
-        "longitude": e.longitude,
-        "est_demo": e.est_demo,
-        "url": e.get_absolute_url(),
-    } for e in exploitants]
+    """Données carte : exploitants visibles avec coordonnées — les
+    foodtrucks sont positionnés sur l'emplacement de leur créneau en
+    cours ou de leur prochain arrêt au moment de la requête (adresse
+    déclarée en repli)."""
+    data = []
+    for e in Exploitant.objects.filter(visible=True):
+        lat, lon, libelle_position = e.latitude, e.longitude, ""
+        if e.activite == Exploitant.Activite.FOODTRUCK:
+            position = _position_dynamique_foodtruck(e)
+            if position:
+                lat, lon, libelle_position = position
+        if lat is None or lon is None:
+            continue
+        data.append({
+            "slug": e.slug,
+            "nom_ferme": e.nom_ferme,
+            "mode_production": e.mode_production,
+            "activite": e.activite,
+            "specialite": e.specialite if e.activite == Exploitant.Activite.FOODTRUCK else "",
+            "symbole": e.emoji_vitrine,
+            "ville": e.ville,
+            "latitude": lat,
+            "longitude": lon,
+            "position_libelle": libelle_position,
+            "est_demo": e.est_demo,
+            "url": e.get_absolute_url(),
+        })
     return JsonResponse(list(data), encoder=DjangoJSONEncoder, safe=False)
 
 
@@ -460,8 +488,19 @@ def producer_detail(request, slug):
         .prefetch_related("lignes__produit",
                           "lignes__produit__origine_standard")
         .first())
+    # Restant par ligne de la carte active : stock publié − quantités
+    # des commandes VALIDÉES (après ajustement éventuel du pro).
+    restes_carte = {}
+    if carte_active:
+        stocks_carte = _stocks_carte(exploitant)
+        for l in carte_active.lignes.all():
+            if l.produit_id is not None and l.stock is not None:
+                reste = stocks_carte.get(l.produit_id, (None, None))[1]
+                if reste is not None:
+                    restes_carte[l.pk] = reste
     return render(request, "portal/producer_detail.html", {
         "exploitant": exploitant,
+        "restes_carte": restes_carte,
         "carte_active": carte_active,
         "vitrine": vitrine,
         "reseaux": vitrine.reseaux or {},
@@ -2250,6 +2289,14 @@ def cartes_manage(request):
                         prix = Decimal(brut)
                     except InvalidOperation:
                         prix = None
+                brut_stock = (request.POST.get("stock", "")
+                              .strip().replace(",", "."))
+                stock = None
+                if brut_stock:
+                    try:
+                        stock = Decimal(brut_stock)
+                    except InvalidOperation:
+                        stock = None
                 LigneCarte.objects.create(
                     carte=carte,
                     produit=produit,
@@ -2259,6 +2306,7 @@ def cartes_manage(request):
                     unite_vente=(produit.unite_vente if produit
                                  else Produit.Unite.PIECE),
                     prix=prix,
+                    stock=stock,
                     position=(carte.lignes.aggregate(
                         Max("position"))["position__max"] or 0) + 1)
                 messages.success(request, "Ligne ajoutée à la carte « "
@@ -2281,6 +2329,29 @@ def cartes_manage(request):
                 for n, l in enumerate(voisines, 1):
                     l.position = n
                     l.save(update_fields=["position"])
+        elif action == "maj_stock":
+            ligne = LigneCarte.objects.filter(
+                pk=request.POST.get("ligne_id") or 0, carte=carte).first()
+            if ligne is None:
+                messages.error(request, "Ligne introuvable.")
+            else:
+                brut = (request.POST.get("stock", "")
+                        .strip().replace(",", "."))
+                if not brut:
+                    ligne.stock = None
+                    ligne.save(update_fields=["stock"])
+                    messages.info(request, "Stock retiré : « "
+                                  + ligne.nom + " » est vendu sans limite.")
+                else:
+                    try:
+                        ligne.stock = Decimal(brut)
+                        ligne.save(update_fields=["stock"])
+                        messages.success(request, "Stock de « "
+                                         + ligne.nom + " » mis à jour : "
+                                         + brut + ".")
+                    except InvalidOperation:
+                        messages.error(request, "Stock invalide : "
+                                       + brut + ".")
         return redirect("portal:cartes_manage")
 
     ordre = {Carte.Statut.ACTIVE: 0, Carte.Statut.BROUILLON: 1,
@@ -2652,11 +2723,90 @@ def _tel_valide(numero):
     return bool(RE_TEL.match((numero or "").strip()))
 
 
+def _stocks_carte(exploitant):
+    """Stocks publiés par produit sur la carte ACTIVE (boutique,
+    carte, menus) : retourne {produit_id: (stock, restant)} où
+    restant = stock − quantités des commandes VALIDÉES — la commande
+    n'est décomptée qu'une fois validée par l'exploitant, après son
+    ajustement éventuel. Les lignes sans stock (illimitées) et les
+    lignes libres (sans produit lié) sont absentes du résultat."""
+    lignes = list(LigneCarte.objects
+                  .filter(carte__exploitant=exploitant,
+                          carte__statut=Carte.Statut.ACTIVE,
+                          stock__isnull=False,
+                          produit__isnull=False)
+                  .values_list("produit_id", "stock"))
+    if not lignes:
+        return {}
+    consomme = {}
+    qs = (LigneCommande.objects
+          .filter(commande__exploitant=exploitant,
+                  commande__statut=Commande.Statut.VALIDEE,
+                  produit_id__in=[l[0] for l in lignes]))
+    for ligne in qs:
+        consomme[ligne.produit_id] = (
+            consomme.get(ligne.produit_id, Decimal("0")) + ligne.quantite)
+    return {p: (s, s - consomme.get(p, Decimal("0")))
+            for p, s in lignes}
+
+
+JOURS_COURTS = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."]
+
+
+def _position_dynamique_foodtruck(exploitant):
+    """Position d'un foodtruck AU MOMENT DE LA REQUÊTE : emplacement du
+    créneau en cours s'il y en a un, sinon celui du prochain arrêt
+    hebdomadaire (7 jours à venir), sinon adresse déclarée (None si le
+    camion n'est ni géolocalisé ni programmé). Les fréquences
+    bisomadaire/mensuelle ne sont pas projetées dans le futur (aucun
+    repère absolu en base) : seul leur créneau en cours compte.
+    Retourne (latitude, longitude, libellé) ou None."""
+    maintenant = timezone.localtime()
+    aujourdhui = maintenant.date()
+    creneaux = list(
+        CreneauLivraison.objects
+        .filter(exploitant=exploitant,
+                point_livraison__latitude__isnull=False,
+                point_livraison__longitude__isnull=False)
+        .select_related("point_livraison"))
+    heure = maintenant.time()
+    for c in creneaux:
+        if (c.jour == aujourdhui.isoweekday()
+                and c.heure_debut <= heure <= c.heure_fin):
+            p = c.point_livraison
+            return (p.latitude, p.longitude,
+                    "Maintenant : " + p.nom + " (" + p.ville
+                    + ") jusqu'à " + c.heure_fin.strftime("%H:%M"))
+    futurs = []
+    for c in creneaux:
+        if c.frequence != CreneauLivraison.Frequence.HEBDO:
+            continue
+        ecart = (c.jour - aujourdhui.isoweekday()) % 7
+        date_c = aujourdhui + datetime.timedelta(days=ecart)
+        if date_c == aujourdhui and c.heure_debut <= heure:
+            continue  # déjà passé aujourd'hui
+        debut = datetime.datetime.combine(date_c, c.heure_debut)
+        if timezone.is_naive(debut):
+            debut = timezone.make_aware(debut)
+        if debut >= maintenant:
+            futurs.append((debut, date_c, c))
+    if futurs:
+        debut, date_c, c = min(futurs, key=lambda x: x[0])
+        p = c.point_livraison
+        return (p.latitude, p.longitude,
+                "Prochain arrêt : " + JOURS_COURTS[date_c.weekday()]
+                + " " + date_c.strftime("%d/%m") + " "
+                + c.heure_debut.strftime("%H:%M")
+                + " — " + p.nom + " (" + p.ville + ")")
+    return None
+
+
 def _offres_commande(exploitant, semaine):
     """Offre proposée sur la page de commande :
     - avec une récolte publiée : ses lignes (prix de la récolte) et la
       disponibilité restante = volume estimé − quantités déjà
-      commandées sur la semaine (commandes en attente ou validées) ;
+      commandées sur la semaine (commandes VALIDÉES uniquement,
+      après ajustement éventuel de l'exploitant) ;
     - sans récolte : les produits actifs au prix de référence, la
       disponibilité n'étant pas publiée (quantités soumises à la
       validation et aux disponibilités réelles du cultivateur).
@@ -2667,8 +2817,7 @@ def _offres_commande(exploitant, semaine):
         consomme = {}
         commandes_semaine = LigneCommande.objects.filter(
             commande__exploitant=exploitant,
-            commande__statut__in=[Commande.Statut.NOUVELLE,
-                                  Commande.Statut.VALIDEE],
+            commande__statut=Commande.Statut.VALIDEE,
             commande__date_livraison__gte=semaine.lundi,
             commande__date_livraison__lte=dimanche)
         for produit_id, quantite in commandes_semaine.values_list(
@@ -2692,14 +2841,18 @@ def _offres_commande(exploitant, semaine):
             if o["produit"].categorie else "zz",
             o["produit"].nom))
         return offres, "recolte"
+    # Boutique / carte active : stocks publiés éventuels — le
+    # restant décompte les commandes VALIDÉES uniquement.
+    stocks = _stocks_carte(exploitant)
     for produit in (exploitant.produits.filter(actif=True)
                     .select_related("categorie", "origine_standard")
                     .order_by("categorie__position", "categorie__nom",
                               "position", "nom")):
         if produit.prix is None:
             continue  # sans prix de référence : non commandable
+        stock, reste = stocks.get(produit.pk, (None, None))
         offres.append({"cle": f"qty_{produit.pk}", "produit": produit,
-                       "prix": produit.prix, "estime": None, "reste": None})
+                       "prix": produit.prix, "estime": stock, "reste": reste})
     return offres, "catalogue"
 
 

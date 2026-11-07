@@ -777,6 +777,14 @@ class LigneCarte(models.Model):
     prix = models.DecimalField("Prix (€)", max_digits=6, decimal_places=2,
                                null=True, blank=True,
                                help_text="Vide : prix du produit lié.")
+    # Stock publié sur la ligne (boutiques, cartes, menus) : vide =
+    # vendu sans suivi de stock. Le restant affiché aux clients
+    # décompte les quantités des commandes VALIDÉES uniquement
+    # (après ajustement éventuel par l'exploitant).
+    stock = models.DecimalField(
+        "Stock publié", max_digits=8, decimal_places=2, null=True,
+        blank=True,
+        help_text="Quantité mise en vente : vide = illimité.")
     position = models.PositiveSmallIntegerField("Position", default=0)
 
     class Meta:
