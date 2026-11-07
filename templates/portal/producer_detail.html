@@ -150,14 +150,15 @@
   <h2>{% if exploitant.activite == 'FOODTRUCK' %}🚚{% elif exploitant.activite == 'TRAITEUR' %}🍽️{% else %}🛒{% endif %} {{ exploitant.titre_carte_boutique }} — {{ carte_active.nom }}</h2>
   <p class="muted">Notre sélection habituelle : ces produits et plats sont proposés en permanence, en plus de « {{ exploitant.titre_semaine }} ».</p>
   <table class="table">
-    <thead><tr><th>Produit / plat</th><th>Description</th><th>Prix</th></tr></thead>
+    <thead><tr><th>Produit / plat</th><th>Description</th><th>Prix</th><th>Restant</th></tr></thead>
     <tbody>
     {% for ligne in carte_active.lignes.all %}
-      {% ifchanged ligne.section %}{% if ligne.section %}<tr class="carte-section"><td colspan="3"><strong>{{ ligne.section }}</strong></td></tr>{% endif %}{% endifchanged %}
+      {% ifchanged ligne.section %}{% if ligne.section %}<tr class="carte-section"><td colspan="4"><strong>{{ ligne.section }}</strong></td></tr>{% endif %}{% endifchanged %}
       <tr>
         <td>{% if ligne.emoji %}{{ ligne.emoji }} {% endif %}{{ ligne.nom }}</td>
         <td class="muted">{{ ligne.description }}</td>
         <td>{% if ligne.prix_affiche %}{{ ligne.prix_affiche }} €{% if ligne.unite_vente == 'PC' %} <span class="muted">la pièce</span>{% elif ligne.unite_vente == 'BO' %} <span class="muted">la botte</span>{% elif ligne.unite_vente == 'BQ' %} <span class="muted">la barquette</span>{% endif %}{% else %}<span class="muted">à la demande</span>{% endif %}</td>
+        <td>{% if ligne.stock is not None %}{% with reste=restes_carte|get_item:ligne.pk %}{% if reste != '' and reste <= 0 %}<span class="muted">complet</span>{% else %}{{ reste|floatformat:"-2" }}{% endif %}{% endwith %}{% else %}<span class="muted">illimité</span>{% endif %}</td>
       </tr>
     {% endfor %}
     </tbody>

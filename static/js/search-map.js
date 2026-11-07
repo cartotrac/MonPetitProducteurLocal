@@ -296,11 +296,17 @@ exploitants.forEach(function (e) {
           '<span class="marker-point" style="background:' + style.color + '"></span>',
     iconSize: [22, 22], iconAnchor: [11, 11]
   });
+  /* Position dynamique (foodtrucks) : emplacement du créneau en
+     cours ou du prochain arrêt, calculé au moment de la recherche. */
+  var positionDyn = (e.position_libelle || "")
+    ? '<br><span class="muted">📍 ' + e.position_libelle + "</span>"
+    : "";
   var marker = L.marker([e.latitude, e.longitude], { icon: icone }).bindPopup(
     "<strong>" + e.nom_ferme + "</strong>" +
     (libelle ? '<br><span class="muted">' + libelle + "</span>" : "") +
     badgeDemo +
     "<br>" + (e.ville || "") +
+    positionDyn +
     '<br><a href="' + e.url + '">Nos Produits →</a>'
   );
   marker._category = e.mode_production;

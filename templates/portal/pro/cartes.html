@@ -41,7 +41,7 @@
     </form>
 
     <table class="table">
-      <thead><tr><th></th><th>Produit / plat</th><th>Section</th><th>Prix</th><th></th></tr></thead>
+      <thead><tr><th></th><th>Produit / plat</th><th>Section</th><th>Prix</th><th>Stock publié</th><th></th></tr></thead>
       <tbody>
       {% for ligne in carte.lignes.all %}
         <tr>
@@ -54,6 +54,16 @@
               {% csrf_token %}
               <input type="hidden" name="carte_id" value="{{ carte.pk }}">
               <input type="hidden" name="ligne_id" value="{{ ligne.pk }}">
+              <input type="hidden" name="action" value="maj_stock">
+              <input type="text" name="stock" size="5" placeholder="illimité" value="{% if ligne.stock is not None %}{{ ligne.stock|floatformat:2 }}{% endif %}" title="Quantité mise en vente — vide = illimité. Le restant décompte les commandes validées.">
+              <button class="btn btn-sm btn-outline" type="submit" title="Enregistrer le stock">💾</button>
+            </form>
+          </td>
+          <td>
+            <form method="post" class="inline">
+              {% csrf_token %}
+              <input type="hidden" name="carte_id" value="{{ carte.pk }}">
+              <input type="hidden" name="ligne_id" value="{{ ligne.pk }}">
               <button class="btn btn-sm btn-outline" name="action" value="monter" type="submit" title="Monter">▲</button>
               <button class="btn btn-sm btn-outline" name="action" value="descendre" type="submit" title="Descendre">▼</button>
               <button class="btn btn-sm btn-outline" name="action" value="supprimer_ligne" type="submit" title="Retirer">✕</button>
@@ -61,7 +71,7 @@
           </td>
         </tr>
       {% empty %}
-        <tr><td colspan="5" class="muted">Aucune ligne pour l'instant — ajoutez vos produits ou des lignes libres ci-dessous.</td></tr>
+        <tr><td colspan="6" class="muted">Aucune ligne pour l'instant — ajoutez vos produits ou des lignes libres ci-dessous.</td></tr>
       {% endfor %}
       </tbody>
     </table>
@@ -86,6 +96,8 @@
       <input type="text" id="desc_{{ carte.pk }}" name="description">
       <label for="prix_{{ carte.pk }}">Prix € (vide = prix du produit lié)</label>
       <input type="text" id="prix_{{ carte.pk }}" name="prix" placeholder="Ex : 12,50">
+      <label for="stock_{{ carte.pk }}">Stock publié (vide = illimité, sans suivi)</label>
+      <input type="text" id="stock_{{ carte.pk }}" name="stock" placeholder="Ex : 12">
       <button class="btn" type="submit">Ajouter</button>
     </form>
   </div>
