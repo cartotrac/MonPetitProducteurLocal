@@ -1417,3 +1417,38 @@ html.dark .nav-links .btn-outline:hover { background: #3a4930 !important;
   color: #fff !important; }
 /* « Devenir Localien » : assuré lisible sur le bandeau vert */
 .nav-links .nav-compte { color: #fff; }
+
+/* ===== Bouton aide ℹ️ flottant, en bas de page à droite (même
+       famille visuelle que les boutons de scroll). ===== */
+.btn-aide-flottant { position: fixed; bottom: 14px; right: 10px;
+  z-index: 1160; width: 34px; height: 34px; border-radius: 50%;
+  background: #fdfcf7; border: 1px solid #4e6b3a; color: #33502a;
+  font-size: 17px; line-height: 1; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+.btn-aide-flottant:hover { background: #ffffff; }
+html.dark .btn-aide-flottant { background: #2c3625;
+  border-color: #8fae76; color: #dbe8cd; }
+html.dark .btn-aide-flottant:hover { background: #3a4930; }
+@media (max-width: 820px) {
+  .btn-aide-flottant { bottom: 10px; right: 8px;
+    width: 28px; height: 28px; font-size: 14px; }
+}
+
+/* ===== Popup fiche d'aide (dialog) ===== */
+dialog.dialog-aide { max-width: min(720px, 94vw); width: 720px;
+  border: 1px solid #4e6b3a; border-radius: 12px;
+  padding: 1.1rem 1.4rem 1.2rem; background: #fdfcf7; color: #2b3a26;
+  max-height: 84vh; overflow-y: auto; }
+dialog.dialog-aide h2 { margin: 0.1rem 0 0.4rem; font-size: 1.25rem; }
+dialog.dialog-aide h3 { margin: 0.9rem 0 0.3rem; font-size: 1.02rem; }
+dialog.dialog-aide ul { margin: 0.2rem 0 0.3rem 1.1rem; padding: 0; }
+dialog.dialog-aide li { margin: 0.12rem 0; }
+dialog.dialog-aide .aide-statuts { font-size: 0.92rem;
+  background: #f0eddf; border: 1px solid #d8d3bd;
+  border-radius: 8px; padding: 0.4rem 0.6rem; margin: 0.2rem 0; }
+dialog.dialog-aide form.dialog-demo-actions { text-align: center;
+  margin-top: 1.1rem; }
+html.dark dialog.dialog-aide { background: #232820;
+  border-color: #8fae76; color: #e6e4da; }
+html.dark dialog.dialog-aide .aide-statuts { background: #2c3625;
+  border-color: #4e5c3d; }

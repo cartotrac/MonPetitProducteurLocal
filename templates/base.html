@@ -151,6 +151,26 @@
     <a class="btn-session-dot btn-session-dot-verte" href="{% url 'login' %}" title="Se connecter" aria-label="Se connecter"><span class="pastille-session pastille-verte" aria-hidden="true"></span></a>
   {% endif %}
 </div>
+<button class="btn-aide-flottant" type="button" id="btn-aide" title="Aide : le portail en bref" aria-label="Aide : le portail en bref">ℹ️</button>
+<dialog id="dialog-aide" class="dialog-aide" aria-label="Aide du portail">
+  {% if exploitant_courant %}{% include "portal/_fiche_aide_pro.html" %}{% else %}{% include "portal/_fiche_aide_public.html" %}{% endif %}
+  <form method="dialog" class="dialog-demo-actions">
+    <button class="btn" type="submit">Fermer ✕</button>
+  </form>
+</dialog>
+<script>
+/* Bouton aide ℹ️ (bas de page) : affiche la fiche du portail en popup —
+   version pro pour les exploitants, version public/clients sinon. */
+(function () {
+  var btn = document.getElementById("btn-aide");
+  var dlg = document.getElementById("dialog-aide");
+  if (!btn || !dlg) { return; }
+  btn.addEventListener("click", function () { dlg.showModal(); });
+  dlg.addEventListener("click", function (evt) {
+    if (evt.target === dlg) { dlg.close(); }
+  });
+})();
+</script>
 <script>
 /* Navigation rapide : remonter au bandeau / descendre au pied de page. */
 (function () {
