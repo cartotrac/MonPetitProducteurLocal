@@ -41,8 +41,8 @@
             <div class="nav-gestion-menu">
               <a href="{% url 'portal:product_list' %}">🥕 Produits</a>
               <a href="{% url 'portal:clients_suivi' %}">👤 Mes clients</a>
-              <a href="{% url 'portal:ventes' %}">🧾 Ventes — commandes &amp; paniers</a>
-              <a href="{% url 'portal:points_manage' %}">📍 Points &amp; créneaux</a>
+              <a href="{% url 'portal:ventes' %}">🧾 Ventes</a>
+              <a href="{% url 'portal:points_manage' %}">📍 Modalités</a>
               {% if exploitant_courant and exploitant_courant.a_carte_boutique %}
               <a href="{% url 'portal:cartes_manage' %}">🧾 Ma carte / boutique</a>
               {% endif %}
@@ -145,10 +145,10 @@
 <div class="session-flottante" aria-label="Session">
   {% if user.is_authenticated %}
     <form class="inline" method="post" action="{% url 'logout' %}">
-      {% csrf_token %}<button class="btn-session-dot btn-session-dot-verte" type="submit" title="Se déconnecter" aria-label="Se déconnecter"><span class="pastille-session pastille-verte" aria-hidden="true"></span></button>
+      {% csrf_token %}<button class="btn-session-dot btn-session-dot-rouge" type="submit" title="Se déconnecter" aria-label="Se déconnecter"><span class="pastille-session pastille-rouge" aria-hidden="true"></span></button>
     </form>
   {% else %}
-    <a class="btn-session-dot btn-session-dot-rouge" href="{% url 'login' %}" title="Se connecter" aria-label="Se connecter"><span class="pastille-session pastille-rouge" aria-hidden="true"></span></a>
+    <a class="btn-session-dot btn-session-dot-verte" href="{% url 'login' %}" title="Se connecter" aria-label="Se connecter"><span class="pastille-session pastille-verte" aria-hidden="true"></span></a>
   {% endif %}
 </div>
 <script>
