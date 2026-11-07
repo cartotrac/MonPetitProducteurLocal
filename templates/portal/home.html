@@ -52,7 +52,7 @@
   <div class="chiffres-grille">
     <div class="chiffre-carte"><span class="chiffre-emoji">🥬</span>
       <strong class="chiffre-nb">{{ nb_producteurs_locaux }}</strong>
-      <span>producteur{{ nb_producteurs_locaux|pluralize }} local{% if nb_producteurs_locaux > 1 %}aux{% endif %}</span></div>
+      <span>{% if nb_producteurs_locaux > 1 %}producteurs locaux{% else %}producteur local{% endif %}</span></div>
     <div class="chiffre-carte"><span class="chiffre-emoji">🥗</span>
       <strong class="chiffre-nb">{{ nb_traiteurs }}</strong>
       <span>traiteur{{ nb_traiteurs|pluralize }}</span></div>
