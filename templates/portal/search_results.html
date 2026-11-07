@@ -24,7 +24,7 @@
     <span class="stats-item">
       {% if visu == "marches" %}<span class="badge badge-marche">🎪 {{ nb_marches }} marché{{ nb_marches|pluralize }} &amp; 🏪 {{ nb_boutiques }} boutique{{ nb_boutiques|pluralize }} de producteur{{ nb_boutiques|pluralize }}</span>
       {% elif visu == "restauration" %}<span class="badge badge-activite">🥗 {{ nb_traiteurs }} traiteur{{ nb_traiteurs|pluralize }} &amp; 🚚 {{ nb_foodtrucks }} foodtruck{{ nb_foodtrucks|pluralize }}</span>
-      {% else %}<span class="badge badge-ab">🥬 {{ nb_producteurs_locaux }} producteur{{ nb_producteurs_locaux|pluralize }} local{% if nb_producteurs_locaux > 1 %}aux{% endif %}</span>{% endif %}
+      {% else %}<span class="badge badge-ab">🥬 {{ nb_producteurs_locaux }} {% if nb_producteurs_locaux > 1 %}producteurs locaux{% else %}producteur local{% endif %}</span>{% endif %}
     </span>
     <span class="stats-item">
       <button type="button" class="badge badge-ab" data-stats="clients">👥 {{ nb_clients }} client{{ nb_clients|pluralize }} inscrit{{ nb_clients|pluralize }}</button>
