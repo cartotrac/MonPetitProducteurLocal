@@ -1,18 +1,72 @@
 {% extends "base.html" %}
-{% block title %}Inscription client — MonPetitMaraicher{% endblock %}
+{% load static %}
+{% block title %}Inscription client — MonPetitProducteurLocal{% endblock %}
 {% block content %}
-<h1>Créer mon compte client</h1>
+<h1>👤 Créer mon compte client</h1>
 <p class="muted">Quelques secondes suffisent : votre e-mail servira
-   d'identifiant, pas de nom d'utilisateur à inventer.</p>
+   d'identifiant, pas de nom d'utilisateur à inventer. Prénom, nom,
+   téléphone et photo (lien externe) sont optionnels mais bien
+   utiles aux producteurs pour vous identifier et vous contacter.</p>
 <form method="post" class="form">
   {% csrf_token %}
   {% if form.non_field_errors %}
     <div class="flash warning">⚠️ Merci de corriger les champs indiqués ci-dessous.</div>
   {% endif %}
-  {{ form.as_p }}
-  <button class="btn btn-lg" type="submit">Créer mon compte</button>
+  <section class="form-bloc">
+    <h2>👤 Mon profil</h2>
+    <div class="profil-mise-en-page" data-picker-custom>
+      <div class="profil-champs">
+        <div class="form-duo">
+          <div class="form-champ">{{ form.first_name.label_tag }} {{ form.first_name }}
+            {{ form.first_name.errors }}</div>
+          <div class="form-champ">{{ form.last_name.label_tag }} {{ form.last_name }}
+            {{ form.last_name.errors }}</div>
+        </div>
+        <div class="form-duo">
+          <div class="form-champ">{{ form.email.label_tag }} {{ form.email }}
+            {{ form.email.errors }}
+            <span class="helptext">{{ form.email.help_text }}</span></div>
+          <div class="form-champ">{{ form.telephone.label_tag }} {{ form.telephone }}
+            {{ form.telephone.errors }}
+            <span class="helptext">{{ form.telephone.help_text }}</span></div>
+        </div>
+      </div>
+      <div class="profil-photo">
+        <div class="image-picker" data-photo-apercu="id_photo_externe">
+          <div class="image-picker-cadre">
+            <img class="image-picker-img" alt="👤 Photo de profil">
+            <div class="image-picker-placeholder">👤 Aucune photo</div>
+            <div class="image-picker-erreur">❌ Image introuvable : lien direct requis (.jpg, .png, .webp…).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="profil-photo-url" data-picker-custom>
+      {{ form.photo_externe.label_tag }} {{ form.photo_externe }}
+      {{ form.photo_externe.errors }}
+      <span class="helptext">Lien direct de l'image (Drive/Cloud : lien de
+        partage de l'image ou URL en .jpg/.png/.webp) — rien n'est hébergé
+        sur le portail.</span>
+    </div>
+    <div class="form-duo">
+      <div class="form-champ">{{ form.password1.label_tag }} {{ form.password1 }}
+        {{ form.password1.errors }}
+        <span class="helptext">{{ form.password1.help_text }}</span></div>
+      <div class="form-champ">{{ form.password2.label_tag }} {{ form.password2 }}
+        {{ form.password2.errors }}
+        <span class="helptext">{{ form.password2.help_text }}</span></div>
+    </div>
+  </section>
+  <div class="save-bar">
+    <button class="btn btn-lg" type="submit">Créer mon compte</button>
+  </div>
   <p class="muted">Déjà inscrit ?
     <a href="{% url 'login' %}">Se connecter</a>
   </p>
 </form>
+{% endblock %}
+{% block extrajs %}
+<script src="{% static 'js/image-picker.js' %}" defer></script>
+<script src="{% static 'js/photo-picker.js' %}" defer></script>
+<script src="{% static 'js/form-validateurs.js' %}" defer></script>
 {% endblock %}
