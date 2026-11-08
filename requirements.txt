@@ -6,3 +6,4 @@ psycopg[binary]>=3.1
 django-allauth>=65.0
 # Dépendance du provider Google de allauth (appels OAuth)
 requests>=2.31
+pyjwt>=2.8
