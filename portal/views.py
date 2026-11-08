@@ -9,8 +9,9 @@ import django.core.mail
 from django.conf import settings
 
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
@@ -3532,15 +3533,56 @@ def _enregistrer_infos_perso(request, redirect_vers, **redirect_kwargs):
     return form
 
 
+def _libelles_mot_de_passe(form):
+    """Libellés français du formulaire de changement de mot de passe."""
+    form.fields["old_password"].label = "Mot de passe actuel"
+    form.fields["new_password1"].label = "Nouveau mot de passe"
+    form.fields["new_password1"].help_text = (
+        "Au moins 8 caractères. Évitez les mots de passe trop courants.")
+    form.fields["new_password2"].label = "Nouveau mot de passe (retapez-le)"
+    return form
+
+
+def _form_motdepasse(user):
+    """Section « Sécurité » : formulaire vierge de changement de mot
+    de passe, libellé en français."""
+    return _libelles_mot_de_passe(PasswordChangeForm(user))
+
+
+def _enregistrer_mot_de_passe(request, redirect_vers, **redirect_kwargs):
+    """Section « Sécurité » des pages Mon profil : change le mot de
+    passe du compte courant. La session reste ouverte (mise à jour
+    du hachage de session après enregistrement). Retourne la
+    redirection, ou le formulaire en erreur à re-présenter."""
+    form = _libelles_mot_de_passe(
+        PasswordChangeForm(request.user, request.POST))
+    if form.is_valid():
+        form.save()
+        update_session_auth_hash(request, form.user)
+        messages.success(request, "Votre mot de passe a été modifié.")
+        return redirect(redirect_vers, **redirect_kwargs)
+    return form
+
+
 @login_required
 def profil_client(request):
-    """Le client édite ses informations : prenom, nom, e-mail, telephone."""
+    """Le client édite ses informations : prenom, nom, e-mail,
+    telephone — et son mot de passe (section Sécurité)."""
     profil, _cree = ProfilClient.objects.get_or_create(user=request.user)
+    form = None
+    form_motdepasse = None
     if request.method == "POST":
-        form = _enregistrer_infos_perso(request, "portal:my_orders")
-        if not hasattr(form, "is_valid"):
-            return form  # redirection déjà émise
-    else:
+        if request.POST.get("section") == "motdepasse":
+            resultat = _enregistrer_mot_de_passe(
+                request, "portal:profil_client")
+            if not hasattr(resultat, "is_valid"):
+                return resultat  # redirection déjà émise
+            form_motdepasse = resultat
+        else:
+            form = _enregistrer_infos_perso(request, "portal:my_orders")
+            if not hasattr(form, "is_valid"):
+                return form  # redirection déjà émise
+    if form is None:
         form = ProfilPersonnelForm(initial={
             "prenom": request.user.first_name,
             "nom": request.user.last_name,
@@ -3548,7 +3590,10 @@ def profil_client(request):
             "telephone": profil.telephone,
             "photo_externe": profil.photo_url,
         })
-    return render(request, "portal/profil_client.html", {"form": form})
+    if form_motdepasse is None:
+        form_motdepasse = _form_motdepasse(request.user)
+    return render(request, "portal/profil_client.html",
+                  {"form": form, "form_motdepasse": form_motdepasse})
 
 
 @login_required
@@ -3630,6 +3675,7 @@ def param_rubrique(request, rubrique):
     if rubrique == "messagerie" and not est_proprietaire:
         return redirect("portal:param_rubrique", rubrique="profil")
     messagerie = vitrine.messagerie or {}
+    form_motdepasse = None
 
     if request.method == "POST":
         section = request.POST.get("section", "")
@@ -3672,6 +3718,13 @@ def param_rubrique(request, rubrique):
                 request, "portal:param_rubrique", rubrique="profil")
             if not hasattr(resultat, "is_valid"):
                 return resultat
+
+        elif section == "motdepasse" and rubrique == "profil":
+            resultat = _enregistrer_mot_de_passe(
+                request, "portal:param_rubrique", rubrique="profil")
+            if not hasattr(resultat, "is_valid"):
+                return resultat
+            form_motdepasse = resultat
 
         elif section == "messagerie" and rubrique == "messagerie":
             form_messagerie = MessagerieForm(request.POST)
@@ -3732,7 +3785,8 @@ def param_rubrique(request, rubrique):
                                + ").")
             return redirect("portal:param_rubrique", rubrique="messagerie")
 
-        return redirect("portal:param_rubrique", rubrique=rubrique)
+        if form_motdepasse is None:
+            return redirect("portal:param_rubrique", rubrique=rubrique)
 
     # Affichage de la rubrique (ou re-affichage après erreur de
     # formulaire : on reprend les valeurs initiales).
@@ -3746,9 +3800,12 @@ def param_rubrique(request, rubrique):
             "telephone": profil.telephone,
             "photo_externe": profil.photo_url,
         })
+        if form_motdepasse is None:
+            form_motdepasse = _form_motdepasse(request.user)
         return render(request, "portal/pro/param_profil.html", {
             "exploitant": exploitant,
             "form_profil": form_profil,
+            "form_motdepasse": form_motdepasse,
         })
 
     if rubrique == "ferme":
