@@ -9,9 +9,14 @@
    commandes côté maraîcher.</p>
 <form method="post" class="form">
   {% csrf_token %}
-  {{ form.as_p }}
-  <button class="btn" type="submit">💾 Enregistrer</button>
-  <a class="btn btn-outline" href="{% url 'portal:my_orders' %}">Annuler</a>
+  {% include "portal/_form_profil.html" %}
+  <div class="save-bar">
+    <button class="btn" type="submit">💾 Enregistrer</button>
+    <a class="btn btn-outline" href="{% url 'portal:my_orders' %}">Annuler</a>
+  </div>
 </form>
 {% endblock %}
-{% block extrajs %}<script src="{% static 'js/image-picker.js' %}" defer></script>{% endblock %}
+{% block extrajs %}
+<script src="{% static 'js/image-picker.js' %}" defer></script>
+<script src="{% static 'js/photo-picker.js' %}" defer></script>
+{% endblock %}

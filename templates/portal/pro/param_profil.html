@@ -15,7 +15,7 @@
   <form method="post" class="form">
     {% csrf_token %}
     <input type="hidden" name="section" value="profil">
-    {{ form_profil.as_p }}
+    {% include "portal/_form_profil.html" with form=form_profil %}
     <div class="save-bar">
       <button class="btn" type="submit">💾 Enregistrer mon profil</button>
       <a class="btn btn-outline" href="{% url 'portal:dashboard' %}">Annuler</a>
@@ -25,4 +25,7 @@
 </section>
 
 {% endblock %}
-{% block extrajs %}<script src="{% static 'js/image-picker.js' %}" defer></script>{% endblock %}
+{% block extrajs %}
+<script src="{% static 'js/image-picker.js' %}" defer></script>
+<script src="{% static 'js/photo-picker.js' %}" defer></script>
+{% endblock %}
