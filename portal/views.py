@@ -13,8 +13,10 @@ from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.core.serializers.json import DjangoJSONEncoder
+from django.core.validators import validate_email
 from django.db import transaction
 from django.db.models import Count, Max, Q
 from django.http import Http404, HttpResponse, JsonResponse
@@ -3548,15 +3550,15 @@ def order_ajuster(request, commande_id):
 # ----------------------------------------------------------- editions profil
 
 def _enregistrer_infos_perso(request, redirect_vers, **redirect_kwargs):
-    """Enregistre prenom / nom / e-mail du compte courant, et son
-    telephone dans ProfilClient (commun clients et maraichers)."""
+    """Enregistre prenom / nom du compte courant, et son telephone dans
+    ProfilClient (commun clients et maraichers) — l'e-mail, sensible
+    (récupération de compte), se gère dans la section Sécurité."""
     profil, _cree = ProfilClient.objects.get_or_create(user=request.user)
     form = ProfilPersonnelForm(request.POST)
     if form.is_valid():
         user = request.user
         user.first_name = form.cleaned_data["prenom"]
         user.last_name = form.cleaned_data["nom"]
-        user.email = form.cleaned_data["email"]
         user.save()
         profil.telephone = form.cleaned_data["telephone"]
         profil.photo_url = form.cleaned_data.get("photo_externe", "")
@@ -3595,15 +3597,44 @@ def _form_motdepasse(user):
 
 def _enregistrer_mot_de_passe(request, redirect_vers, **redirect_kwargs):
     """Section « Sécurité » des pages Mon profil : change le mot de
-    passe du compte courant. La session reste ouverte (mise à jour
-    du hachage de session après enregistrement). Retourne la
-    redirection, ou le formulaire en erreur à re-présenter."""
+    passe du compte courant — et enregistre l'e-mail si le champ a
+    été modifié (donnée sensible : elle sert à la récupération du
+    compte en cas de mot de passe perdu). La session reste ouverte
+    (mise à jour du hachage de session après enregistrement).
+    Retourne la redirection, ou le formulaire en erreur à
+    re-présenter."""
     form = _libelles_mot_de_passe(
         PasswordChangeForm(request.user, request.POST))
+    email = (request.POST.get("email") or "").strip().lower()
+    email_change = bool(email) and email != request.user.email.lower()
+    if email_change:
+        try:
+            validate_email(email)
+        except ValidationError:
+            messages.error(request, "E-mail non enregistré : adresse "
+                           "invalide.")
+            return form
+        if User.objects.exclude(pk=request.user.pk).filter(
+                Q(email__iexact=email)
+                | Q(username__iexact=email)).exists():
+            messages.error(request, "E-mail non enregistré : un autre "
+                           "compte utilise déjà cette adresse.")
+            return form
     if form.is_valid():
+        if email_change:
+            request.user.email = email
+            request.user.save(update_fields=["email"])
+            # Les snapshots e-mail des commandes et paniers suivent le
+            # compte (contacts producteur), comme sur le profil.
+            Commande.objects.filter(client=request.user).update(
+                email_client=email)
+            Panier.objects.filter(client=request.user).update(
+                email_client=email)
         form.save()
         update_session_auth_hash(request, form.user)
-        messages.success(request, "Votre mot de passe a été modifié.")
+        messages.success(
+            request, "Votre mot de passe a été modifié."
+            + (" E-mail mis à jour." if email_change else ""))
         return redirect(redirect_vers, **redirect_kwargs)
     return form
 
@@ -3630,7 +3661,6 @@ def profil_client(request):
         form = ProfilPersonnelForm(initial={
             "prenom": request.user.first_name,
             "nom": request.user.last_name,
-            "email": request.user.email,
             "telephone": profil.telephone,
             "photo_externe": profil.photo_url,
         })
@@ -3840,7 +3870,6 @@ def param_rubrique(request, rubrique):
         form_profil = ProfilPersonnelForm(initial={
             "prenom": request.user.first_name,
             "nom": request.user.last_name,
-            "email": request.user.email,
             "telephone": profil.telephone,
             "photo_externe": profil.photo_url,
         })

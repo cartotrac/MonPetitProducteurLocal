@@ -1,10 +1,11 @@
 {% comment %}
 Bloc « Mon profil » partagé (compte client et espace pro) : Prénom et
-Nom côte à côte, juste en dessous E-mail + Téléphone, à côté l'aperçu
-de la photo de profil externe, et en dessous sur toute la largeur la
-saisie de l'URL de la photo. Les deux blocs portent data-picker-custom
-: image-picker.js ne crée PAS son aperçu supplémentaire sous le
-champ URL — l'aperçu de la page (photo-picker.js) est seul.
+Nom côte à côte, téléphone en dessous, à côté l'aperçu de la photo de
+profil externe, et en dessous sur toute la largeur la saisie de l'URL
+de la photo. L'e-mail, sensible (récupération de compte), se gère dans
+la section 🔐 Sécurité. Les deux blocs portent data-picker-custom :
+image-picker.js ne crée PAS son aperçu supplémentaire sous le champ
+URL — l'aperçu de la page (photo-picker.js) est seul.
 {% endcomment %}
 <div class="profil-mise-en-page" data-picker-custom>
   <div class="profil-champs">
@@ -14,12 +15,10 @@ champ URL — l'aperçu de la page (photo-picker.js) est seul.
       <div class="form-champ">{{ form.nom.label_tag }} {{ form.nom }}
         {{ form.nom.errors }}</div>
     </div>
-    <div class="form-duo">
-      <div class="form-champ">{{ form.email.label_tag }} {{ form.email }}
-        {{ form.email.errors }}</div>
-      <div class="form-champ">{{ form.telephone.label_tag }} {{ form.telephone }}
-        {{ form.telephone.errors }}</div>
-    </div>
+    <div class="form-champ">{{ form.telephone.label_tag }} {{ form.telephone }}
+      {{ form.telephone.errors }}
+      <span class="helptext">L'e-mail, sensible (récupération de compte),
+        se modifie dans la section 🔐 Sécurité ci-dessous.</span></div>
   </div>
   <div class="profil-photo">
     <div class="image-picker" data-photo-apercu="id_photo_externe">

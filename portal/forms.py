@@ -321,12 +321,12 @@ class ProfilExploitantForm(forms.ModelForm):
 
 class ProfilPersonnelForm(forms.Form):
     """Informations personnelles du compte individuel (client, maraîcher
-    propriétaire ou membre d'une équipe) : prénom, nom, e-mail, téléphone,
-    photo (lien externe)."""
+    propriétaire ou membre d'une équipe) : prénom, nom, téléphone, photo
+    (lien externe). L'e-mail, donnée sensible (récupération du compte en
+    cas de mot de passe perdu), se gère dans la section 🔐 Sécurité."""
 
     prenom = forms.CharField(label="Prénom", max_length=150, required=False)
     nom = forms.CharField(label="Nom", max_length=150, required=False)
-    email = forms.EmailField(label="E-mail")
     telephone = forms.CharField(label="Téléphone", max_length=20,
                                 required=False)
     photo_externe = forms.URLField(
