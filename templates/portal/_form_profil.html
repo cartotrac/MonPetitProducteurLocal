@@ -1,0 +1,39 @@
+{% comment %}
+Bloc « Mon profil » partagé (compte client et espace pro) : Prénom et
+Nom côte à côte, juste en dessous E-mail + Téléphone, à côté l'aperçu
+de la photo de profil externe, et en dessous sur toute la largeur la
+saisie de l'URL de la photo. L'aperçu est relié au champ par
+photo-picker.js (image-picker.js ignore ce bloc : data-picker-custom).
+{% endcomment %}
+<div class="profil-mise-en-page" data-picker-custom>
+  <div class="profil-champs">
+    <div class="form-duo">
+      <div class="form-champ">{{ form.prenom.label_tag }} {{ form.prenom }}
+        {{ form.prenom.errors }}</div>
+      <div class="form-champ">{{ form.nom.label_tag }} {{ form.nom }}
+        {{ form.nom.errors }}</div>
+    </div>
+    <div class="form-duo">
+      <div class="form-champ">{{ form.email.label_tag }} {{ form.email }}
+        {{ form.email.errors }}</div>
+      <div class="form-champ">{{ form.telephone.label_tag }} {{ form.telephone }}
+        {{ form.telephone.errors }}</div>
+    </div>
+  </div>
+  <div class="profil-photo">
+    <div class="image-picker" data-photo-apercu="id_photo_externe">
+      <div class="image-picker-cadre">
+        <img class="image-picker-img" alt="👤 Photo de profil">
+        <div class="image-picker-placeholder">👤 Aucune photo</div>
+        <div class="image-picker-erreur">❌ Image introuvable : lien direct requis (.jpg, .png, .webp…).</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="profil-photo-url">
+  {{ form.photo_externe.label_tag }} {{ form.photo_externe }}
+  {{ form.photo_externe.errors }}
+  <span class="helptext">Lien direct de l'image (Drive/Cloud : lien de
+    partage de l'image ou URL en .jpg/.png/.webp) — rien n'est hébergé
+    sur le portail.</span>
+</div>
