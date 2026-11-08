@@ -124,7 +124,7 @@
             <p class="flash warning">🚫 Annulée par le producteur — motif : {{ panier.motif_annulation|default:"non précisé" }}.
                Vous pouvez la recommander ci-dessous en repartant de vos quantités.</p>
           {% else %}
-            <p class="muted">❌ Vous avez annulé cette commande — vous pouvez la relancer ci-dessous.</p>
+            <p class="muted">❌ Vous avez annulé cette commande{% if commande.motif_annulation %} — motif : {{ commande.motif_annulation }}{% endif %} — vous pouvez la relancer ci-dessous.</p>
           {% endif %}
         {% endif %}
         {% if commande.statut == 'NOUVELLE' %}
@@ -156,7 +156,8 @@
             <button class="btn" type="submit">💾 Mettre à jour</button>
           </form>
           <form method="post" action="{% url 'portal:order_cancel' commande.pk %}" class="inline">
-            {% csrf_token %}<button class="btn btn-outline" type="submit">Annuler la commande</button>
+            {% csrf_token %}<input type="text" name="motif" placeholder="Motif (facultatif)" size="24" aria-label="Motif d'annulation (facultatif)">
+            <button class="btn btn-outline" type="submit">Annuler la commande</button>
           </form>
         {% else %}
           {% for nom_cat, lignes in commande.groupes_lignes %}

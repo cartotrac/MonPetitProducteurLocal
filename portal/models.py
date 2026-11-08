@@ -880,6 +880,10 @@ class Commande(models.Model):
         blank=True, default="",
         help_text="Discerne l'annulation client de l'annulation "
                   "producteur (panier annulé en préparation).")
+    motif_annulation = models.CharField(
+        "Motif d'annulation", max_length=200, blank=True, default="",
+        help_text="Motif optionnel : saisi par le client à l'annulation, "
+                  "ou repris du panier pour une annulation producteur.")
     total = models.DecimalField("Total (€)", max_digits=8, decimal_places=2,
                                 default=0)
     note = models.TextField("Message du client", blank=True)

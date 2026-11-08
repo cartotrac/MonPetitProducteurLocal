@@ -1554,7 +1554,11 @@ def _contexte_commandes(exploitant, statut=None, annulation=""):
     catégorie ; pour les commandes validées, les ajustements faits à
     la validation (contenu du panier) sont affichés. Partagé par la
     page « Commandes » et la rubrique de la page Ventes."""
-    commandes = exploitant.commandes.order_by("-date_livraison", "-creee_le")
+    # Une commande VALIDÉE vit désormais côté « Paniers » : ici ne
+    # restent que les commandes à traiter, refusées et annulées.
+    commandes = exploitant.commandes.exclude(
+        statut=Commande.Statut.VALIDEE).order_by(
+        "-date_livraison", "-creee_le")
     if statut:
         commandes = commandes.filter(statut=statut)
     if annulation in (Commande.AnnulationPar.CLIENT,
@@ -1577,6 +1581,9 @@ def _contexte_commandes(exploitant, statut=None, annulation=""):
         # Panier suivi de la commande (créé à la validation) : horaire
         # du créneau retenu + itinéraire dès que le panier est livré.
         c.panier_suivi = paniers_valides.get(c.pk)
+        c.motif_annul = (c.motif_annulation
+                         or (c.panier_suivi.motif_annulation
+                             if c.panier_suivi else ""))
         c.canal_pref = canaux.get(c.client_id) if c.client_id else None
         c.photo_client = photos.get(c.client_id, "")
         c.tel_client = telephones.get(c.client_id, "")
@@ -3369,6 +3376,7 @@ def order_cancel(request, commande_id):
             and commande.statut == Commande.Statut.NOUVELLE):
         commande.statut = Commande.Statut.ANNULEE
         commande.annulee_par = Commande.AnnulationPar.CLIENT
+        commande.motif_annulation = request.POST.get("motif", "").strip()
         commande.save()
         messages.info(request, f"Commande #{commande.pk} annulée.")
     return redirect("portal:my_orders")

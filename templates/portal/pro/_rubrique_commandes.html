@@ -3,7 +3,7 @@
 <div class="quick-actions">
   <a class="btn {% if not filtre_statut %}btn-active{% endif %}" href="{% url 'portal:order_list' %}">Toutes</a>
   <a class="btn btn-filtre-atrier {% if filtre_statut == 'NOUVELLE' %}btn-active{% endif %}" href="{% url 'portal:order_list_filtered' 'NOUVELLE' %}">À traiter</a>
-  <a class="btn {% if filtre_statut == 'VALIDEE' %}btn-active{% endif %}" href="{% url 'portal:order_list_filtered' 'VALIDEE' %}">Validées</a>
+  <a class="btn" href="{% url 'portal:panier_list' %}">🧺 Validées → Paniers &amp; livraisons</a>
   <a class="btn btn-filtre-refus {% if filtre_statut == 'REFUSEE' %}btn-active{% endif %}" href="{% url 'portal:order_list_filtered' 'REFUSEE' %}">Refusées</a>
   <a class="btn btn-filtre-annule {% if filtre_statut == 'ANNULEE' and filtre_annulation == 'CLIENT' %}btn-active{% endif %}" href="{% url 'portal:order_list_filtered' 'ANNULEE' %}?annulation=CLIENT">❌ Annulées client</a>
   <a class="btn btn-filtre-annule {% if filtre_statut == 'ANNULEE' and filtre_annulation == 'PRODUCTEUR' %}btn-active{% endif %}" href="{% url 'portal:order_list_filtered' 'ANNULEE' %}?annulation=PRODUCTEUR">🚫 Annulées par moi</a>
@@ -35,11 +35,11 @@
     {% endfor %}
   </div>
 {% else %}
-<p class="muted">Les commandes sont regroupées par jour de livraison, du plus
-   récent au plus ancien — l'en-tête de chaque jour compte les commandes
-   <strong>par statut</strong> (code couleur). Produits rangés par catégorie ;
-   les ajustements faits à la validation sont affichés sur les commandes
-   validées.</p>
+<p class="muted">Les commandes à traiter, refusées et annulées sont regroupées
+   par jour de livraison — l'en-tête de chaque jour les compte
+   <strong>par statut</strong> (code couleur). Produits rangés par catégorie.
+   Une fois validée, une commande devient un panier : son suivi se poursuit
+   dans la rubrique <strong>🧺 Paniers &amp; livraisons</strong>.</p>
 
 {% regroup commandes by date_livraison as jours %}
 {% for jour in jours %}
@@ -55,7 +55,7 @@
           <img class="avatar avatar-small" src="{{ commande.photo_client }}" alt="Photo du client">
         {% endif %}
         <strong>#Commande {{ commande.pk }} — Pour : {% if commande.client %}{{ commande.client.get_full_name|default:commande.client.username }}{% else %}{{ commande.nom_client }}{% endif %}</strong>
-        <span class="badge badge-{{ commande.statut }}">{{ commande.get_statut_display }}</span>
+        <span class="badge badge-{{ commande.statut }}">{{ commande.libelle_statut }}</span>
         — 💰 {{ commande.total }} €
       </div>
       <p>📅 Livraison {{ commande.date_livraison|date:"l d F Y" }}
@@ -143,6 +143,9 @@
       {% endif %}
       {% if commande.statut == 'REFUSEE' and commande.motif_refus %}
         <p class="flash warning">❌ Refusée — motif : {{ commande.motif_refus }}</p>
+      {% endif %}
+      {% if commande.statut == 'ANNULEE' and commande.motif_annul %}
+        <p class="flash warning">{{ commande.libelle_statut }} — motif : {{ commande.motif_annul }}</p>
       {% endif %}
       {% if commande.note %}<p class="muted">💬 {{ commande.note }}</p>{% endif %}
     </div>
