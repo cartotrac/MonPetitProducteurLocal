@@ -336,6 +336,13 @@ def producer_search(request):
                 "position_libelle": libelle_position,
                 "est_demo": e.est_demo,
                 "url": e.get_absolute_url(),
+                /* Favori direct depuis le popup de la carte : l'étoile
+                   du marqueur reflète l'état pour le compte connecté. */
+                "slug": e.slug,
+                "connecte": request.user.is_authenticated,
+                "est_favori": e.slug in favoris_slugs,
+                "url_favori": reverse("portal:favoris_toggle",
+                                      args=[e.slug]),
             })
     # Liste de choix d'activités adaptée au mode : seuls les deux
     # foodtruck / traiteur en mode restauration, tous les autres en

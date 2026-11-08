@@ -101,7 +101,7 @@
   <div class="map-canvas-wrap{% if visu == "restauration" %} visu-restauration{% elif visu == "marches" %} visu-marches{% endif %}">
     <h2 class="map-titre">🗺️ {% if visu == "restauration" %}Traiteurs &amp; foodtrucks trouvés{% elif visu == "marches" %}Marchés &amp; boutiques identifiés{% else %}Producteurs trouvés{% endif %}{% if carte_data %} ({{ carte_data|length }}){% endif %}</h2>
     {% if carte_data %}
-      <div id="carte-recherche" class="map-canvas" data-mode="{% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% else %}producteurs{% endif %}" data-zone="{{ dept }}"></div>
+      <div id="carte-recherche" class="map-canvas" data-mode="{% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% else %}producteurs{% endif %}" data-zone="{{ dept }}" data-csrf="{{ csrf_token }}"></div>
       {{ carte_data|json_script:"donnees-carte" }}
       {{ home_carte|json_script:"home-carte" }}
     {% else %}

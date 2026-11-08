@@ -301,13 +301,35 @@ exploitants.forEach(function (e) {
   var positionDyn = (e.position_libelle || "")
     ? '<br><span class="muted">📍 ' + e.position_libelle + "</span>"
     : "";
+  /* Favori direct depuis le popup : étoile pour les visiteurs
+     connectés — soumission POST vers favoris_toggle puis retour
+     à la page de recherche courante (champ « next »), la page est
+     rechargée et l'étoile reflète le nouvel état. */
+  var favoriPopup = "";
+  if (e.connecte && e.url_favori) {
+    var csrfPopup = (blocCarte.getAttribute("data-csrf") || "").trim();
+    favoriPopup =
+      '<form method="post" action="' + e.url_favori + '" ' +
+      'class="popup-favori-form">' +
+      '<input type="hidden" name="csrfmiddlewaretoken" value="' +
+      csrfPopup + '">' +
+      '<input type="hidden" name="next" value="' +
+      window.location.pathname + window.location.search + '">' +
+      '<button type="submit" class="btn-favori-vignette' +
+      (e.est_favori ? " actif" : "") + '" title="' +
+      (e.est_favori ? "Retirer des favoris" : "Ajouter aux favoris") +
+      '" aria-label="' + (e.est_favori ? "Retirer " : "Ajouter ") +
+      e.nom_ferme + (e.est_favori ? " des favoris" : " aux favoris") +
+      '">' + (e.est_favori ? "⭐" : "☆") + "</button></form> ";
+  }
   var marker = L.marker([e.latitude, e.longitude], { icon: icone }).bindPopup(
     "<strong>" + e.nom_ferme + "</strong>" +
     (libelle ? '<br><span class="muted">' + libelle + "</span>" : "") +
     badgeDemo +
     "<br>" + (e.ville || "") +
     positionDyn +
-    '<br><a href="' + e.url + '">Nos Produits →</a>'
+    "<br>" + favoriPopup +
+    '<a href="' + e.url + '">Nos Produits →</a>'
   );
   marker._category = e.mode_production;
   marker._activite = e.activite;

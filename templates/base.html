@@ -72,12 +72,12 @@
           <a href="{% url 'portal:profil_client' %}" class="{% if request.path == '/profil/' %}nav-actif{% endif %}">Mon profil</a>
         {% endif %}
         <form class="inline" method="post" action="{% url 'logout' %}">
-          {% csrf_token %}<button class="btn btn-session btn-session-rouge" type="submit" title="Se déconnecter" aria-label="Se déconnecter"><span class="pastille-session pastille-rouge" aria-hidden="true"></span>Logout</button>
+          {% csrf_token %}<button class="btn btn-session btn-session-rouge" type="submit" title="Se déconnecter" aria-label="Se déconnecter"><span class="pastille-session pastille-verte" aria-hidden="true"></span>Logout</button>
         </form>
       {% else %}
         <a href="{% url 'portal:register_client' %}" class="nav-compte" title="Créez votre compte Localien, c'est gratuit : commandez vos paniers, gardez vos producteurs favoris et suivez vos commandes — plus de saisie d'identifiants à chaque visite" aria-label="Devenir Localien : créer un compte client gratuit">Devenir Localien</a>
         <a class="btn btn-outline" href="{% url 'portal:register_producer' %}" title="Créez votre espace producteur : ferme, boutique, traiteur ou foodtruck — vos récoltes, productions ou créations à la vente en circuit court !" aria-label="Créer mon espace pro">Créer mon espace pro</a>
-        <a class="btn btn-session btn-session-verte" href="{% url 'login' %}" title="Se connecter"><span class="pastille-session pastille-verte" aria-hidden="true"></span>Login</a>
+        <a class="btn btn-session btn-session-verte" href="{% url 'login' %}" title="Se connecter"><span class="pastille-session pastille-rouge" aria-hidden="true"></span>Login</a>
       {% endif %}
     </div>
   </nav>
@@ -145,10 +145,10 @@
 <div class="session-flottante" aria-label="Session">
   {% if user.is_authenticated %}
     <form class="inline" method="post" action="{% url 'logout' %}">
-      {% csrf_token %}<button class="btn-session-dot btn-session-dot-rouge" type="submit" title="Se déconnecter" aria-label="Se déconnecter"><span class="pastille-session pastille-rouge" aria-hidden="true"></span></button>
+      {% csrf_token %}<button class="btn-session-dot btn-session-dot-rouge" type="submit" title="Se déconnecter" aria-label="Se déconnecter"><span class="pastille-session pastille-verte" aria-hidden="true"></span></button>
     </form>
   {% else %}
-    <a class="btn-session-dot btn-session-dot-verte" href="{% url 'login' %}" title="Se connecter" aria-label="Se connecter"><span class="pastille-session pastille-verte" aria-hidden="true"></span></a>
+    <a class="btn-session-dot btn-session-dot-verte" href="{% url 'login' %}" title="Se connecter" aria-label="Se connecter"><span class="pastille-session pastille-rouge" aria-hidden="true"></span></a>
   {% endif %}
 </div>
 <button class="btn-aide-flottant" type="button" id="btn-aide" title="Aide : le portail en bref" aria-label="Aide : le portail en bref">ℹ️</button>
@@ -203,8 +203,8 @@
       if (trouver) {
         trouver.classList.toggle("nav-chercher-flottant", flottant);
       }
-      /* Bouton session : réduit à un point rouge (connecté, action
-         déconnexion) ou vert (déconnecté, action connexion), placé
+      /* Bouton session : réduit à un point vert (connecté, action
+         déconnexion) ou rouge (déconnecté, action connexion), placé
          au-dessus des flèches de scroll. */
       if (session) {
         session.classList.toggle("visible", flottant);

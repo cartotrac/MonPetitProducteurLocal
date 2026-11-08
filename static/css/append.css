@@ -1465,3 +1465,9 @@ html.dark .qte-step { background: #2c3625;
 .search-bar { flex-wrap: wrap; }
 .search-bar .filtre-multi { position: relative; }
 .search-bar .filtre-multi-menu { z-index: 1150; }
+
+/* ===== Popup de la carte : étoile favori en ligne (producteurs,
+       traiteurs & foodtrucks) — même bouton que les vignettes, sans
+       le positionnement absolu réservé aux cartes. ===== */
+.popup-favori-form { display: inline-block; margin: 0 6px 0 0;
+  vertical-align: middle; }
