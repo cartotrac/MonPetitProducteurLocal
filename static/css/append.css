@@ -1586,3 +1586,16 @@ html.dark .btn-google:hover{background:#f1f3f4;}
 .charte-table th{background:#eaf2e6;}
 html.dark .charte-table th{background:#2c3526;}
 .charte-actions{display:flex;gap:.6rem;flex-wrap:wrap;margin:.9rem 0 1.3rem;}
+
+
+/* ===== Bouton « Continuer avec Google » : logo officiel G et
+       séparateur « ou » entre Google et le formulaire e-mail. ===== */
+.google-bloc{align-items:stretch;}
+.btn-google .g-logo{flex:none;width:18px;height:18px;}
+.ou-separateur{display:flex;align-items:center;gap:.6rem;color:#7a857a;
+               font-size:.85rem;margin:.2rem 0;max-width:420px;}
+.ou-separateur::before,.ou-separateur::after{content:"";flex:1;
+               border-top:1px solid var(--border,#d0d7cf);}
+html.dark .ou-separateur{color:#9aa89a;}
+html.dark .ou-separateur::before,
+html.dark .ou-separateur::after{border-top-color:#4e5c3d;}
