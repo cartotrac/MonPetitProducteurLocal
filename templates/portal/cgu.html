@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Conditions d'utilisation — MonPetitProducteurLocal{% endblock %}
+{% block content %}
+<h1>📋 Conditions d'utilisation</h1>
+<p class="muted">Ces conditions régissent l'accès et l'utilisation du
+   portail. Elles s'ajoutent aux
+   <a href="{% url 'portal:mentions_legales' %}">mentions légales</a> et à la
+   <a href="{% url 'portal:politique_confidentialite' %}">politique de
+   confidentialité</a>.</p>
+
+<section class="harvest-bloc">
+  <h2>🎯 Objet du service</h2>
+  <p>Le portail met en relation des producteurs locaux et leurs
+     clients : vitrines publiques, commandes de produits, points et
+     créneaux de retrait. Le portail <strong>n'est jamais partie au
+     contrat de vente</strong> : la commande est passée et conclue
+     directement entre le client et le producteur, qui reste seul
+     responsable de ses prix, de ses produits, de leurs qualités et
+     des modalités de remise.</p>
+</section>
+
+<section class="harvest-bloc">
+  <h2>👤 Comptes</h2>
+  <p>La création d'un compte (e-mail et mot de passe, ou « Continuer
+     avec Google ») suppose des informations exactes et à jour. Vous
+     êtes responsable de la confidentialité de vos identifiants. Les
+     comptes et contenus manifestement frauduleux ou abusifs peuvent
+     être suspendus par l'admin de l'instance.</p>
+</section>
+
+<section class="harvest-bloc">
+  <h2>🚜 Engagements des producteurs</h2>
+  <p>Chaque professionnel garantit l'exactitude des informations de
+     sa vitrine (productions, prix, disponibilités, horaires, points
+     de retrait) et le respect des obligations qui lui sont propres
+     (réglementation de son activité, fiscalité, hygiène). Les
+     exploitations de démonstration sont signalées par un badge
+     🧪 DÉMO et peuvent être supprimées lors des purges des jeux
+     de démonstration.</p>
+</section>
+
+<section class="harvest-bloc">
+  <h2>🛒 Commandes</h2>
+  <p>La disponibilité réelle des produits dépend des récoltes : le
+     producteur peut ajuster les quantités avant validation, et une
+     commande reste modifiable ou annulable selon les règles affichées
+     sur le portail jusqu'à sa validation.</p>
+</section>
+
+<section class="harvest-bloc">
+  <h2>🧪 Service en cours de développement</h2>
+  <p>Cette instance est une plateforme en cours de construction (voir
+     <a href="{% url 'portal:mentions_legales' %}">mentions légales</a>) :
+     le service est fourni « en l'état », sans garantie de
+     disponibilité ininterrompue ; des interruptions pourront avoir
+     lieu pour maintenance et évolution. Les évolutions sont annoncées
+     aux utilisateurs du service.</p>
+</section>
+
+<section class="harvest-bloc">
+  <h2>©️ Propriété intellectuelle</h2>
+  <p>Le portail est une <strong>application libre</strong> (dépôt
+     GitHub public). Les contenus publiés par les producteurs
+     (descriptions, visuels, prix) leur appartiennent ; toute revente
+     ou extraction massive des données du portail est interdite sans
+     accord de l'admin de l'instance.</p>
+</section>
+
+<section class="harvest-bloc">
+  <h2>⚖️ Droit applicable</h2>
+  <p>Les présentes conditions sont soumises au droit français. En cas
+     de litige, une solution amiable sera recherchée en priorité auprès
+     de l'admin de l'instance.</p>
+</section>
+
+<section class="harvest-bloc">
+  <h2>📄 Documents associés</h2>
+  <p><a href="{% url 'portal:mentions_legales' %}">Mentions légales</a> ·
+     <a href="{% url 'portal:politique_confidentialite' %}">Politique de confidentialité</a></p>
+</section>
+{% endblock %}

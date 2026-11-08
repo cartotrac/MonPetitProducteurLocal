@@ -63,6 +63,19 @@ def mentions_legales(request):
     return render(request, "portal/mentions.html")
 
 
+def politique_confidentialite(request):
+    """Politique de confidentialité : données traitées par le portail,
+    connexion Google incluse (page exigée par l'écran de consentement
+    OAuth de Google — URL publique à y déclarer)."""
+    return render(request, "portal/confidentialite.html")
+
+
+def conditions_utilisation(request):
+    """Conditions d'utilisation du service (page exigée par l'écran
+    de consentement OAuth de Google — URL publique à y déclarer)."""
+    return render(request, "portal/cgu.html")
+
+
 def home(request):
     """Landing : bandeau, hero, présentation du portail — et les
     chiffres clés segmentés (pros par métier, marchés et boutiques

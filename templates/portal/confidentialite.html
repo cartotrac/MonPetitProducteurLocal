@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Politique de confidentialité — MonPetitProducteurLocal{% endblock %}
+{% block content %}
+<h1>🔒 Politique de confidentialité</h1>
+<p class="muted">Cette page décrit quelles données sont collectées par
+   le portail, pourquoi, et comment exercer vos droits. Elle complète
+   les <a href="{% url 'portal:mentions_legales' %}">mentions légales</a>.</p>
+
+<section class="harvest-bloc">
+  <h2>Responsable du traitement</h2>
+  <p>Le responsable du traitement est l'exploitant de cette instance du
+     portail (voir <a href="{% url 'portal:mentions_legales' %}">Mentions
+     légales — Instance et éditeur</a>). Les données de vos commandes
+     relèvent conjointement de chaque producteur concerné.</p>
+</section>
+
+<section class="harvest-bloc">
+  <h2>👤 Données collectées sur les comptes</h2>
+  <p>Lors de la création de votre compte (client ou producteur) :
+     prénom, nom, <strong>e-mail</strong> (identifiant de connexion),
+     téléphone (optionnel), <strong>photo de profil</strong> (lien
+     externe hébergé par vous — Google Drive, cloud, réseau — le
+     portail n'héberge aucune image envoyée par les clients).</p>
+  <p>Au fil de l'usage : historique des commandes et paniers, favoris
+     (producteurs suivis). Pour une commande <strong>sans compte</strong> :
+     uniquement le nom, e-mail et téléphone saisis au moment de la
+     commande, pour permettre sa remise et son suivi.</p>
+</section>
+
+<section class="harvest-bloc">
+  <h2>🌐 Connexion « Continuer avec Google »</h2>
+  <p>Si vous utilisez le bouton « Continuer avec Google », le portail
+     reçoit de Google votre <strong>adresse e-mail, votre nom et la
+     photo publique de votre profil Google</strong>, uniquement pour
+     créer votre compte ou vous connecter. Ces informations ne sont
+     ni vendues, ni cédées, ni utilisées à d'autres fins ; le portail
+     ne demande pas d'autres données Google et n'utilise aucune API
+     sensible. Vous pouvez à tout moment supprimer la connexion Google
+     ou revenir à la connexion par e-mail et mot de passe.</p>
+</section>
+
+<section class="harvest-bloc">
+  <h2>🎯 Finalités et bases légales</h2>
+  <p>Les données servent exclusivement à : la mise en relation
+     producteur ↔ client, le traitement des commandes et leur retrait,
+     et la communication liée à ces commandes (confirmation, panier
+     prêt, newsletters auxquelles vous avez commandé). Bases légales :
+     exécution du contrat de commande, et intérêt légitime pour
+     l'exploitation technique du service. Aucune donnée n'est
+     utilisée à des fins publicitaires ou de profilage.</p>
+</section>
+
+<section class="harvest-bloc">
+  <h2>💾 Hébergement et conservation</h2>
+  <p>Les données sont hébergées par <strong>AlwaysData</strong>
+     (Union européenne). Les commandes livrées puis purgées ne sont
+     pas conservées au-delà des besoins du service et des obligations
+     comptables des producteurs. Les paramètres de messagerie des
+     producteurs (SMTP, passerelle SMS) sont chiffrés côté serveur et
+     ne sont pas accessibles à l'admin de l'instance.</p>
+</section>
+
+<section class="harvest-bloc">
+  <h2>🍪 Cookies et traceurs</h2>
+  <p>Le portail utilise uniquement le <strong>cookie de session</strong>
+     Django (maintien de la connexion, panier en cours) et le cookie
+     de protection CSRF. Pas de cookie publicitaire, pas de
+     mesure d'audience tierce, pas de revente de données de
+     navigation.</p>
+</section>
+
+<section class="harvest-bloc">
+  <h2>✅ Vos droits</h2>
+  <p>Conformément au RGPD, vous disposez des droits d'accès, de
+     rectification, d'effacement, de limitation, de portabilité et
+     d'opposition. Ils s'exercent auprès de l'admin de l'instance
+     (voir page de contact sur les
+     <a href="{% url 'portal:mentions_legales' %}">mentions légales</a>)
+     et auprès de chaque producteur pour les données de commande le
+     concernant. Vous pouvez également modifier ou supprimer vos
+     informations depuis votre page « Mon profil ».</p>
+</section>
+
+<section class="harvest-bloc">
+  <h2>📄 Documents associés</h2>
+  <p><a href="{% url 'portal:mentions_legales' %}">Mentions légales</a> ·
+     <a href="{% url 'portal:conditions_utilisation' %}">Conditions d'utilisation</a></p>
+</section>
+{% endblock %}
