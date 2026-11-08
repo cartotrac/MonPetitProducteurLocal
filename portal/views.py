@@ -186,6 +186,15 @@ def producer_search(request):
     mode_choisi = [m for m in request.GET.getlist("mode") if m.strip()]
     activite_choisie = [a for a in request.GET.getlist("activite")
                         if a.strip()]
+    # Bascule 🎃 Démo / 🧡 Réel : active par défaut (comptes fictifs
+    # visibles). En mode « Réel », les comptes de démonstration sont
+    # filtrés EN AMONT de tout le reste — vignettes, carte, marchés
+    # déduits, dénombrements et autres filtres (texte, spatial,
+    # activités, modes) ne voient que le jeu filtré.
+    demo = request.GET.get("demo", "1") != "0"
+    visibles = Exploitant.objects.filter(visible=True)
+    if not demo:
+        visibles = visibles.exclude(est_demo=True)
     # « dept » n'entre PAS dans le queryset : il pilote uniquement
     # le zoom cartographique (data-zone), la carte filtre ensuite
     # les vignettes par emprise.
