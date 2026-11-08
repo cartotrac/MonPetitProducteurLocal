@@ -2,8 +2,9 @@
 Bloc « Mon profil » partagé (compte client et espace pro) : Prénom et
 Nom côte à côte, juste en dessous E-mail + Téléphone, à côté l'aperçu
 de la photo de profil externe, et en dessous sur toute la largeur la
-saisie de l'URL de la photo. L'aperçu est relié au champ par
-photo-picker.js (image-picker.js ignore ce bloc : data-picker-custom).
+saisie de l'URL de la photo. Les deux blocs portent data-picker-custom
+: image-picker.js ne crée PAS son aperçu supplémentaire sous le
+champ URL — l'aperçu de la page (photo-picker.js) est seul.
 {% endcomment %}
 <div class="profil-mise-en-page" data-picker-custom>
   <div class="profil-champs">
@@ -30,7 +31,7 @@ photo-picker.js (image-picker.js ignore ce bloc : data-picker-custom).
     </div>
   </div>
 </div>
-<div class="profil-photo-url">
+<div class="profil-photo-url" data-picker-custom>
   {{ form.photo_externe.label_tag }} {{ form.photo_externe }}
   {{ form.photo_externe.errors }}
   <span class="helptext">Lien direct de l'image (Drive/Cloud : lien de
