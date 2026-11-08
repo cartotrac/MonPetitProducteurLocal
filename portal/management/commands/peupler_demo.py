@@ -87,22 +87,32 @@ from portal.models import (Bulletin, Carte, Categorie, Commande,
 
 MOT_DE_PASSE_DEMO = "demo1234!"
 
-# Tables dont les séquences (PostgreSQL) sont réinitialisées après
-# un effacement des commandes / paniers : les nouveaux objets
-# repartent des index 1 au lieu de continuer la numérotation.
+# Tables dont les séquences (PostgreSQL) sont réalignées après un
+# effacement des commandes / paniers : le compteur est repositionné
+# juste après l'id le plus élevé restant en base (à 1 si la table
+# est vidée) — jamais en dessous d'un id existant.
 TABLES_SEQUENCE = ("portal_commande", "portal_panier",
                    "portal_lignecommande", "portal_lignepanier")
 
 
 def reinitialiser_sequences():
-    """Repositionne les compteurs d'id de PostgreSQL à 1 pour les
-    tables de commandes et paniers (sans effet sur les autres SGBD)."""
+    """Repositionne les compteurs d'id de PostgreSQL de chaque table
+    juste après l'id le plus élevé restant en base (à 1 si la table
+    est vide). Un effacement partiel (--reset-commandes-demo, purge
+    laissant des commandes réelles) ne peut donc JAMAIS faire
+    retomber le compteur sur un id déjà utilisé : plus de collision
+    « duplicate key » au repeuplement. Sans effet sur les autres SGBD."""
     if connection.vendor != "postgresql":
         return
     with connection.cursor() as curseur:
         for table in TABLES_SEQUENCE:
+            # table provient de TABLES_SEQUENCE (constante interne) :
+            # aucune injection possible ; MAX(id) rend le réalignement
+            # idempotent et sûr même sur une base non vidée.
             curseur.execute(
-                "SELECT setval(pg_get_serial_sequence(%s, 'id'), 1, false)",
+                "SELECT setval(pg_get_serial_sequence(%s, 'id'), "
+                "COALESCE((SELECT MAX(id) FROM " + table + "), 0) + 1, "
+                "false)",
                 [table])
 
 
@@ -1361,12 +1371,20 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(
                     f"Comptes de démo supprimés : "
                     f"{', '.join(sorted(purges))} ({n} objet(s))."))
-            # Si la purge a vidé TOUTES les commandes et paniers (base
-            # 100 % démo), les index repartent de 1 au repeuplement.
-            if not Panier.objects.exists() and not Commande.objects.exists():
-                reinitialiser_sequences()
+            # Les index sont réalignés sur l'id le plus élevé restant :
+            # à 1 si la purge a vidé toute la base (100 % démo), sinon
+            # à la suite des commandes/paniers réels conservés — aucun
+            # doublon possible au repeuplement.
+            base_vide = (not Panier.objects.exists()
+                         and not Commande.objects.exists())
+            reinitialiser_sequences()
+            if base_vide:
                 self.stdout.write(self.style.SUCCESS(
                     "Base sans commande ni panier : index réinitialisés."))
+            else:
+                self.stdout.write(self.style.SUCCESS(
+                    "Commandes/paniers réels conservés : index réalignés "
+                    "à la suite des id existants."))
             return
 
         reset_total = bool(options.get("reset_commandes"))
@@ -1386,7 +1404,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(
                 f"Commandes et paniers effacés : {nb_commandes} "
                 f"commande(s), {nb_paniers} panier(s) supprimé(s), "
-                "index réinitialisés."))
+                "index réalignés."))
         elif reset_demo:
             # Nettoyage courant : seules les commandes et paniers des
             # fermes de DÉMONSTRATION sont effacés — les commandes
@@ -1401,7 +1419,8 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(
                 f"Commandes et paniers de DÉMO effacés : {nb_commandes} "
                 f"commande(s), {nb_paniers} panier(s) — les commandes "
-                "réelles sont conservées, index réinitialisés."))
+                "réelles sont conservées, index réalignés sur les id "
+                "restants."))
 
         # Les catalogues types par activité doivent être en base avant
         # de piocher les produits : foodtrucks et traiteurs reposent
