@@ -72,7 +72,7 @@
             <a href="{% url 'portal:my_orders' %}{% if commande.statut == 'NOUVELLE' %}?filtre=NOUVELLE{% endif %}">
               {% if commande.statut == 'NOUVELLE' %}🧾{% elif commande.statut == 'VALIDEE' %}🧺{% elif commande.statut == 'REFUSEE' %}❌{% else %}🚫{% endif %}
               {{ commande.exploitant.nom_ferme|truncatewords:3 }}</a>
-            <span class="badge badge-{{ commande.statut }}">{% if commande.statut == 'NOUVELLE' %}À traiter{% else %}{{ commande.get_statut_display }}{% endif %}</span>
+            <span class="badge badge-{{ commande.statut }}">{% if commande.statut == 'NOUVELLE' %}À traiter{% else %}{{ commande.libelle_statut }}{% endif %}</span>
             <p class="muted">💰 {{ commande.total }} €</p>
           </div>
         {% empty %}
@@ -103,21 +103,29 @@
       {% for resultat in jour.list %}
       {% with commande=resultat.commande panier=resultat.panier %}
       <details class="card order-card statut-{{ commande.statut }} commande-client">
-        <summary>🧾 Commandé à {{ commande.exploitant.nom_ferme }}
+        <summary>🧾 Commande #{{ commande.pk }} : {{ commande.exploitant.nom_ferme }}
           {% if commande.statut == 'NOUVELLE' %}
             <span class="badge badge-NOUVELLE">À traiter — modifiable</span>
           {% else %}
-            <span class="badge badge-{{ commande.statut }}">{{ commande.get_statut_display }}</span>
+            <span class="badge badge-{{ commande.statut }}">{{ commande.libelle_statut }}</span>
           {% endif %}
           — 💰 {{ commande.total }} €</summary>
         <p>📅 Livraison {{ commande.date_livraison|date:"l d F Y" }} — Emplacement : {% if commande.point_livraison %}{{ commande.point_livraison.nom }}{% else %}à préciser{% endif %}
-           — 💰 {{ commande.total }} €{% if panier.statut == 'LIVRE' and panier.destination_itineraire %}{% with lat=panier.destination_itineraire.0 lon=panier.destination_itineraire.1 %}
+           {% if panier.statut == 'LIVRE' and panier.destination_itineraire %}{% with lat=panier.destination_itineraire.0 lon=panier.destination_itineraire.1 %}
            — 🧭 <a href="https://www.openstreetmap.org/directions?to={{ lat|unlocalize|floatformat:'6' }},{{ lon|unlocalize|floatformat:'6' }}" target="_blank" rel="noopener" title="Itinéraire vers le point de livraison ou la ferme (OpenStreetMap)">Calculer mon itinéraire (OSM)</a>
            / <a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ lat|unlocalize|floatformat:'6' }},{{ lon|unlocalize|floatformat:'6' }}" target="_blank" rel="noopener" title="Itinéraire vers le point de livraison ou la ferme (Google Maps)">Google Maps</a>
            {% endwith %}{% endif %}</p>
         {% if commande.statut == 'REFUSEE' and commande.motif_refus %}
           <p class="flash warning">❌ Commande refusée par le producteur — motif : {{ commande.motif_refus }}.
              Vous pouvez recomposer une commande pour une autre date ou un autre producteur.</p>
+        {% endif %}
+        {% if commande.statut == 'ANNULEE' %}
+          {% if commande.annulee_par == 'PRODUCTEUR' %}
+            <p class="flash warning">🚫 Annulée par le producteur — motif : {{ panier.motif_annulation|default:"non précisé" }}.
+               Vous pouvez la recommander ci-dessous en repartant de vos quantités.</p>
+          {% else %}
+            <p class="muted">❌ Vous avez annulé cette commande — vous pouvez la relancer ci-dessous.</p>
+          {% endif %}
         {% endif %}
         {% if commande.statut == 'NOUVELLE' %}
           <form method="post" action="{% url 'portal:order_ajuster' commande.pk %}" class="ajust-form">

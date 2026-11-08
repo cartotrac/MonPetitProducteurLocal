@@ -846,7 +846,16 @@ class Commande(models.Model):
         NOUVELLE = "NOUVELLE", "À valider"
         VALIDEE = "VALIDEE", "Validée"
         REFUSEE = "REFUSEE", "Refusée"
-        ANNULEE = "ANNULEE", "Annulée (client)"
+        ANNULEE = "ANNULEE", "Annulée"
+
+    class AnnulationPar(models.TextChoices):
+        """Qui a annulé la commande : le client depuis « Mes
+        commandes », ou le producteur (panier annulé en
+        préparation, motif transmis au client). Les deux cas
+        partagent le statut ANNULEE mais se discernent partout,
+        données comme interfaces."""
+        CLIENT = "CLIENT", "Client"
+        PRODUCTEUR = "PRODUCTEUR", "Producteur"
 
     exploitant = models.ForeignKey(Exploitant, on_delete=models.CASCADE,
                                    related_name="commandes")
@@ -866,6 +875,11 @@ class Commande(models.Model):
     statut = models.CharField("Statut", max_length=10,
                               choices=Statut.choices,
                               default=Statut.NOUVELLE, db_index=True)
+    annulee_par = models.CharField(
+        "Annulée par", max_length=12, choices=AnnulationPar.choices,
+        blank=True, default="",
+        help_text="Discerne l'annulation client de l'annulation "
+                  "producteur (panier annulé en préparation).")
     total = models.DecimalField("Total (€)", max_digits=8, decimal_places=2,
                                 default=0)
     note = models.TextField("Message du client", blank=True)
@@ -886,6 +900,16 @@ class Commande(models.Model):
     def __str__(self):
         return (f"Commande #{self.pk} — {self.nom_client} "
                 f"→ {self.exploitant.nom_ferme}")
+
+    @property
+    def libelle_statut(self):
+        """Statut affiché : les annulations distinguent le client du
+        producteur (panier annulé) — côté pro comme côté client."""
+        if self.statut == self.Statut.ANNULEE:
+            if self.annulee_par == self.AnnulationPar.PRODUCTEUR:
+                return "Annulée (producteur)"
+            return "Annulée (client)"
+        return self.get_statut_display()
 
     @property
     def contact_client(self):

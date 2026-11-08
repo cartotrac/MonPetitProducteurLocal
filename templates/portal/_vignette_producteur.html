@@ -30,7 +30,7 @@ Attend la variable « exploitant ».
   <div class="vignette-reste">
     {% if exploitant.description %}<p>{{ exploitant.description|truncatewords:20 }}</p>{% endif %}
     <div class="vignette-horaires" role="note">
-      <strong>📍 Boutiques, marchés &amp; points de livraison :</strong>
+      <strong>📍 {% if exploitant.activite == 'FOODTRUCK' %}Emplacements &amp; horaires{% else %}Horaires boutiques, marchés, points relais{% endif %} :</strong>
       {% for h in exploitant.horaires %}
         <span>🗓️ {{ h.txt }}{% if h.point %} — {% if h.itineraire %}<a href="{{ h.itineraire }}" target="_blank" rel="noopener" title="Itinéraire google maps">{{ h.point }}</a>{% else %}{{ h.point }}{% endif %}{% endif %}</span>
       {% endfor %}

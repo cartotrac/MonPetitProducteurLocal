@@ -1510,7 +1510,8 @@ def _notifier_sans_echec(request, panier, type_msg):
 @exploitant_requis
 def order_list(request, statut=None):
     exploitant = exploitant_pour(request.user)
-    contexte = _contexte_commandes(exploitant, statut)
+    contexte = _contexte_commandes(
+        exploitant, statut, request.GET.get("annulation", "").strip())
     # Vue alternative « calendrier » (?vue=calendrier)
     contexte.update(_contexte_calendrier(request, contexte["commandes"]))
     return render(request, "portal/pro/orders.html", contexte)
@@ -1547,7 +1548,7 @@ def _contexte_calendrier(request, commandes):
     }
 
 
-def _contexte_commandes(exploitant, statut=None):
+def _contexte_commandes(exploitant, statut=None, annulation=""):
     """Commandes reçues, avec contact client (e-mail, téléphone, canal
     préféré si le client en a exprimé un). Produits rangés par
     catégorie ; pour les commandes validées, les ajustements faits à
@@ -1556,6 +1557,9 @@ def _contexte_commandes(exploitant, statut=None):
     commandes = exploitant.commandes.order_by("-date_livraison", "-creee_le")
     if statut:
         commandes = commandes.filter(statut=statut)
+    if annulation in (Commande.AnnulationPar.CLIENT,
+                      Commande.AnnulationPar.PRODUCTEUR):
+        commandes = commandes.filter(annulee_par=annulation)
     canaux = {p.client_id: p.get_canal_display()
               for p in PreferenceContact.objects.filter(exploitant=exploitant)}
     commandes = list(commandes.prefetch_related(
@@ -1582,6 +1586,7 @@ def _contexte_commandes(exploitant, statut=None):
             c.dispos = _dispos_lignes(c, c.lignes.all())
     return {
         "commandes": commandes, "filtre_statut": statut,
+        "filtre_annulation": annulation,
         "points": exploitant.points_livraison.all(),
         "today": timezone.localdate(),
         "jours_badges": _badges_par_jour(commandes, "statut",
@@ -2143,6 +2148,8 @@ def panier_detail(request, panier_id):
                 panier.save()
                 if panier.commande_id:
                     panier.commande.statut = Commande.Statut.ANNULEE
+                    panier.commande.annulee_par = (
+                        Commande.AnnulationPar.PRODUCTEUR)
                     panier.commande.save()
                     messages.info(
                         request, f"Panier n°{panier.numero} annulé : la "
@@ -3361,6 +3368,7 @@ def order_cancel(request, commande_id):
     if (request.method == "POST"
             and commande.statut == Commande.Statut.NOUVELLE):
         commande.statut = Commande.Statut.ANNULEE
+        commande.annulee_par = Commande.AnnulationPar.CLIENT
         commande.save()
         messages.info(request, f"Commande #{commande.pk} annulée.")
     return redirect("portal:my_orders")

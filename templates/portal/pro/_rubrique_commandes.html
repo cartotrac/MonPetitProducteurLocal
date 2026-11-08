@@ -5,7 +5,8 @@
   <a class="btn btn-filtre-atrier {% if filtre_statut == 'NOUVELLE' %}btn-active{% endif %}" href="{% url 'portal:order_list_filtered' 'NOUVELLE' %}">À traiter</a>
   <a class="btn {% if filtre_statut == 'VALIDEE' %}btn-active{% endif %}" href="{% url 'portal:order_list_filtered' 'VALIDEE' %}">Validées</a>
   <a class="btn btn-filtre-refus {% if filtre_statut == 'REFUSEE' %}btn-active{% endif %}" href="{% url 'portal:order_list_filtered' 'REFUSEE' %}">Refusées</a>
-  <a class="btn btn-filtre-annule {% if filtre_statut == 'ANNULEE' %}btn-active{% endif %}" href="{% url 'portal:order_list_filtered' 'ANNULEE' %}">Annulées client</a>
+  <a class="btn btn-filtre-annule {% if filtre_statut == 'ANNULEE' and filtre_annulation == 'CLIENT' %}btn-active{% endif %}" href="{% url 'portal:order_list_filtered' 'ANNULEE' %}?annulation=CLIENT">❌ Annulées client</a>
+  <a class="btn btn-filtre-annule {% if filtre_statut == 'ANNULEE' and filtre_annulation == 'PRODUCTEUR' %}btn-active{% endif %}" href="{% url 'portal:order_list_filtered' 'ANNULEE' %}?annulation=PRODUCTEUR">🚫 Annulées par moi</a>
   <a class="btn btn-outline {% if vue == 'calendrier' %}btn-active{% endif %}" href="{{ request.path }}?vue=calendrier">🗓️ Calendrier</a>
   <a class="btn btn-outline {% if vue != 'calendrier' %}btn-active{% endif %}" href="{{ request.path }}">📋 Liste</a>
 </div>
@@ -24,7 +25,7 @@
         {% for commande in jour.commandes %}
           <div class="cal-evt statut-{{ commande.statut }}">
             <strong>#{{ commande.pk }} — {% if commande.client %}{{ commande.client.get_full_name|default:commande.client.username }}{% else %}{{ commande.nom_client }}{% endif %}</strong>
-            <span class="badge badge-{{ commande.statut }}">{{ commande.get_statut_display }}</span>
+            <span class="badge badge-{{ commande.statut }}">{{ commande.libelle_statut }}</span>
             <p class="muted">💰 {{ commande.total }} €</p>
           </div>
         {% empty %}
