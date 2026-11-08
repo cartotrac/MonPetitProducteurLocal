@@ -2750,6 +2750,39 @@ def _stocks_carte(exploitant):
             for p, s in lignes}
 
 
+def _offres_carte_active(exploitant):
+    """Produits commandables de la carte ACTIVE (« carte du moment » :
+    boutiques, cartes, menus des métiers non récolte) : lignes liées
+    à un produit actif du catalogue, au prix de la ligne (ou du
+    produit), avec le stock publié éventuel et son restant (stock −
+    commandes VALIDÉES). Les lignes libres (sans produit lié : plat
+    du jour…) ne sont pas commandables en ligne — à demander sur
+    place. Retour trié par catégorie puis position de la carte."""
+    stocks = _stocks_carte(exploitant)
+    offres = []
+    for l in (LigneCarte.objects
+              .filter(carte__exploitant=exploitant,
+                      carte__statut=Carte.Statut.ACTIVE,
+                      produit__isnull=False,
+                      produit__actif=True)
+              .select_related("produit__categorie",
+                              "produit__origine_standard")
+              .order_by("position", "id")):
+        prix = l.prix if l.prix is not None else l.produit.prix
+        if prix is None:
+            continue
+        stock, reste = stocks.get(l.produit_id, (None, None))
+        offres.append({"cle": f"carte_{l.pk}", "produit": l.produit,
+                       "prix": prix, "estime": stock, "reste": reste})
+    offres.sort(key=lambda o: (
+        (o["produit"].categorie.position
+         if o["produit"].categorie else 9999) or 9999,
+        o["produit"].categorie.nom
+        if o["produit"].categorie else "zz",
+        o["produit"].nom))
+    return offres
+
+
 JOURS_COURTS = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."]
 
 
@@ -2840,9 +2873,19 @@ def _offres_commande(exploitant, semaine):
             o["produit"].categorie.nom
             if o["produit"].categorie else "zz",
             o["produit"].nom))
+        # Carte « du moment » publiée : ses produits s'ajoutent à
+        # l'offre de la semaine (les produits déjà proposés par la
+        # récolte ne sont pas dupliqués).
+        deja = {o["produit"].pk for o in offres}
+        offres += [o for o in _offres_carte_active(exploitant)
+                   if o["produit"].pk not in deja]
         return offres, "recolte"
-    # Boutique / carte active : stocks publiés éventuels — le
-    # restant décompte les commandes VALIDÉES uniquement.
+    # Carte « du moment » publiée : l'offre de commande reprend ses
+    # produits liés (prix de la ligne, stock publié, restant sur
+    # commandes VALIDÉES). Sans carte publiée : catalogue complet.
+    offres_carte = _offres_carte_active(exploitant)
+    if offres_carte:
+        return offres_carte, "carte"
     stocks = _stocks_carte(exploitant)
     for produit in (exploitant.produits.filter(actif=True)
                     .select_related("categorie", "origine_standard")
@@ -2932,6 +2975,8 @@ def order_create(request, slug):
                                              lundi__lte=lundi)
                .order_by("-lundi").first())
     offres, mode = _offres_commande(exploitant, semaine)
+    carte_active = (Carte.objects.filter(
+        exploitant=exploitant, statut=Carte.Statut.ACTIVE).first())
     dates = _dates_livraison(exploitant, today)
     # Jour (lundi=1…dimanche=7) de chaque date proposée + jours de
     # créneau de chaque point : le formulaire client filtre les dates
@@ -2950,6 +2995,7 @@ def order_create(request, slug):
         contexte = {"exploitant": exploitant, "semaine": semaine,
                     "offres": offres, "groupes": _groupes_offres(offres),
                     "mode": mode,
+                    "carte_active": carte_active,
                     "points_livraison": exploitant.points_livraison.all(),
                     "dates": dates_aff, "points_jours": points_jours}
         contexte["valeurs"] = (soumis or {}).get("valeurs", valeurs)

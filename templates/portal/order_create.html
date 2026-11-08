@@ -10,6 +10,12 @@
      déjà commandé cette semaine. Le producteur confirme au moment de la
      préparation. <strong>La ligne passe en orange si vous demandez plus
      que la dispo restante</strong> : le producteur ajustera avec vous.</p>
+{% elif mode == 'carte' %}
+  <p>🧾 Carte « {{ carte_active.nom }} » publiée par {{ exploitant.nom_ferme }} :
+     le restant de chaque article décompte les commandes déjà validées.
+     Le producteur confirme au moment de la préparation.
+     <strong>La ligne passe en orange si vous demandez plus que le restant</strong> :
+     le producteur ajustera avec vous.</p>
 {% else %}
   <div class="flash warning">⚠️ Le producteur n'a pas publié de {{ exploitant.vocab.recolte }}
     cette semaine : voici la liste de ses produits aux prix de référence.
@@ -24,7 +30,7 @@
     <section class="harvest-cat">
       <h3>{{ cat.nom|default:"Autres produits" }}</h3>
       <table class="table">
-        <thead><tr><th>Produit</th>{% if mode == 'recolte' %}<th>Récoltée</th><th>Reste (estimé)</th>{% endif %}<th>Prix</th><th>Quantité voulue</th></tr></thead>
+        <thead><tr><th>Produit</th>{% if mode == 'recolte' %}<th>Récoltée</th><th>Reste (estimé)</th>{% elif mode == 'carte' %}<th>Restant</th>{% endif %}<th>Prix</th><th>Quantité voulue</th></tr></thead>
         <tbody>
         {% for offre in offres_groupe %}
           <tr>
@@ -32,6 +38,8 @@
             {% if mode == 'recolte' %}
               <td class="muted">~ {{ offre.estime }} {{ offre.estime|unite:offre.produit }}</td>
               <td>{% if offre.reste > 0 %}<strong>~ {{ offre.reste|qte }} {{ offre.reste|unite:offre.produit }}</strong>{% else %}<span class="muted">complet</span>{% endif %}</td>
+            {% elif mode == 'carte' %}
+              <td>{% if offre.reste is not None %}{% if offre.reste > 0 %}<strong>{{ offre.reste|qte }} {{ offre.reste|unite:offre.produit }}</strong>{% else %}<span class="muted">complet</span>{% endif %}{% else %}<span class="muted">à volonté</span>{% endif %}</td>
             {% endif %}
             <td>{{ offre.prix }} €</td>
             <td><input type="number" step="{% if offre.produit.unite_vente == 'KG' %}0.01{% else %}1{% endif %}" min="0" name="{{ offre.cle }}" placeholder="0" value="{{ valeurs|get_item:offre.cle|default:'' }}" data-nom="{{ offre.produit.nom }}" data-emoji="{{ offre.produit.emoji }}" data-prix="{{ offre.prix }}" data-unite="{{ offre.produit.unite_courte }}" {% if offre.reste is not None %}data-reste="{{ offre.reste }}"{% endif %} {% if offre.reste is not None and offre.reste <= 0 %}disabled title="Complet : déjà commandé cette semaine"{% endif %}></td>
