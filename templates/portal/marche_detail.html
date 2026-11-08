@@ -37,9 +37,9 @@
 <h3 class="marche-categorie">{{ groupe.list.0.symbole }} {{ groupe.grouper }}</h3>
 <div class="grid producers">
   {% for p in groupe.list %}
-    {# Vignette unifiée : rendu identique à la page de recherche —
-       logo, badges, étoile favori, bouton Commander, et les horaires
-       du producteur sur ce marché / cette boutique. #}
+    {% comment %}Vignette unifiée : rendu identique à la page de
+       recherche — logo, badges, étoile favori, bouton Commander,
+       et les horaires du producteur sur ce marché / boutique.{% endcomment %}
     {% with exploitant=p.exploitant %}{% include "portal/_vignette_producteur.html" %}{% endwith %}
   {% endfor %}
 </div>
