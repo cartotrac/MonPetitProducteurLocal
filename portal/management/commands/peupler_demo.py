@@ -59,6 +59,14 @@ Comptes créés (mot de passe : demo1234!) :
                   demo.traiteur.montauban, demo.traiteur.brest,
                   demo.traiteur.rennes
     Clients     : demo.cliente, demo.client
+    Marchés    : jeu étendu « marchés & boutiques partagés » —
+                 demo.maraicher.giroussens, demo.apiculteur.lavaur,
+                 demo.arboriculteur.lavaur, demo.eleveur.lavaur
+                 (marché de Lavaur), demo.fromager.gaillac,
+                 demo.maraicher.gaillac (marché de Gaillac),
+                 demo.conserverie.gaillac, demo.miellerie.gaillac
+                 (boutique de la gare de Gaillac), demo.traiteur.castres,
+                 demo.foodtruck.crepes.gaillac
 """
 import datetime
 from decimal import Decimal
@@ -833,6 +841,202 @@ FERMES = [
         "Plats bretons cuisinés en boutique rue Saint-Michel, "
         "stand au marché des Lices le samedi matin.",
         type_point=PointLivraison.Type.BOUTIQUE),
+    # ── MARCHÉ PARTAGÉ de Lavaur : quatre pros déclarent LE MÊME
+    #    marché sous des noms DIFFÉRENTS et à quelques dizaines de
+    #    mètres d'écart — le mode 🎪 Marchés & Boutiques doit les
+    #    regrouper en UNE fiche (nom le plus probable, horaires
+    #    fusionnés, liste des producteurs). ────────────────────────
+    _ferme_spec(
+        "demo.maraicher.giroussens", "Jardins du Girou", A.MARAICHER,
+        M.AB, "81500", "Chemin de Lasbordes, lieu-dit Pourque",
+        "Giroussens", 43.833, 1.698, "05 63 00 00 61",
+        "Petit jardin maraîcher bio sur les coteaux du Girou : "
+        "légumes de saison, salades et aromatiques, paniers "
+        "hebdomadaires et stand du samedi à Lavaur.",
+        Decimal("2.30"),
+        [{"activite": A.MARAICHER, "limite": 16},
+         {"activite": A.APICULTEUR, "limite": 2}],
+        [("Marché couvert de Lavaur", "Place de la Halle",
+          "Lavaur", "81500", 43.701, 1.901)],
+        [(6, "08:00", "12:30", 0)],
+        "Salades d'automne et radis noir du Girou.",
+        "Paniers de la semaine aux Jardins du Girou",
+        "Légumes des coteaux du Girou, stand au marché couvert "
+        "de Lavaur le samedi matin. Miel de la ferme voisine en "
+        "supplément."),
+    _ferme_spec(
+        "demo.apiculteur.lavaur", "Ruchers de l'Agout", A.APICULTEUR,
+        M.AB, "81500", "Route de Toulouse, lieu-dit La Vauré",
+        "Lavaur", 43.706, 1.921, "05 63 00 00 62",
+        "Ruchers fixes entre Agout et Dadou : miels de fleurs, "
+        "de châtaignier et de garrigue, pollens et cires, "
+        "stand de la halle de Lavaur chaque samedi.",
+        Decimal("4.50"),
+        [{"activite": A.APICULTEUR, "limite": 10},
+         {"activite": A.ARBORICULTEUR, "categorie": "Fruits",
+          "limite": 3}],
+        [("Halle de Lavaur", "Place de la Halle",
+          "Lavaur", "81500", 43.699, 1.902)],
+        [(6, "08:30", "12:30", 0)],
+        "Miel de châtaignier de l'automne — berlingots disponibles.",
+        "Miels de la semaine aux Ruchers de l'Agout",
+        "Miel de châtaignier et pollen frais à la halle de "
+        "Lavaur samedi matin. Pommes du verger voisin en "
+        "supplément."),
+    _ferme_spec(
+        "demo.arboriculteur.lavaur", "Les Noyers de l'Agout",
+        A.ARBORICULTEUR, M.RAISONNE, "81500",
+        "Chemin des Noyeraies, lieu-dit Lagarrigue",
+        "Lavaur", 43.692, 1.888, "05 63 00 00 63",
+        "Noyeraie et verger au bord de l'Agout : noix fraîches, "
+        "pommes, poires et jus pressé à la ferme, vente au "
+        "marché hebdomadaire de Lavaur.",
+        Decimal("2.80"),
+        [{"activite": A.ARBORICULTEUR, "limite": 14},
+         {"activite": A.APICULTEUR, "limite": 2}],
+        [("Marché hebdo de Lavaur", "Esplanade de la Halle",
+          "Lavaur", "81500", 43.698, 1.903)],
+        [(6, "08:00", "12:00", 0)],
+        "Noix fraîches de la première récolte — cassettes de 1 kg.",
+        "Récolte de la semaine aux Noyers de l'Agout",
+        "Noix fraîches, pommes et jus pressé au marché de "
+        "Lavaur le samedi. Miel de tilleul des ruches du coteau."),
+    _ferme_spec(
+        "demo.eleveur.lavaur", "Élevage de l'Agout", A.ELEVEUR,
+        M.PAYSAN, "81500", "Route de Sor, lieu-dit Engalès",
+        "Lavaur", 43.710, 1.905, "05 63 00 00 64",
+        "Élevage de veaux et volailles en agriculture paysanne "
+        "dans la plaine de l'Agout : colis de viande, poulets "
+        "fermiers et œufs, étal du samedi à Lavaur.",
+        Decimal("5.50"),
+        [{"activite": A.ELEVEUR, "limite": 12},
+         {"activite": A.FROMAGER, "limite": 3}],
+        [("Marché de la Halle", "Place de la Halle",
+          "Lavaur", "81500", 43.702, 1.898)],
+        [(6, "08:30", "12:30", 0)],
+        "Poulets fermiers du lundi : à réserver avant vendredi soir.",
+        "Viande de la semaine à l'Élevage de l'Agout",
+        "Colis de veau, poulets fermiers et œufs à l'étal du "
+        "marché de Lavaur. Tomme de la ferme voisine en "
+        "supplément."),
+    # ── MARCHÉ PARTAGÉ de Gaillac + BOUTIQUE PARTAGÉE de la gare :
+    #    deux pros au marché couvert, deux pros à la boutique de la
+    #    gare — deux clusters distincts à fusionner séparément. ────
+    _ferme_spec(
+        "demo.fromager.gaillac", "Tomme de Gaillac", A.FROMAGER,
+        M.PAYSAN, "81600", "Route de Toulouse, lieu-dit La Rivalie",
+        "Gaillac", 43.895, 1.885, "05 63 00 00 65",
+        "Ferme laitière et fromagerie du Gaillacois : tomme de "
+        "vache, fromages frais et yaourts au lait cru, stand du "
+        "marché couvert de Gaillac.",
+        Decimal("4.80"),
+        [{"activite": A.FROMAGER, "limite": 12},
+         {"activite": A.ELEVEUR, "categorie": "Œufs", "limite": 2}],
+        [("Marché couvert de Gaillac", "Place du marché couvert",
+          "Gaillac", "81600", 43.899, 1.896)],
+        [(6, "08:30", "12:30", 0), (3, "16:30", "19:00", 0)],
+        "Tomme de vache affinée 2 mois — le lot de novembre.",
+        "Fromages de la semaine à la Tomme de Gaillac",
+        "Tomme de vache et fromages frais au marché couvert de "
+        "Gaillac, mercredi soir et samedi matin. Œufs de la "
+        "ferme en supplément."),
+    _ferme_spec(
+        "demo.maraicher.gaillac", "Paniers du Tarn", A.MARAICHER,
+        M.PERMA, "81600", "Chemin de Rieux, lieu-dit Les Pradets",
+        "Gaillac", 43.905, 1.880, "05 63 00 00 66",
+        "Maraîchage en permaculture sur les rives du Tarn : "
+        "légumes de plein champ et sous serre, paniers "
+        "hebdomadaires et stand du grand marché de Gaillac.",
+        Decimal("2.40"),
+        [{"activite": A.MARAICHER, "limite": 16},
+         {"activite": A.ARBORICULTEUR, "categorie": "Fruits",
+          "limite": 4}],
+        [("Grand Marché de Gaillac", "Place du marché couvert",
+          "Gaillac", "81600", 43.901, 1.894)],
+        [(6, "08:00", "12:30", 0), (4, "17:00", "19:30", 0)],
+        "Pleines saison des poireaux et premières mâches.",
+        "Paniers de la semaine aux Paniers du Tarn",
+        "Légumes de saison du Tarn au grand marché de Gaillac "
+        "samedi matin, retrait des paniers jeudi soir aussi. "
+        "Pommes du verger en supplément."),
+    _ferme_spec(
+        "demo.conserverie.gaillac", "Bocaux du Ségala", A.CONSERVERIE,
+        M.AB, "81600", "Route de la Gare, lieu-dit Le Colombié",
+        "Gaillac", 43.900, 1.883, "05 63 00 00 67",
+        "Atelier de bocaux bio du Ségala : soupes, terrines, "
+        "confitures et conserves de légumes, en vente à la "
+        "boutique de la gare de Gaillac et au marché.",
+        Decimal("4.30"),
+        [{"activite": A.CONSERVERIE, "limite": 14}],
+        [("Boutique de la Gare", "2 place de la Gare",
+          "Gaillac", "81600", 43.898, 1.890),
+         ("Marché couvert de Gaillac", "Place du marché couvert",
+          "Gaillac", "81600", 43.900, 1.895)],
+        [(3, "15:00", "19:00", 0), (6, "08:30", "12:30", 1)],
+        "Velouté de potimarron et confiture de coing du moment.",
+        "Bocaux de la semaine aux Bocaux du Ségala",
+        "Soupes, terrines et confitures à la boutique de la "
+        "gare de Gaillac ; étal au marché couvert le samedi."),
+    _ferme_spec(
+        "demo.miellerie.gaillac", "Ruchers de la Gare", A.APICULTEUR,
+        M.AB, "81600", "Avenue de la Gare, lieu-dit Las Crozes",
+        "Gaillac", 43.896, 1.885, "05 63 00 00 68",
+        "Miellerie de la gare : miels toutes fleurs, gelée royale "
+        "et cires façonnées, vente en boutique à la gare de "
+        "Gaillac et au marché couvert.",
+        Decimal("4.60"),
+        [{"activite": A.APICULTEUR, "limite": 10},
+         {"activite": A.ARBORICULTEUR, "categorie": "Fruits",
+          "limite": 3}],
+        [("Boutique gare de Gaillac", "4 place de la Gare",
+          "Gaillac", "81600", 43.8975, 1.8905),
+         ("Marché de Gaillac (halle)", "Place du marché couvert",
+          "Gaillac", "81600", 43.9005, 1.8955)],
+        [(2, "14:00", "18:30", 0), (6, "09:00", "12:30", 1)],
+        "Gelée royale fraîche de la semaine — pots de 30 g.",
+        "Miels de la semaine aux Ruchers de la Gare",
+        "Miels toutes fleurs et gelée royale à la boutique de "
+        "la gare ; pommes et poires du Gaillacois en supplément."),
+    # ── Restauration : un traiteur de plus (boutique Castres) et un
+    #    foodtruck de plus (emplacements de Gaillac) — les libellés
+    #    « 📜 Cartes » du menu Publications se testent dessus. ──────
+    _ferme_spec(
+        "demo.traiteur.castres", "Le Buffet Castrais", A.TRAITEUR,
+        M.RAISONNE, "81100", "6 rue de la Mairie",
+        "Castres", 43.606, 2.241, "05 63 00 00 69",
+        "Traiteur castrais : volailles du Tarn et farcis de "
+        "saison, terrines, gratins et menus du jour à emporter "
+        "en boutique au cœur de Castres.",
+        Decimal("8.20"),
+        [{"activite": A.TRAITEUR, "limite": 12}],
+        [("Boutique Le Buffet Castrais", "6 rue de la Mairie",
+          "Castres", "81100", 43.6055, 2.2405)],
+        [(2, "09:30", "18:30", 0), (5, "09:30", "18:30", 0),
+         (6, "09:00", "13:00", 0)],
+        "Farcis de saison : courgons du jardin et chair à saucisse.",
+        "Chez Le Buffet Castrais",
+        "Menus du jour en boutique, volailles farcies du week-end "
+        "et terrines maison, à emporter rue de la Mairie.",
+        type_point=PointLivraison.Type.BOUTIQUE),
+    _ferme_spec(
+        "demo.foodtruck.crepes.gaillac", "Crêpes du Vieux Gaillac",
+        A.FOODTRUCK, M.CONV, "81600",
+        "Place de la Libération (soirs de marché)",
+        "Gaillac", 43.899, 1.893, "05 63 00 00 70",
+        "Camion crêpes et galettes de sarrasin du vieux "
+        "Gaillac : pâte du moment, cidre du coin et desserts "
+        "de la ferme, place de la Libération.",
+        Decimal("7.50"),
+        [{"activite": A.FOODTRUCK, "limite": 12}],
+        [("Emplacement place de la Libération",
+          "Place de la Libération",
+          "Gaillac", "81600", 43.899, 1.893)],
+        [(5, "18:00", "22:30", 0), (6, "11:00", "14:00", 0)],
+        "Galette complète au bleu de la tomme de Gaillac.",
+        "Au camion cette semaine",
+        "Galettes de sarrasin et crêpes maison vendredi soir et "
+        "samedi midi place de la Libération, cidre doux du coin.",
+        type_point=PointLivraison.Type.EMPLACEMENT),
 ]
 
 CLIENTS = [
@@ -1157,6 +1361,12 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(
                     f"Comptes de démo supprimés : "
                     f"{', '.join(sorted(purges))} ({n} objet(s))."))
+            # Si la purge a vidé TOUTES les commandes et paniers (base
+            # 100 % démo), les index repartent de 1 au repeuplement.
+            if not Panier.objects.exists() and not Commande.objects.exists():
+                reinitialiser_sequences()
+                self.stdout.write(self.style.SUCCESS(
+                    "Base sans commande ni panier : index réinitialisés."))
             return
 
         reset_total = bool(options.get("reset_commandes"))
@@ -1236,6 +1446,34 @@ class Command(BaseCommand):
                 self._commande(exploitant, produits, points[0], clients[2],
                                deux, Commande.Statut.VALIDEE, jours=6,
                                panier_statut=Panier.Statut.PRET)
+            # 6. Commande ANNULEE PAR LE CLIENT avec motif : teste le
+            #    filtre pro « ❌ Annulées client » et l'affichage du
+            #    motif des deux côtés.
+            annul_client = self._commande(
+                exploitant, produits, points[0], clients[1],
+                deux, Commande.Statut.ANNULEE, jours=4)
+            annul_client.annulee_par = Commande.AnnulationPar.CLIENT
+            annul_client.motif_annulation = ("Finalement absent ce "
+                                             "jour-là, désolé !")
+            annul_client.save()
+            # 7. Panier ANNULE PAR LE PRODUCTEUR : la commande repasse
+            #    « Annulée (producteur) » et le motif du panier est
+            #    visible côté client — teste le filtre « 🚫 Annulées
+            #    par moi » et le bloc motif côté « Mes commandes ».
+            annul_pro = self._commande(
+                exploitant, produits, points[-1], clients[0],
+                deux, Commande.Statut.VALIDEE, jours=3,
+                panier_statut=Panier.Statut.PREPARATION)
+            panier_pro = Panier.objects.filter(
+                commande=annul_pro).first()
+            if panier_pro is not None:
+                panier_pro.statut = Panier.Statut.ANNULE
+                panier_pro.motif_annulation = ("Récolte insuffisante "
+                                               "cette semaine, désolé.")
+                panier_pro.save()
+            annul_pro.statut = Commande.Statut.ANNULEE
+            annul_pro.annulee_par = Commande.AnnulationPar.PRODUCTEUR
+            annul_pro.save()
         self._cartes_demo()
 
         self.stdout.write(self.style.SUCCESS(
