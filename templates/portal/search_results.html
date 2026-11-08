@@ -58,6 +58,7 @@
 </div>
 <form class="search-bar" method="get" action="{% url 'portal:producer_search' %}">
   <input type="hidden" name="visu" value="{{ visu }}">
+  <input type="hidden" name="demo" value="{% if demo %}1{% else %}0{% endif %}">
   <input type="text" name="q" placeholder="{% if visu == 'marches' %}Marché, boutique…{% elif visu == 'restauration' %}Plat, spécialité, nom…{% else %}Produit, ferme…{% endif %}" value="{{ q }}">
   <input type="text" name="dept" placeholder="Département, région ou code postal…" title="Zoome la carte sur un département (nom ou numéro), une région ou un code postal — les vignettes suivent l'emprise" value="{{ dept }}" size="14">
   {% if visu == "marches" %}
