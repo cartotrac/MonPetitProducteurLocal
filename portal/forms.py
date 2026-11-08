@@ -26,6 +26,13 @@ class InscriptionExploitantForm(UserCreationForm):
     nom_ferme = forms.CharField(
         label="Nom de l'exploitation", max_length=150,
         help_text="Le nom affiché sur votre vitrine (modifiable ensuite).")
+    est_demo = forms.BooleanField(
+        label="Exploitation de démonstration", required=False,
+        help_text="Cochez pour marquer cette exploitation comme fictive "
+                  "(test, formation, démo) : un badge 🧪 DÉMO la distingue "
+                  "sur le portail. ⚠️ Attention : une exploitation de "
+                  "démonstration peut être supprimée sans préavis lors "
+                  "des purges des jeux de démo.")
     activite = forms.ChoiceField(
         label="Activité", choices=Exploitant.Activite.choices,
         initial=Exploitant.Activite.MARAICHER,
@@ -37,22 +44,40 @@ class InscriptionExploitantForm(UserCreationForm):
         + list(Exploitant.Specialite.choices),
         help_text="Exigée pour un foodtruck : pizza, burger… "
                   "elle s'affiche sur les pages publiques.")
+    adresse = forms.CharField(label="Adresse", max_length=255, required=False)
     ville = forms.CharField(label="Ville", max_length=100, required=False)
     code_postal = forms.CharField(
         label="Code postal", max_length=10, required=False,
         help_text="Positionne votre exploitation sur la carte et sert à "
                   "la recherche par département.")
-    latitude = forms.FloatField(widget=forms.HiddenInput, required=False)
-    longitude = forms.FloatField(widget=forms.HiddenInput, required=False)
+    departement = forms.CharField(
+        label="Département (auto si vide : 2 premiers chiffres du code "
+              "postal)", max_length=3, required=False)
+    latitude = forms.FloatField(
+        label="Latitude (optionnel, pour la carte)", required=False,
+        widget=forms.NumberInput(attrs={"step": "any"}),
+        help_text="Position sur la carte (optionnel)")
+    longitude = forms.FloatField(
+        label="Longitude (optionnel, pour la carte)", required=False,
+        widget=forms.NumberInput(attrs={"step": "any"}),
+        help_text="Position sur la carte (optionnel)")
+    telephone = forms.CharField(label="Téléphone", max_length=20,
+                                required=False)
+    photo_externe = forms.URLField(
+        label="Photo de profil externe (drive, cloud, réseau — rien "
+              "n'est hébergé sur le portail)", required=False)
 
-    field_order = ["nom_ferme", "activite", "specialite", "ville",
-                   "code_postal", "first_name", "email", "password1",
+    field_order = ["nom_ferme", "est_demo", "activite", "specialite",
+                   "adresse", "ville", "code_postal", "departement",
+                   "latitude", "longitude", "first_name", "last_name",
+                   "email", "telephone", "photo_externe", "password1",
                    "password2"]
 
     class Meta:
         model = User
-        fields = ("first_name", "email")
-        labels = {"first_name": "Prénom", "email": "E-mail"}
+        fields = ("first_name", "last_name", "email")
+        labels = {"first_name": "Prénom", "last_name": "Nom",
+                  "email": "E-mail"}
         help_texts = {"email": "Sert d'identifiant de connexion : "
                                "pas de nom d'utilisateur à inventer."}
 
@@ -99,6 +124,7 @@ class InscriptionExploitantForm(UserCreationForm):
         email = self.cleaned_data["email"].lower().strip()
         user.username = email
         user.email = email
+        user.last_name = self.cleaned_data.get("last_name", "") or ""
         if commit:
             user.save()
             code_postal = self.cleaned_data.get("code_postal", "") or ""
@@ -108,11 +134,19 @@ class InscriptionExploitantForm(UserCreationForm):
                 activite=self.cleaned_data.get(
                     "activite", Exploitant.Activite.MARAICHER),
                 specialite=self.cleaned_data.get("specialite", "") or "",
+                est_demo=bool(self.cleaned_data.get("est_demo")),
+                adresse=self.cleaned_data.get("adresse", ""),
                 ville=self.cleaned_data.get("ville", ""),
                 code_postal=code_postal,
-                departement=code_postal[:2] if len(code_postal) >= 2 else "",
+                departement=(self.cleaned_data.get("departement", "")
+                             or (code_postal[:2]
+                                 if len(code_postal) >= 2 else "")),
                 latitude=self.cleaned_data.get("latitude"),
                 longitude=self.cleaned_data.get("longitude"))
+            ProfilClient.objects.create(
+                user=user,
+                telephone=self.cleaned_data.get("telephone", ""),
+                photo_url=self.cleaned_data.get("photo_externe", "") or "")
         return user
 
 
@@ -355,3 +389,4 @@ class MessagerieForm(forms.Form):
     sms_dispo_hebdo = forms.BooleanField(
         label="Envoyer chaque semaine la disponibilité des produits par SMS",
         required=False)
+
