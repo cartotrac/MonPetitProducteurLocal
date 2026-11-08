@@ -155,48 +155,54 @@ class Exploitant(models.Model):
 
     @property
     def vocab(self):
-        """Libellés adaptés au mode de fonctionnement et à l'activité :
-        « récoltes », « points de livraison » et « créneaux » pour le
-        mode paniers hebdo des maraîchers et arboriculteurs ; « stock à
-        date », « points de vente » et « horaires d'ouverture » pour les
-        fromagers et éleveurs ; « productions » pour apiculteurs,
-        micro-brasseurs et conserveries."""
-        points_vente = {
-            "point": "point de vente", "points": "Points de vente",
-            "point_livraison": "Point de vente / retrait",
-            "creneau": "horaire d'ouverture",
-            "creneaux": "horaires d'ouverture",
-        }
-        if self.en_mode_boutique:
-            if self.activite in (self.Activite.APICULTEUR,
-                                 self.Activite.MICRO_BRASSEUR,
-                                 self.Activite.CONSERVERIE,
-                                 self.Activite.FOODTRUCK,
-                                 self.Activite.TRAITEUR):
-                return {
-                    "recolte": "production", "recoltes": "productions",
-                    "recoltes_titre": "Mes productions",
-                    "nouvelle_recolte": "➕ Nouvelle production",
-                    "recolte_hebdo": "production de la semaine",
-                    **points_vente,
-                }
-            return {
-                "recolte": "stock", "recoltes": "stocks à date",
-                "recoltes_titre": "Mon stock à date",
-                "nouvelle_recolte": "➕ Nouveau stock",
-                "recolte_hebdo": "stock de la semaine",
-                **points_vente,
+        """Libellés adaptés à l'ACTIVITÉ pour la publication, et au
+        MODE de fonctionnement pour les lieux. « Récoltes » pour les
+        productions végétales (maraîchers, arboriculteurs) ; « Cartes »
+        pour la restauration (foodtrucks, traiteurs — carte du jour,
+        sans notion de stock obligatoire) ; « Boutiques » pour toutes
+        les autres activités (fromagerie, élevage, miellerie,
+        conserverie, microbrasserie…). Les lieux suivent le mode :
+        points de livraison et créneaux en paniers hebdo, points de
+        vente et horaires d'ouverture en boutique."""
+        if self.activite in (self.Activite.FOODTRUCK,
+                             self.Activite.TRAITEUR):
+            publication = {
+                "recolte": "carte", "recoltes": "cartes",
+                "recoltes_titre": "Mes cartes",
+                "nouvelle_recolte": "➕ Nouvelle carte",
+                "recolte_hebdo": "carte de la semaine",
             }
-        return {
-            "recolte": "récolte", "recoltes": "récoltes",
-            "recoltes_titre": "Mes récoltes",
-            "nouvelle_recolte": "➕ Nouvelle récolte",
-            "recolte_hebdo": "récolte de la semaine",
-            "point": "point de livraison", "points": "Points de livraison",
-            "point_livraison": "Point de livraison / retrait",
-            "creneau": "créneau de livraison",
-            "creneaux": "créneaux de livraison",
-        }
+        elif self.activite in (self.Activite.MARAICHER,
+                               self.Activite.ARBORICULTEUR):
+            publication = {
+                "recolte": "récolte", "recoltes": "récoltes",
+                "recoltes_titre": "Mes récoltes",
+                "nouvelle_recolte": "➕ Nouvelle récolte",
+                "recolte_hebdo": "récolte de la semaine",
+            }
+        else:
+            publication = {
+                "recolte": "boutique", "recoltes": "boutiques",
+                "recoltes_titre": "Ma boutique",
+                "nouvelle_recolte": "➕ Nouvelle publication",
+                "recolte_hebdo": "boutique de la semaine",
+            }
+        if self.en_mode_boutique:
+            lieux = {
+                "point": "point de vente", "points": "Points de vente",
+                "point_livraison": "Point de vente / retrait",
+                "creneau": "horaire d'ouverture",
+                "creneaux": "horaires d'ouverture",
+            }
+        else:
+            lieux = {
+                "point": "point de livraison",
+                "points": "Points de livraison",
+                "point_livraison": "Point de livraison / retrait",
+                "creneau": "créneau de livraison",
+                "creneaux": "créneaux de livraison",
+            }
+        return {**publication, **lieux}
 
     # Libellé du bouton « Commander » des pages publiques (fiche
     # producteur et page de commande) : le verbe et l'emoji suivent le

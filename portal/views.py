@@ -1299,6 +1299,7 @@ def harvest_list(request):
         else:
             passees.append(s)
     return render(request, "portal/pro/harvest_list.html", {
+        "exploitant": exploitant,
         "courante": courante,
         "a_venir": a_venir,
         "passees": passees,

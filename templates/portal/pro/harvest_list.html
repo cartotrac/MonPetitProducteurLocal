@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Mes récoltes — MonPetitProducteurLocal{% endblock %}
+{% block title %}{% if exploitant %}{{ exploitant.vocab.recoltes_titre }}{% else %}Mes récoltes{% endif %} — MonPetitProducteurLocal{% endblock %}
 {% block content %}
-<h1>🧺 Mes récoltes</h1>
+<h1>🧺 {% if exploitant %}{{ exploitant.vocab.recoltes_titre }}{% else %}Mes récoltes{% endif %}</h1>
 <p class="muted">Chaque semaine publiée apparaît sur votre vitrine et devient
    commandable. Publiez à votre rythme : chaque semaine, une semaine sur deux,
    quand vous voulez.</p>
 
 <div class="quick-actions">
-  <a class="btn" href="{% url 'portal:harvest_new' %}">➕ Nouvelle semaine</a>
+  <a class="btn" href="{% url 'portal:harvest_new' %}">{% if exploitant %}{{ exploitant.vocab.nouvelle_recolte }}{% else %}➕ Nouvelle semaine{% endif %}</a>
   <a class="btn btn-outline" href="{% url 'portal:dashboard' %}">← Tableau de bord</a>
 </div>
 
