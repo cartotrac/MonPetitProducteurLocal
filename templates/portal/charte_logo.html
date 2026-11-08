@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Charte &amp; logo — MonPetitProducteurLocal{% endblock %}
+{% block content %}
+<h1>🌱 Charte &amp; logo — « la Pousse &amp; la Boucle »</h1>
+<p class="muted">Le logo du portail : un <strong>anneau ouvert</strong> — la
+   boucle du circuit court, où producteur et consommateur se retrouvent —
+   d'où jaillit une <strong>pousse lancée vers l'avant</strong> : le produit
+   vivant, la croissance. L'ouverture en haut à droite et la feuille
+   projetée donnent le dynamisme : le circuit n'est pas fermé sur
+   lui-même, il avance. Une forme inédite : ni flèche de recyclage, ni
+   épingle de carte, ni feuille seule.</p>
+
+<section class="harvest-bloc">
+  <h2>📥 Fichiers à télécharger</h2>
+  <p>Le SVG est le <strong>fichier maître</strong> : agrandissable sans
+     limite, idéal pour le web, la papeterie et les supports imprimés.
+     Les PNG sont générés à la demande depuis le logo couleurs
+     (fond blanc) — le 120×120 convient pour le logo de l'écran de
+     consentement Google.</p>
+  <div class="charte-actions">
+    <a class="btn" href="{% static 'img/logo.svg' %}" download="logo-mppl-couleurs.svg">⬇️ SVG couleurs pleines</a>
+    <a class="btn btn-outline" href="{% static 'img/logo-noir.svg' %}" download="logo-mppl-noir.svg">⬇️ SVG noir</a>
+    <a class="btn btn-outline" href="{% static 'img/logo-gris.svg' %}" download="logo-mppl-gris.svg">⬇️ SVG gris</a>
+    <a class="btn btn-outline" href="{% static 'img/logo-trait.svg' %}" download="logo-mppl-trait.svg">⬇️ SVG trait N&amp;B</a>
+    <a class="btn btn-outline" href="{% static 'img/logo-blanc.svg' %}" download="logo-mppl-blanc.svg">⬇️ SVG blanc sur sombre</a>
+    <button class="btn" type="button" id="btn-png-120">⬇️ PNG 120×120 (logo Google)</button>
+    <button class="btn btn-outline" type="button" id="btn-png-512">⬇️ PNG 512×512</button>
+  </div>
+  <div id="logo-maitre" hidden aria-hidden="true">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><path d="M 81.5 64.8 A 30 30 0 1 1 57.2 40.5" fill="none" stroke="#2E7D32" stroke-width="10" stroke-linecap="round"/><path d="M 36 80 Q 47 75 58 60" fill="none" stroke="#7CB342" stroke-width="8" stroke-linecap="round"/><path d="M 58 60 Q 98 52 102 14 Q 66 30 58 60 Z" fill="#7CB342"/></svg>
+  </div>
+</section>
+
+<section class="harvest-bloc">
+  <h2>🎨 Déclinaisons</h2>
+  <p>Une seule construction, plusieurs habillages : chaque version est
+     superposable à l'autre (même géométrie). La version « 256 couleurs »
+     est strictement identique aux couleurs pleines — la palette ne
+     compte que deux aplats, indexables sans perte.</p>
+  <div class="charte-grille">
+      <figure class="charte-carte">
+        <svg viewBox="0 0 120 120" role="img" aria-label="Couleurs pleines (maître)">
+          <path d="M 81.5 64.8 A 30 30 0 1 1 57.2 40.5" fill="none" stroke="#2E7D32" stroke-width="10" stroke-linecap="round"/><path d="M 36 80 Q 47 75 58 60" fill="none" stroke="#7CB342" stroke-width="8" stroke-linecap="round"/><path d="M 58 60 Q 98 52 102 14 Q 66 30 58 60 Z" fill="#7CB342"/>
+        </svg>
+        <figcaption class="charte-legende">Couleurs pleines (maître)</figcaption>
+        <p class="charte-note">2 aplats verts — version de référence</p>
+      </figure>
+      <figure class="charte-carte">
+        <svg viewBox="0 0 120 120" role="img" aria-label="Niveau de gris">
+          <path d="M 81.5 64.8 A 30 30 0 1 1 57.2 40.5" fill="none" stroke="#4A4A4A" stroke-width="10" stroke-linecap="round"/><path d="M 36 80 Q 47 75 58 60" fill="none" stroke="#8C8C8C" stroke-width="8" stroke-linecap="round"/><path d="M 58 60 Q 98 52 102 14 Q 66 30 58 60 Z" fill="#8C8C8C"/>
+        </svg>
+        <figcaption class="charte-legende">Niveau de gris</figcaption>
+        <p class="charte-note">2 gris, mêmes contrastes</p>
+      </figure>
+      <figure class="charte-carte">
+        <svg viewBox="0 0 120 120" role="img" aria-label="Noir plein">
+          <path d="M 81.5 64.8 A 30 30 0 1 1 57.2 40.5" fill="none" stroke="#111111" stroke-width="10" stroke-linecap="round"/><path d="M 36 80 Q 47 75 58 60" fill="none" stroke="#111111" stroke-width="8" stroke-linecap="round"/><path d="M 58 60 Q 98 52 102 14 Q 66 30 58 60 Z" fill="#111111"/>
+        </svg>
+        <figcaption class="charte-legende">Noir plein</figcaption>
+        <p class="charte-note">une seule couleur, très petites tailles</p>
+      </figure>
+      <figure class="charte-carte">
+        <svg viewBox="0 0 120 120" role="img" aria-label="Trait N&amp;B">
+          <path d="M 81.5 64.8 A 30 30 0 1 1 57.2 40.5" fill="none" stroke="#111111" stroke-width="10" stroke-linecap="round"/><path d="M 36 80 Q 47 75 58 60" fill="none" stroke="#111111" stroke-width="8" stroke-linecap="round"/><path d="M 58 60 Q 98 52 102 14 Q 66 30 58 60 Z" fill="none" stroke="#111111" stroke-width="8" stroke-linejoin="round"/>
+        </svg>
+        <figcaption class="charte-legende">Trait N&amp;B</figcaption>
+        <p class="charte-note">aucun aplat : gravure, tampon</p>
+      </figure>
+      <figure class="charte-carte sombre">
+        <svg viewBox="0 0 120 120" role="img" aria-label="Blanc sur fond sombre">
+          <path d="M 81.5 64.8 A 30 30 0 1 1 57.2 40.5" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/><path d="M 36 80 Q 47 75 58 60" fill="none" stroke="#C5E1A5" stroke-width="8" stroke-linecap="round"/><path d="M 58 60 Q 98 52 102 14 Q 66 30 58 60 Z" fill="#C5E1A5"/>
+        </svg>
+        <figcaption class="charte-legende">Blanc sur fond sombre</figcaption>
+        <p class="charte-note">mode nuit, textiles sombres</p>
+      </figure>
+      <figure class="charte-carte sombre">
+        <svg viewBox="0 0 120 120" role="img" aria-label="Blanc pur sur sombre">
+          <path d="M 81.5 64.8 A 30 30 0 1 1 57.2 40.5" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/><path d="M 36 80 Q 47 75 58 60" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/><path d="M 58 60 Q 98 52 102 14 Q 66 30 58 60 Z" fill="#FFFFFF"/>
+        </svg>
+        <figcaption class="charte-legende">Blanc pur sur sombre</figcaption>
+        <p class="charte-note">monochrome absolu</p>
+      </figure></div>
+</section>
+
+<section class="harvest-bloc">
+  <h2>🌈 Charte de couleurs</h2>
+  <table class="charte-table">
+    <tr><th>Élément</th><th>Couleurs pleines (hex)</th><th>Quadrichromie (CMJN, approx.)</th><th>Niveau de gris</th></tr>
+    <tr><td>Boucle (anneau)</td><td>Vert profond <strong>#2E7D32</strong></td><td>C87 · M32 · J98 · N18</td><td>#4A4A4A</td></tr>
+    <tr><td>Pousse &amp; feuille</td><td>Vert vif <strong>#7CB342</strong></td><td>C58 · M6 · J78 · N0</td><td>#8C8C8C</td></tr>
+  </table>
+  <p class="muted">Pas de dégradé, pas d'ombre, pas de contour : chaque
+     aplat se convertit proprement en offset, en textile ou en gravure.</p>
+</section>
+
+<section class="harvest-bloc">
+  <h2>📏 Règles d'usage</h2>
+  <ul>
+    <li><strong>Marge de protection</strong> : réserver autour du symbole
+        un vide égal à 25&nbsp;% de son diamètre.</li>
+    <li><strong>Versions autorisées</strong> : couleurs pleines, 256
+        couleurs, quadrichromie, gris, trait N&amp;B, blanc sur fond
+        sombre, noir plein.</li>
+    <li><strong>Interdits</strong> : dégradés, ombres, rotation,
+        déformation, nouveau découpage de la boucle, ajout d'éléments
+        dans l'anneau.</li>
+    <li><strong>Taille minimale</strong> : 24&nbsp;px en écran, 8&nbsp;mm
+        en imprimé ; en dessous, utiliser la version noir plein.</li>
+  </ul>
+</section>
+
+<section class="harvest-bloc">
+  <h2>🔎 Écran de consentement Google</h2>
+  <p>Pour le branding de l'écran de consentement OAuth
+     (Google Cloud Console), utiliser le bouton
+     <strong>« ⬇️ PNG 120×120 (logo Google) »</strong> : image carrée
+     sur fond blanc, dans la limite des 200×200&nbsp;px et 1&nbsp;Mo
+     exigées par Google.</p>
+  <p><a href="{% url 'portal:mentions_legales' %}">Mentions légales</a> ·
+     <a href="{% url 'portal:politique_confidentialite' %}">Politique de confidentialité</a> ·
+     <a href="{% url 'portal:conditions_utilisation' %}">Conditions d'utilisation</a></p>
+</section>
+{% endblock %}
+{% block extrajs %}
+<script>
+/* Page Charte & logo : export PNG du symbole depuis le SVG maître
+   inline (fond blanc) — 120×120 pour l'écran Google, 512×512 pour
+   favicons et réseaux sociaux. */
+(function () {
+  var maitre = document.querySelector("#logo-maitre svg");
+  if (!maitre) { return; }
+  function telechargerPNG(taille, nom) {
+    var src = new XMLSerializer().serializeToString(maitre);
+    var img = new Image();
+    var url = URL.createObjectURL(new Blob([src], { type: "image/svg+xml" }));
+    img.onload = function () {
+      var cv = document.createElement("canvas");
+      cv.width = taille; cv.height = taille;
+      var ctx = cv.getContext("2d");
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, taille, taille);
+      ctx.drawImage(img, 0, 0, taille, taille);
+      URL.revokeObjectURL(url);
+      cv.toBlob(function (b) {
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(b);
+        a.download = nom;
+        a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+      }, "image/png");
+    };
+    img.src = url;
+  }
+  var b120 = document.getElementById("btn-png-120");
+  var b512 = document.getElementById("btn-png-512");
+  if (b120) b120.addEventListener("click", function () {
+    telechargerPNG(120, "logo-mppl-google-120.png");
+  });
+  if (b512) b512.addEventListener("click", function () {
+    telechargerPNG(512, "logo-mppl-512.png");
+  });
+})();
+</script>
+{% endblock %}

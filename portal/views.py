@@ -76,6 +76,13 @@ def conditions_utilisation(request):
     return render(request, "portal/cgu.html")
 
 
+def charte_logo(request):
+    """Charte graphique et logo du portail : symbole, déclinaisons,
+    couleurs et règles d'usage — fichiers SVG téléchargeables et
+    export PNG (écran de consentement Google inclus)."""
+    return render(request, "portal/charte_logo.html")
+
+
 def home(request):
     """Landing : bandeau, hero, présentation du portail — et les
     chiffres clés segmentés (pros par métier, marchés et boutiques
