@@ -7,6 +7,14 @@
    d'identifiant, pas de nom d'utilisateur à inventer. Prénom, nom,
    téléphone et photo (lien externe) sont optionnels mais bien
    utiles aux producteurs pour vous identifier et vous contacter.</p>
+{% if google_connexion %}
+<div class="google-bloc">
+  <a class="btn btn-lg btn-google" href="{% url 'google_login' %}?process=signup">Continuer avec Google</a>
+  <p class="muted">Devenir Localien en 1 clic : votre e-mail et votre
+     photo de profil Google seront repris. …ou créez votre compte avec
+     un mot de passe :</p>
+</div>
+{% endif %}
 <form method="post" class="form">
   {% csrf_token %}
   {% if form.non_field_errors %}

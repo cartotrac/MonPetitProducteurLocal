@@ -14,7 +14,19 @@
   {% if form.non_field_errors %}
     <div class="flash warning">⚠️ Merci de corriger les champs indiqués ci-dessous.</div>
   {% endif %}
-
+  {% if google_connexion and not user.is_authenticated %}
+    <div class="google-bloc">
+      <a class="btn btn-lg btn-google" href="{% url 'google_login' %}?process=signup">Continuer avec Google</a>
+      <p class="muted">Votre e-mail, prénom, nom et photo Google seront
+         repris : il ne restera que « Ma ferme » à renseigner.
+         …ou créez tout à la main :</p>
+    </div>
+  {% endif %}
+  {% if user.is_authenticated %}
+    <p class="muted">✅ Connecté en tant que <strong>{{ user.get_full_name|default:user.email }}</strong>
+       ({{ user.email }}) : votre compte existe déjà — il ne reste que
+       votre exploitation à créer ci-dessous.</p>
+  {% else %}
   <section class="form-bloc">
     <h2>👤 Mon profil</h2>
     <p class="muted">Votre identité de compte individuel : prénom, nom,
@@ -63,6 +75,7 @@
         <span class="helptext">{{ form.password2.help_text }}</span></div>
     </div>
   </section>
+  {% endif %}
 
   <section class="form-bloc">
     <h2 id="titre-ferme">🚜 Ma ferme</h2>

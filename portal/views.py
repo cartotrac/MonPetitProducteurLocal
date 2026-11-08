@@ -25,8 +25,9 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .forms import (AnnonceForm, BulletinForm, InscriptionClientForm,
-                    InscriptionExploitantForm, MessagerieForm, ProduitForm,
-                    ProfilExploitantForm, ProfilPersonnelForm)
+                    InscriptionExploitantForm, InscriptionFermeSeuleForm,
+                    MessagerieForm, ProduitForm, ProfilExploitantForm,
+                    ProfilPersonnelForm)
 from .marches import identifier_marches
 from .meteo import meteo_synthese
 from .models import (Annonce, Bulletin, Carte, Categorie, Commande,
@@ -735,6 +736,29 @@ def _enregistrer_image_externe(produit, url):
     produit.attributs = attributs
 
 def register_exploitant(request):
+    """Inscription pro : formulaire complet (compte + ferme) pour un
+    visiteur — ou « ferme seule » pour un compte DÉJÀ connecté (cas
+    « Continuer avec Google » : le Localien crée son espace pro sans
+    retaper prénom, nom, e-mail ni photo)."""
+    if request.user.is_authenticated:
+        if exploitant_pour(request.user) is not None:
+            # Déjà pro : rien à recréer ici.
+            return redirect("portal:dashboard")
+        if request.method == "POST":
+            form = InscriptionFermeSeuleForm(request.POST)
+            if form.is_valid():
+                form.save(request.user)
+                messages.success(
+                    request, "Bienvenue ! Votre espace producteur est "
+                    "prêt. Complétez votre fiche (SIRET, logo, "
+                    "description, points de livraison) depuis la page "
+                    "⚙️ Paramètres, puis importez vos produits depuis le "
+                    "catalogue de votre activité.")
+                return redirect("portal:dashboard")
+        else:
+            form = InscriptionFermeSeuleForm()
+        return render(request, "portal/registration/register_producer.html",
+                      {"form": form})
     if request.method == "POST":
         form = InscriptionExploitantForm(request.POST, request.FILES)
         if form.is_valid():
@@ -753,6 +777,9 @@ def register_exploitant(request):
 
 
 def register_client(request):
+    if request.user.is_authenticated:
+        # Déjà connecté (ex : retour via Google) : pas de second compte.
+        return redirect("portal:apres_connexion")
     if request.method == "POST":
         form = InscriptionClientForm(request.POST)
         if form.is_valid():

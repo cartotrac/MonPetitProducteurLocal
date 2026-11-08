@@ -150,6 +150,104 @@ class InscriptionExploitantForm(UserCreationForm):
         return user
 
 
+class InscriptionFermeSeuleForm(forms.Form):
+    """Création de l'espace pro pour un compte DÉJÀ existant (cas
+    « Continuer avec Google ») : seul le bloc « Ma ferme » est
+    demandé — prénom, nom, e-mail et photo viennent du compte courant
+    (profil Google ou inscription maison)."""
+
+    nom_ferme = forms.CharField(
+        label="Nom de l'exploitation", max_length=150,
+        help_text="Le nom affiché sur votre vitrine (modifiable ensuite).")
+    est_demo = forms.BooleanField(
+        label="Exploitation de démonstration", required=False,
+        help_text="Cochez pour marquer cette exploitation comme fictive "
+                  "(test, formation, démo) : un badge 🧪 DÉMO la distingue "
+                  "sur le portail. ⚠️ Attention : une exploitation de "
+                  "démonstration peut être supprimée sans préavis lors "
+                  "des purges des jeux de démo.")
+    activite = forms.ChoiceField(
+        label="Activité", choices=Exploitant.Activite.choices,
+        initial=Exploitant.Activite.MARAICHER,
+        help_text="Le symbole de votre métier apparaît sur votre fiche "
+                  "publique et les vignettes de recherche.")
+    specialite = forms.ChoiceField(
+        label="Spécialité (si foodtruck)", required=False,
+        choices=[("", "— Précisez la spécialité —")]
+        + list(Exploitant.Specialite.choices),
+        help_text="Exigée pour un foodtruck : pizza, burger… "
+                  "elle s'affiche sur les pages publiques.")
+    adresse = forms.CharField(label="Adresse", max_length=255, required=False)
+    ville = forms.CharField(label="Ville", max_length=100, required=False)
+    code_postal = forms.CharField(
+        label="Code postal", max_length=10, required=False,
+        help_text="Positionne votre exploitation sur la carte et sert à "
+                  "la recherche par département.")
+    departement = forms.CharField(
+        label="Département (auto si vide : 2 premiers chiffres du code "
+              "postal)", max_length=3, required=False)
+    latitude = forms.FloatField(
+        label="Latitude (optionnel, pour la carte)", required=False,
+        widget=forms.NumberInput(attrs={"step": "any"}),
+        help_text="Position sur la carte (optionnel)")
+    longitude = forms.FloatField(
+        label="Longitude (optionnel, pour la carte)", required=False,
+        widget=forms.NumberInput(attrs={"step": "any"}),
+        help_text="Position sur la carte (optionnel)")
+
+    field_order = ["nom_ferme", "est_demo", "activite", "specialite",
+                   "adresse", "ville", "code_postal", "departement",
+                   "latitude", "longitude"]
+
+    def clean(self):
+        donnees = super().clean()
+        if (donnees.get("activite") == Exploitant.Activite.FOODTRUCK
+                and not donnees.get("specialite")):
+            self.add_error(
+                "specialite",
+                "Précisez la spécialité de votre foodtruck (pizza, "
+                "burger…) : elle apparaît sur les pages publiques et "
+                "les vignettes.")
+        elif donnees.get("activite") != Exploitant.Activite.FOODTRUCK:
+            donnees["specialite"] = ""
+        return donnees
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Symboles d'activité et de spécialité : même visuel que
+        # l'inscription complète.
+        self.fields["activite"].choices = [
+            (code, Exploitant.ACTIVITE_EMOJIS.get(code, "🌾") + " "
+             + libelle)
+            for code, libelle in Exploitant.Activite.choices]
+        self.fields["specialite"].choices = [
+            ("", "— Précisez la spécialité —")] + [
+            (code, Exploitant.SPECIALITE_EMOJIS.get(code, "🚚") + " "
+             + libelle)
+            for code, libelle in Exploitant.Specialite.choices]
+
+    def save(self, utilisateur):
+        """Rattache la nouvelle exploitation au compte existant : les
+        informations personnelles (e-mail, nom, photo) restent celles
+        du compte courant."""
+        code_postal = self.cleaned_data.get("code_postal", "") or ""
+        return Exploitant.objects.create(
+            user=utilisateur,
+            nom_ferme=self.cleaned_data["nom_ferme"],
+            activite=self.cleaned_data.get(
+                "activite", Exploitant.Activite.MARAICHER),
+            specialite=self.cleaned_data.get("specialite", "") or "",
+            est_demo=bool(self.cleaned_data.get("est_demo")),
+            adresse=self.cleaned_data.get("adresse", ""),
+            ville=self.cleaned_data.get("ville", ""),
+            code_postal=code_postal,
+            departement=(self.cleaned_data.get("departement", "")
+                         or (code_postal[:2]
+                             if len(code_postal) >= 2 else "")),
+            latitude=self.cleaned_data.get("latitude"),
+            longitude=self.cleaned_data.get("longitude"))
+
+
 class InscriptionClientForm(UserCreationForm):
     """Inscription client : l'e-mail sert d'identifiant (pas de nom
     d'utilisateur à inventer)."""
