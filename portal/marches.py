@@ -194,6 +194,10 @@ def identifier_marches():
               .exclude(exploitant__activite__in=ACTIVITES_RESTAURATION)
               .select_related("exploitant")
               .order_by("ville", "nom"))
+    if not inclure_demo:
+        # Mode « Réel » de la recherche : les fermes fictives de
+        # démonstration (et leurs stands) n'entrent pas dans le calcul.
+        points = points.exclude(exploitant__est_demo=True)
 
     creneaux_par_point = defaultdict(list)
     if points:

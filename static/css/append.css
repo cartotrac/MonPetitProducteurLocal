@@ -1471,3 +1471,39 @@ html.dark .qte-step { background: #2c3625;
        le positionnement absolu réservé aux cartes. ===== */
 .popup-favori-form { display: inline-block; margin: 0 6px 0 0;
   vertical-align: middle; }
+
+/* ===== Bascule 🎃 Démo / 🧡 Réel à droite du titre de la recherche :
+   bouton gauche/droite — actif (piste verte, curseur à droite, 🎃,
+   survol « Démo ») les comptes fictifs sont affichés ; inactif
+   (piste dorée, curseur à gauche, 🧡, survol « Réel ») ils sont
+   filtrés en amont de tout affichage. ===== */
+.titre-recherche { display: flex; align-items: center;
+  justify-content: space-between; gap: 0.8rem; }
+.titre-recherche h1 { margin: 0; }
+.bascule-demo {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  background: #fdfcf7; border: 1px solid #4e6b3a; border-radius: 999px;
+  padding: 0.25rem 0.6rem; cursor: pointer; font: inherit; flex: none;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.bascule-demo:hover { background: #ffffff; border-color: #2e5d1a; }
+.bascule-piste {
+  position: relative; width: 34px; height: 18px; border-radius: 999px;
+  background: #ffd54f; transition: background 0.2s ease; flex: none;
+}
+.bascule-demo .bascule-curseur {
+  position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+  border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  transition: left 0.2s ease;
+}
+.bascule-demo.actif .bascule-piste { background: #2e7d32; }
+.bascule-demo.actif .bascule-curseur { left: 18px; }
+.bascule-icone { font-size: 1.05rem; line-height: 1; }
+html.dark .bascule-demo { background: #26301f; color: #e6e4da;
+  border-color: #55624a; }
+html.dark .bascule-demo:hover { background: #2d3a23; border-color: #8fae76; }
+@media (max-width: 720px) {
+  .titre-recherche { flex-wrap: wrap; }
+}

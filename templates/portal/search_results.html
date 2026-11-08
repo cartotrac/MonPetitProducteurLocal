@@ -251,6 +251,23 @@
 })();
 </script>
 
+<script>
+/* Bascule 🎃 Démo / 🧡 Réel : filtre les comptes fictifs de
+   démonstration EN AMONT de tout le reste — carte, vignettes,
+   marchés déduits, dénombrements, autres filtres. Le formulaire
+   est re-soumis avec l'état inversé (demo=0 / demo=1). */
+(function () {
+  var btn = document.getElementById("bascule-demo");
+  var form = document.querySelector(".search-bar");
+  if (!btn || !form) { return; }
+  btn.addEventListener("click", function () {
+    var cache = form.querySelector('input[name="demo"]');
+    if (!cache) { return; }
+    cache.value = (cache.value === "1") ? "0" : "1";
+    form.submit();
+  });
+})();
+</script>
 {% if carte_data %}
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="{% static 'js/search-map.js' %}"></script>

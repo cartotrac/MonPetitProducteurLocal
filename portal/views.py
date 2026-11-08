@@ -383,8 +383,15 @@ def producteurs_geojson(request):
     foodtrucks sont positionnés sur l'emplacement de leur créneau en
     cours ou de leur prochain arrêt au moment de la requête (adresse
     déclarée en repli)."""
+    # Bascule 🎃 Démo / 🧡 Réel : paramètre « demo » (1 par défaut) —
+    # la page de recherche en mode « Réel » ne charge que les vrais
+    # producteurs sur la carte.
+    inclure_demo = request.GET.get("demo", "1") != "0"
+    exploitants = Exploitant.objects.filter(visible=True)
+    if not inclure_demo:
+        exploitants = exploitants.exclude(est_demo=True)
     data = []
-    for e in Exploitant.objects.filter(visible=True):
+    for e in exploitants:
         lat, lon, libelle_position = e.latitude, e.longitude, ""
         if e.activite == Exploitant.Activite.FOODTRUCK:
             position = _position_dynamique_foodtruck(e)
