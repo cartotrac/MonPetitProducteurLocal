@@ -268,12 +268,7 @@ def producer_search(request):
               .select_related("point_livraison")
               .order_by("jour", "heure_debut")):
         horaires.setdefault(c.exploitant_id, []).append(
-            f"{c.get_jour_display()} "
-            f"{c.heure_debut.strftime('%H:%M')}–"
-            f"{c.heure_fin.strftime('%H:%M')}"
-            + (f" — {c.point_livraison.emoji_type} "
-               f"{c.point_livraison.nom}"
-               if c.point_livraison else ""))
+            _horaire_vignette(c))
     for e in exploitants:
         e.horaires = horaires.get(e.pk, [])
     # Favoris de l'utilisateur connecté : l'étoile des vignettes est
@@ -422,8 +417,18 @@ def marche_detail(request, slug):
     catégorie d'activité."""
     for marche in identifier_marches():
         if marche["slug"] == slug:
+            # États favoris des producteurs du marché : l'étoile des
+            # vignettes unifiées reflète le compte connecté.
+            favoris_slugs = (
+                list(Favori.objects.filter(
+                    user=request.user,
+                    exploitant__slug__in=[p["slug"]
+                                          for p in marche["producteurs"]])
+                    .values_list("exploitant__slug", flat=True))
+                if request.user.is_authenticated else [])
             return render(request, "portal/marche_detail.html",
-                          {"marche": marche})
+                          {"marche": marche,
+                           "favoris_slugs": favoris_slugs})
     raise Http404("Marché ou boutique de producteurs inconnu.")
 
 
@@ -562,6 +567,33 @@ def favoris_toggle(request, slug):
     return redirect("portal:producer_detail", slug=slug)
 
 
+def _horaire_vignette(c):
+    """Créneau pour l'encart horaires des vignettes : texte, point
+    nommé et — pour les MARCHÉS et EMPLACEMENTS publics seulement —
+    un lien d'itinéraire Google Maps (calcul d'itinéraire au
+    survol). Les points de livraison gardent leur position exacte
+    pour les clients des paniers livrés : rien ne transite sur les
+    pages publiques."""
+    entree = {
+        "txt": (f"{c.get_jour_display()} "
+                f"{c.heure_debut.strftime('%H:%M')}–"
+                f"{c.heure_fin.strftime('%H:%M')}"),
+        "point": "",
+        "itineraire": "",
+    }
+    if c.point_livraison:
+        p = c.point_livraison
+        entree["point"] = f"{p.emoji_type} {p.nom}"
+        if (p.type_point in (PointLivraison.Type.MARCHE,
+                             PointLivraison.Type.EMPLACEMENT)
+                and p.latitude is not None
+                and p.longitude is not None):
+            entree["itineraire"] = (
+                "https://www.google.com/maps/dir/?api=1"
+                f"&destination={p.latitude:.6f},{p.longitude:.6f}")
+    return entree
+
+
 def _horaires_exploitants(exploitants):
     """Créneaux récurrents de boutique / point de livraison par ferme,
     pour l'encart horaires des vignettes (même présentation que la
@@ -572,12 +604,7 @@ def _horaires_exploitants(exploitants):
               .select_related("point_livraison")
               .order_by("jour", "heure_debut")):
         horaires.setdefault(c.exploitant_id, []).append(
-            f"{c.get_jour_display()} "
-            f"{c.heure_debut.strftime('%H:%M')}–"
-            f"{c.heure_fin.strftime('%H:%M')}"
-            + (f" — {c.point_livraison.emoji_type} "
-               f"{c.point_livraison.nom}"
-               if c.point_livraison else ""))
+            _horaire_vignette(c))
     for e in exploitants:
         e.horaires = horaires.get(e.pk, [])
 

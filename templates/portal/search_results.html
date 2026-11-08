@@ -177,7 +177,7 @@
         <div class="vignette-horaires" role="note">
           <strong>📍 {% if exploitant.activite == 'FOODTRUCK' %}Emplacements &amp; marchés{% else %}Points de retrait : boutiques, marchés &amp; livraisons{% endif %} :</strong>
           {% for h in exploitant.horaires %}
-            <span>🗓️ {{ h }}</span>
+            <span>🗓️ {{ h.txt }}{% if h.point %} — {% if h.itineraire %}<a href="{{ h.itineraire }}" target="_blank" rel="noopener" title="Itinéraire google maps">{{ h.point }}</a>{% else %}{{ h.point }}{% endif %}{% endif %}</span>
           {% endfor %}
           {% if not exploitant.horaires %}<span class="muted">Horaires non renseignés — voir la fiche de la ferme.</span>{% endif %}
         </div>

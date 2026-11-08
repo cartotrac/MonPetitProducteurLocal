@@ -37,24 +37,10 @@
 <h3 class="marche-categorie">{{ groupe.list.0.symbole }} {{ groupe.grouper }}</h3>
 <div class="grid producers">
   {% for p in groupe.list %}
-    <div class="card vignette-producteur">
-      <div class="vignette-titre">
-        <span class="badge badge-activite vignette-badge-activite" title="{{ p.libelle_activite }}">{{ p.symbole }}</span>
-        <h2><a href="{% url 'portal:producer_detail' p.slug %}">{{ p.nom_ferme }}</a></h2>
-      </div>
-      <p class="muted vignette-localite"><span>{{ p.ville }}</span></p>
-      <div class="vignette-reste">
-        <div class="vignette-horaires" role="note">
-          <strong>🗓️ {% if marche.est_marche %}Au marché{% else %}En boutique{% endif %} :</strong>
-          {% for h in p.creneaux_txt %}<span>{{ h }}</span>{% endfor %}
-        </div>
-      </div>
-      <p class="vignette-pied">
-        <span class="vignette-activite-libelle">{{ p.libelle_activite }}</span>
-        {% if p.est_demo %}<span class="badge badge-demo vignette-demo-badge">🧪 DÉMO</span>{% endif %}
-        <a class="btn btn-sm" href="{% url 'portal:producer_detail' p.slug %}">Voir la ferme →</a>
-      </p>
-    </div>
+    {# Vignette unifiée : rendu identique à la page de recherche —
+       logo, badges, étoile favori, bouton Commander, et les horaires
+       du producteur sur ce marché / cette boutique. #}
+    {% with exploitant=p.exploitant %}{% include "portal/_vignette_producteur.html" %}{% endwith %}
   {% endfor %}
 </div>
 {% empty %}

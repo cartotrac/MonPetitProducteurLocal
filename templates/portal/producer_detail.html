@@ -190,12 +190,15 @@
     {% for point in points_livraison %}
       <li>{{ point.emoji_type }} <strong>{{ point.nom }}</strong> <span class="muted">({{ point.get_type_point_display }})</span> — {{ point.adresse }}, {{ point.code_postal }} {{ point.ville }}
         {% if point.note %}<br><span class="muted">{{ point.note }}</span>{% endif %}
-        {% if point.latitude and point.longitude %}<br>
+        {# Itinéraire Google Maps (survol « Itinéraire google maps »)
+           uniquement pour les MARCHÉS et EMPLACEMENTS publics : la
+           position exacte des points de livraison n'est transmise
+           qu'aux clients des paniers livrés, jamais ici. #}
+        {% if point.type_point == 'MARCHE' or point.type_point == 'EMPLACEMENT' %}{% if point.latitude and point.longitude %}<br>
           {% with lat=point.latitude|unlocalize lon=point.longitude|unlocalize %}
-            <a class="btn btn-sm btn-outline" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination={{ lat }},{{ lon }}" title="Itinéraire vers ce point (Google Maps)">→ Itinéraire</a>
-            <a class="btn btn-sm btn-outline" target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat={{ lat }}&mlon={{ lon }}#map=17/{{ lat }}/{{ lon }}" title="Itinéraire vers ce point (OpenStreetMap)">OSM</a>
+            <a class="btn btn-sm btn-outline" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination={{ lat }},{{ lon }}" title="Itinéraire google maps">→ Itinéraire</a>
           {% endwith %}
-        {% endif %}</li>
+        {% endif %}{% endif %}</li>
     {% endfor %}
   </ul>
 </section>
@@ -208,7 +211,7 @@
     {% for creneau in creneaux %}
       <li>{{ creneau.get_jour_display }} {{ creneau.heure_debut|time:"H:i" }}–{{ creneau.heure_fin|time:"H:i" }}
           — {{ creneau.get_frequence_display }}
-          {% if creneau.point_livraison %}({{ creneau.point_livraison.emoji_type }} {{ creneau.point_livraison.nom }}){% endif %}</li>
+          {% if creneau.point_livraison %}({% if creneau.point_livraison.type_point == 'MARCHE' or creneau.point_livraison.type_point == 'EMPLACEMENT' %}{% if creneau.point_livraison.latitude and creneau.point_livraison.longitude %}<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination={{ creneau.point_livraison.latitude|unlocalize }},{{ creneau.point_livraison.longitude|unlocalize }}" title="Itinéraire google maps">{{ creneau.point_livraison.emoji_type }} {{ creneau.point_livraison.nom }}</a>{% else %}{{ creneau.point_livraison.emoji_type }} {{ creneau.point_livraison.nom }}{% endif %}{% else %}{{ creneau.point_livraison.emoji_type }} {{ creneau.point_livraison.nom }}{% endif %}){% endif %}</li>
     {% endfor %}
   </ul>
 </section>

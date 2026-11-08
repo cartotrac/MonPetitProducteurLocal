@@ -137,7 +137,13 @@ def _fabrique_marche(type_point, cluster, creneaux_par_point):
             f"{JOURS[c.jour]} {c.heure_debut.strftime('%H:%M')}–"
             f"{c.heure_fin.strftime('%H:%M')}"
             for c in fiche["creneaux"])
+        # Vignette unifiée (même rendu que la page de recherche) :
+        # horaires du producteur limités à SES créneaux sur ce marché
+        # ou cette boutique — même structure que _horaire_vignette.
+        e.horaires = [{"txt": t, "point": "", "itineraire": ""}
+                      for t in cren_txt]
         liste_producteurs.append({
+            "exploitant": e,
             "nom_ferme": e.nom_ferme,
             "slug": e.slug,
             "url": e.get_absolute_url(),
