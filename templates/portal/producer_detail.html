@@ -190,10 +190,10 @@
     {% for point in points_livraison %}
       <li>{{ point.emoji_type }} <strong>{{ point.nom }}</strong> <span class="muted">({{ point.get_type_point_display }})</span> — {{ point.adresse }}, {{ point.code_postal }} {{ point.ville }}
         {% if point.note %}<br><span class="muted">{{ point.note }}</span>{% endif %}
-        {# Itinéraire Google Maps (survol « Itinéraire google maps »)
-           uniquement pour les MARCHÉS et EMPLACEMENTS publics : la
-           position exacte des points de livraison n'est transmise
-           qu'aux clients des paniers livrés, jamais ici. #}
+        {% comment %}Itinéraire Google Maps (survol « Itinéraire
+           google maps ») uniquement pour les MARCHÉS et EMPLACEMENTS
+           publics : la position exacte des points de livraison
+           n'est transmise qu'aux clients des paniers livrés.{% endcomment %}
         {% if point.type_point == 'MARCHE' or point.type_point == 'EMPLACEMENT' %}{% if point.latitude and point.longitude %}<br>
           {% with lat=point.latitude|unlocalize lon=point.longitude|unlocalize %}
             <a class="btn btn-sm btn-outline" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination={{ lat }},{{ lon }}" title="Itinéraire google maps">→ Itinéraire</a>
