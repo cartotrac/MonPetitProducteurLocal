@@ -1,57 +1,232 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Inscription producteur — MonPetitMaraicher{% endblock %}
+{% block title %}Inscription producteur — MonPetitProducteurLocal{% endblock %}
 {% block extra_style %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">{% endblock %}
 {% block content %}
-<h1>🚜 Créer mon espace producteur</h1>
-<p class="muted">Trois informations suffisent : le nom de votre exploitation,
-   votre activité et votre localisation. Tout le reste (SIRET, mode de
-   production, logo, description, téléphone, points de livraison…)
-   se complète en deux minutes ensuite depuis la page ⚙️ Paramètres.</p>
+<h1>🚜 Créer mon espace pro</h1>
+<p class="muted">Deux blocs : <strong>👤 Mon profil</strong> (votre compte
+   individuel) et <strong>Ma ferme</strong> (votre exploitation — le titre
+   suit l'activité choisie). Tout le reste (SIRET, mode de production,
+   logo, description, points de livraison…) se complète ensuite depuis
+   la page ⚙️ Paramètres.</p>
 <form method="post" class="form">
   {% csrf_token %}
   {% if form.non_field_errors %}
     <div class="flash warning">⚠️ Merci de corriger les champs indiqués ci-dessous.</div>
   {% endif %}
-  {{ form.as_p }}
 
-  <div id="carte-inscription" data-pick-map data-lat-input="id_latitude"
-       data-lon-input="id_longitude" style="height: 300px; border-radius: 8px; margin: 1rem 0;"></div>
-  <p class="muted">👆 Cliquez sur la carte pour positionner votre exploitation —
-     ou localisez votre ville automatiquement :</p>
-  <button type="button" class="btn btn-outline btn-sm"
-          data-geocoder data-cp="id_code_postal" data-ville="id_ville"
-          data-carte="carte-inscription"
-          data-libelle="📍 Localiser ma commune">📍 Localiser ma commune</button>
+  <section class="form-bloc">
+    <h2>👤 Mon profil</h2>
+    <p class="muted">Votre identité de compte individuel : prénom, nom,
+       e-mail (identifiant de connexion), téléphone et photo (lien
+       externe). Ces informations servent aux clients et aux autres
+       producteurs pour vous identifier et vous contacter.</p>
+    <div class="profil-mise-en-page" data-picker-custom>
+      <div class="profil-champs">
+        <div class="form-duo">
+          <div class="form-champ">{{ form.first_name.label_tag }} {{ form.first_name }}
+            {{ form.first_name.errors }}</div>
+          <div class="form-champ">{{ form.last_name.label_tag }} {{ form.last_name }}
+            {{ form.last_name.errors }}</div>
+        </div>
+        <div class="form-duo">
+          <div class="form-champ">{{ form.email.label_tag }} {{ form.email }}
+            {{ form.email.errors }}
+            <span class="helptext">{{ form.email.help_text }}</span></div>
+          <div class="form-champ">{{ form.telephone.label_tag }} {{ form.telephone }}
+            {{ form.telephone.errors }}</div>
+        </div>
+      </div>
+      <div class="profil-photo">
+        <div class="image-picker" data-photo-apercu="id_photo_externe">
+          <div class="image-picker-cadre">
+            <img class="image-picker-img" alt="👤 Photo de profil">
+            <div class="image-picker-placeholder">👤 Aucune photo</div>
+            <div class="image-picker-erreur">❌ Image introuvable : lien direct requis (.jpg, .png, .webp…).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="profil-photo-url">
+      {{ form.photo_externe.label_tag }} {{ form.photo_externe }}
+      {{ form.photo_externe.errors }}
+      <span class="helptext">Lien direct de l'image (Drive/Cloud : lien de
+        partage de l'image ou URL en .jpg/.png/.webp) — rien n'est hébergé
+        sur le portail.</span>
+    </div>
+    <div class="form-duo">
+      <div class="form-champ">{{ form.password1.label_tag }} {{ form.password1 }}
+        {{ form.password1.errors }}
+        <span class="helptext">{{ form.password1.help_text }}</span></div>
+      <div class="form-champ">{{ form.password2.label_tag }} {{ form.password2 }}
+        {{ form.password2.errors }}
+        <span class="helptext">{{ form.password2.help_text }}</span></div>
+    </div>
+  </section>
+
+  <section class="form-bloc">
+    <h2 id="titre-ferme">🚜 Ma ferme</h2>
+    <div class="form-duo form-duo-ferme">
+      <div class="form-champ">{{ form.nom_ferme.label_tag }} {{ form.nom_ferme }}
+        {{ form.nom_ferme.errors }}
+        <span class="helptext">{{ form.nom_ferme.help_text }}</span></div>
+      <div class="form-champ form-champ-demo">
+        <label class="case-demo" for="id_est_demo">{{ form.est_demo }} {{ form.est_demo.label }}</label>
+        <span class="helptext">{{ form.est_demo.help_text }}</span>
+        {{ form.est_demo.errors }}
+      </div>
+    </div>
+    <div class="form-duo">
+      <div class="form-champ">{{ form.activite.label_tag }} {{ form.activite }}
+        {{ form.activite.errors }}
+        <span class="helptext">{{ form.activite.help_text }}</span></div>
+      <div class="form-champ" id="ligne-specialite">{{ form.specialite.label_tag }} {{ form.specialite }}
+        {{ form.specialite.errors }}
+        <span class="helptext">{{ form.specialite.help_text }}</span></div>
+    </div>
+
+    <div id="carte-inscription" data-pick-map data-lat-input="id_latitude"
+         data-lon-input="id_longitude" style="height: 300px; border-radius: 8px; margin: 1rem 0 0.4rem;"></div>
+    <p class="muted">👆 Cliquez sur la carte pour positionner votre
+       exploitation : latitude/longitude sont renseignées, et l'adresse,
+       la ville, le code postal et le département complétés par
+       géocodage inverse (champs encore vides seulement). Vous pouvez
+       aussi :</p>
+    <div class="form-row">
+      <button type="button" class="btn btn-outline btn-sm"
+              data-geocoder data-cp="id_code_postal" data-ville="id_ville"
+              data-carte="carte-inscription"
+              data-libelle="📍 Localiser ma commune">📍 Localiser ma commune</button>
+      <button type="button" class="btn btn-outline btn-sm" id="btn-geoloc-moi">🌍 Me géolocaliser</button>
+    </div>
+
+    <div class="form-champ">{{ form.adresse.label_tag }} {{ form.adresse }}
+      {{ form.adresse.errors }}</div>
+    <div class="form-duo">
+      <div class="form-champ">{{ form.ville.label_tag }} {{ form.ville }}
+        {{ form.ville.errors }}</div>
+      <div class="form-champ">{{ form.code_postal.label_tag }} {{ form.code_postal }}
+        {{ form.code_postal.errors }}
+        <span class="helptext">{{ form.code_postal.help_text }}</span></div>
+    </div>
+    <div class="form-trio">
+      <div class="form-champ">{{ form.departement.label_tag }} {{ form.departement }}
+        {{ form.departement.errors }}</div>
+      <div class="form-champ">{{ form.latitude.label_tag }} {{ form.latitude }}
+        {{ form.latitude.errors }}
+        <span class="helptext">Position sur la carte (optionnel)</span></div>
+      <div class="form-champ">{{ form.longitude.label_tag }} {{ form.longitude }}
+        {{ form.longitude.errors }}
+        <span class="helptext">Position sur la carte (optionnel)</span></div>
+    </div>
+  </section>
 
   <div class="save-bar">
     <button class="btn btn-lg" type="submit">Créer mon espace pro</button>
   </div>
 </form>
 <p class="muted">💡 Votre e-mail servira d'identifiant de connexion : pas de
-   nom d'utilisateur à retenir. Vous pourrez renseigner votre fiche et
-   publier votre première récolte dès la prochaine étape.</p>
+   nom d'utilisateur à retenir. Vous pourrez compléter votre fiche et publier
+   votre première récolte dès la prochaine étape.</p>
 {% endblock %}
 {% block extrajs %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{% static 'js/pick-map.js' %}" defer></script>
+<script src="{% static 'js/image-picker.js' %}" defer></script>
+<script src="{% static 'js/photo-picker.js' %}" defer></script>
 <script>
-/* Inscription pro : la spécialité n'apparaît (et n'est exigée) que
-   pour un foodtruck — elle s'affiche ensuite sur les pages publiques
-   et les vignettes de recherche. */
+/* Inscription pro : trois comportements liés à l'agencement du
+   formulaire.
+   1. La spécialité ne concerne que les foodtrucks : hors foodtruck
+      elle est grisée, non sélectionnable et sa valeur réinitialisée
+      (le serveur la vide aussi, côté clean()).
+   2. Le titre du bloc exploitation suit l'activité : « Ma ferme »,
+      « Mon foodtruck », « Ma boutique » (mêmes libellés que la
+      rubrique Paramètres des pros connectés).
+   3. Position sur la carte = géocodage inverse : un clic sur la carte
+      (ou le bouton 🌍 Me géolocaliser) renseigne latitude/longitude
+      puis complète adresse, ville, code postal et département si
+      ces champs sont encore vides. */
 (function () {
+  var TITRES = { "FOODTRUCK": "🚚 Mon foodtruck",
+                 "TRAITEUR": "🥗 Ma boutique" };
   var act = document.getElementById("id_activite");
   var spe = document.getElementById("id_specialite");
-  if (!act || !spe) { return; }
-  function majSpe() {
-    var foodtruck = act.value === "FOODTRUCK";
-    var bloc = spe.closest("p") || spe.parentElement;
-    if (bloc) { bloc.hidden = !foodtruck; }
-    spe.required = foodtruck;
-    if (!foodtruck) { spe.value = ""; }
+  var ligneSpe = document.getElementById("ligne-specialite");
+  var titre = document.getElementById("titre-ferme");
+
+  function majActivite() {
+    var foodtruck = act && act.value === "FOODTRUCK";
+    if (spe) {
+      spe.disabled = !foodtruck;
+      spe.required = foodtruck;
+      if (!foodtruck) { spe.value = ""; }
+    }
+    if (ligneSpe) { ligneSpe.classList.toggle("champ-grise", !foodtruck); }
+    if (titre && act) {
+      titre.textContent = TITRES[act.value] || "🚜 Ma ferme";
+    }
   }
-  act.addEventListener("change", majSpe);
-  majSpe();
+  if (act) {
+    act.addEventListener("change", majActivite);
+    majActivite();
+  }
+
+  function renseigner(lat, lon) {
+    var carteEl = document.getElementById("carte-inscription");
+    if (carteEl && carteEl._pickMap) { carteEl._pickMap.appliquer(lat, lon); }
+    fetch("https://nominatim.openstreetmap.org/reverse?format=json"
+          + "&countrycodes=fr&lat=" + lat + "&lon=" + lon)
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        var a = (res && res.address) || {};
+        function remplir(id, valeur) {
+          var el = document.getElementById(id);
+          if (el && !(el.value || "").trim() && valeur) { el.value = valeur; }
+        }
+        remplir("id_adresse",
+                [a.house_number, a.road].filter(Boolean).join(" "));
+        remplir("id_ville", a.city || a.town || a.village
+                || a.municipality || "");
+        remplir("id_code_postal", a.postcode || "");
+        remplir("id_departement", (a.postcode || "").slice(0, 2));
+      })
+      .catch(function () { /* géocodage inverse indisponible :
+                              lat/lon sont déjà positionnés */ });
+  }
+
+  /* Clic sur la carte : pick-map.js (defer) s'initialise au
+     DOMContentLoaded avant cet écouteur, _pickMap est donc prêt. */
+  document.addEventListener("DOMContentLoaded", function () {
+    var carteEl = document.getElementById("carte-inscription");
+    if (carteEl && carteEl._pickMap) {
+      carteEl._pickMap.carte.on("click", function (e) {
+        renseigner(e.latlng.lat, e.latlng.lng);
+      });
+    }
+  });
+
+  var btn = document.getElementById("btn-geoloc-moi");
+  if (btn) {
+    btn.addEventListener("click", function () {
+      if (!navigator.geolocation) {
+        alert("Géolocalisation non disponible sur ce navigateur.");
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = "⏳ Localisation…";
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        btn.disabled = false;
+        btn.textContent = "🌍 Me géolocaliser";
+        renseigner(pos.coords.latitude, pos.coords.longitude);
+      }, function () {
+        btn.disabled = false;
+        btn.textContent = "🌍 Me géolocaliser";
+        alert("Position refusée ou indisponible : cliquez directement "
+              + "sur la carte ou utilisez « Localiser ma commune ».");
+      });
+    });
+  }
 })();
 </script>
 {% endblock %}
