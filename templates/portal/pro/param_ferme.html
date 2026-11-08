@@ -7,57 +7,212 @@
 <p class="muted">Ces informations sont affichées sur votre vitrine
    publique : activité, SIRET, logo (fichier ou lien externe), réseaux
    sociaux, position. Le département est déduit du code postal si vous
-   le laissez vide.</p>
+   le laissez vide. L'agencement reprend le formulaire d'inscription :
+   nom + case démo, activité + spécialité (foodtruck uniquement),
+   carte de position avec géocodage inverse, adresse et
+   coordonnées.</p>
 
-<section class="harvest-bloc">
-  <div class="card">
-  <form method="post" enctype="multipart/form-data" class="form">
-    {% csrf_token %}
-    <input type="hidden" name="section" value="ferme">
-    <div id="carte-ferme" data-pick-map data-lat-input="id_latitude"
-         data-lon-input="id_longitude" style="height: 300px; border-radius: 8px; margin-bottom: 0.4rem;"></div>
-    <p class="muted">👆 Cliquez sur la carte pour positionner {{ exploitant.libelle_fiche|lower }} :
-       latitude/longitude sont renseignées automatiquement.</p>
-    {{ form_ferme.as_p }}
-    <div class="save-bar">
-  <div class="form-row">
-    <label for="id_rythme_publication">🗓️ Rythme de publication de la vitrine</label>
-    <select id="id_rythme_publication" name="rythme_publication">
-      <option value="">Automatique (selon mon activité)</option>
-      {% for code, libelle in rythmes %}
-        <option value="{{ code }}"{% if rythme_actuel == code %} selected{% endif %}>{{ libelle }}</option>
-      {% endfor %}
-    </select>
-    <p class="muted">Libellé affiché sur la vitrine (« …de la semaine », « …du mois ») — purement indicatif : publiez aussi souvent que nécessaire, plusieurs {{ exploitant.vocab.recoltes|lower }} par période ne posent aucun problème.</p>
-  </div>
-      <button class="btn" type="submit">💾 Enregistrer {{ exploitant.libelle_fiche|lower }}</button>
+<form method="post" enctype="multipart/form-data" class="form">
+  {% csrf_token %}
+  <input type="hidden" name="section" value="ferme">
+  {% if form_ferme.non_field_errors %}
+    <div class="flash warning">⚠️ Merci de corriger les champs indiqués ci-dessous.</div>
+  {% endif %}
+
+  <section class="form-bloc">
+    <h2 id="titre-ferme">🚜 Ma ferme</h2>
+    <div class="form-duo form-duo-ferme">
+      <div class="form-champ">{{ form_ferme.nom_ferme.label_tag }} {{ form_ferme.nom_ferme }}
+        {{ form_ferme.nom_ferme.errors }}</div>
+      <div class="form-champ form-champ-demo">
+        <label class="case-demo" for="id_est_demo">{{ form_ferme.est_demo }} {{ form_ferme.est_demo.label }}</label>
+        <span class="helptext">{{ form_ferme.est_demo.help_text }}</span>
+        {{ form_ferme.est_demo.errors }}
+      </div>
     </div>
-  </form>
-  </div>
-</section>
+    <div class="form-duo">
+      <div class="form-champ">{{ form_ferme.activite.label_tag }} {{ form_ferme.activite }}
+        {{ form_ferme.activite.errors }}</div>
+      <div class="form-champ" id="ligne-specialite">{{ form_ferme.specialite.label_tag }} {{ form_ferme.specialite }}
+        {{ form_ferme.specialite.errors }}
+        <span class="helptext">Uniquement pour un foodtruck : pizza, burger…</span></div>
+    </div>
+    <div class="form-duo">
+      <div class="form-champ">{{ form_ferme.siret.label_tag }} {{ form_ferme.siret }}
+        {{ form_ferme.siret.errors }}
+        <span class="helptext">{{ form_ferme.siret.help_text }}</span></div>
+      <div class="form-champ">{{ form_ferme.mode_production.label_tag }} {{ form_ferme.mode_production }}
+        {{ form_ferme.mode_production.errors }}</div>
+    </div>
+    <div class="form-duo">
+      <div class="form-champ">{{ form_ferme.logo.label_tag }} {{ form_ferme.logo }}
+        {{ form_ferme.logo.errors }}
+        <span class="helptext">Le fichier prime sur le lien externe s'il est renseigné.</span></div>
+      <div class="form-champ">{{ form_ferme.logo_externe.label_tag }} {{ form_ferme.logo_externe }}
+        {{ form_ferme.logo_externe.errors }}
+        <span class="helptext">Rien n'est hébergé sur le portail.</span></div>
+    </div>
+    <div class="form-champ">{{ form_ferme.description.label_tag }} {{ form_ferme.description }}
+      {{ form_ferme.description.errors }}
+      <span class="helptext">Quelques lignes pour votre vitrine publique.</span></div>
 
+    <div id="carte-ferme" data-pick-map data-lat-input="id_latitude"
+         data-lon-input="id_longitude" style="height: 300px; border-radius: 8px; margin: 1rem 0 0.4rem;"></div>
+    <p class="muted">👆 Cliquez sur la carte pour positionner {{ exploitant.libelle_fiche|lower }} :
+       latitude/longitude sont renseignées, et l'adresse, la ville, le code
+       postal et le département complétés par géocodage inverse (champs
+       encore vides seulement). Vous pouvez aussi :</p>
+    <div class="form-row">
+      <button type="button" class="btn btn-outline btn-sm"
+              data-geocoder data-cp="id_code_postal" data-ville="id_ville"
+              data-carte="carte-ferme"
+              data-libelle="📍 Localiser ma commune">📍 Localiser ma commune</button>
+      <button type="button" class="btn btn-outline btn-sm" id="btn-geoloc-moi">🌍 Me géolocaliser</button>
+    </div>
+
+    <div class="form-champ">{{ form_ferme.adresse.label_tag }} {{ form_ferme.adresse }}
+      {{ form_ferme.adresse.errors }}</div>
+    <div class="form-duo">
+      <div class="form-champ">{{ form_ferme.ville.label_tag }} {{ form_ferme.ville }}
+        {{ form_ferme.ville.errors }}</div>
+      <div class="form-champ">{{ form_ferme.code_postal.label_tag }} {{ form_ferme.code_postal }}
+        {{ form_ferme.code_postal.errors }}</div>
+    </div>
+    <div class="form-trio">
+      <div class="form-champ">{{ form_ferme.departement.label_tag }} {{ form_ferme.departement }}
+        {{ form_ferme.departement.errors }}</div>
+      <div class="form-champ">{{ form_ferme.latitude.label_tag }} {{ form_ferme.latitude }}
+        {{ form_ferme.latitude.errors }}
+        <span class="helptext">Position sur la carte (optionnel)</span></div>
+      <div class="form-champ">{{ form_ferme.longitude.label_tag }} {{ form_ferme.longitude }}
+        {{ form_ferme.longitude.errors }}
+        <span class="helptext">Position sur la carte (optionnel)</span></div>
+    </div>
+    <div class="form-duo">
+      <div class="form-champ">{{ form_ferme.telephone.label_tag }} {{ form_ferme.telephone }}
+        {{ form_ferme.telephone.errors }}</div>
+      <div class="form-champ">{{ form_ferme.mode_fonctionnement.label_tag }} {{ form_ferme.mode_fonctionnement }}
+        {{ form_ferme.mode_fonctionnement.errors }}</div>
+    </div>
+    <div class="form-trio">
+      <div class="form-champ">{{ form_ferme.site_web.label_tag }} {{ form_ferme.site_web }}
+        {{ form_ferme.site_web.errors }}</div>
+      <div class="form-champ">{{ form_ferme.facebook.label_tag }} {{ form_ferme.facebook }}
+        {{ form_ferme.facebook.errors }}</div>
+      <div class="form-champ">{{ form_ferme.instagram.label_tag }} {{ form_ferme.instagram }}
+        {{ form_ferme.instagram.errors }}</div>
+    </div>
+    <div class="form-row">
+      <label for="id_rythme_publication">🗓️ Rythme de publication de la vitrine</label>
+      <select id="id_rythme_publication" name="rythme_publication">
+        <option value="">Automatique (selon mon activité)</option>
+        {% for code, libelle in rythmes %}
+          <option value="{{ code }}"{% if rythme_actuel == code %} selected{% endif %}>{{ libelle }}</option>
+        {% endfor %}
+      </select>
+      <p class="muted">Libellé affiché sur la vitrine (« …de la semaine », « …du mois ») — purement indicatif : publiez aussi souvent que nécessaire, plusieurs {{ exploitant.vocab.recoltes|lower }} par période ne posent aucun problème.</p>
+    </div>
+    <div class="save-bar">
+      <button class="btn btn-lg" type="submit">💾 Enregistrer {{ exploitant.libelle_fiche|lower }}</button>
+    </div>
+  </section>
+</form>
 {% endblock %}
 {% block extrajs %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{% static 'js/pick-map.js' %}" defer></script>
 <script src="{% static 'js/image-picker.js' %}" defer></script>
 <script>
-/* Le champ « Spécialité » ne concerne que les foodtrucks : il n'est
-   visible que si l'activité sélectionnée vaut Foodtruck. Si l'on
-   quitte ce métier, la valeur est effacée pour éviter qu'une
-   spécialité foodtruck ne traîne sur un autre profil. */
+/* Mise en page « Ma ferme » sur le modèle de l'inscription pro :
+   1. La spécialité ne concerne que les foodtrucks : hors foodtruck
+      elle est grisée, non sélectionnable et sa valeur réinitialisée
+      (le serveur la vide aussi, côté clean()).
+   2. Le titre du bloc suit l'activité : « Ma ferme », « Mon
+      foodtruck », « Ma boutique ».
+   3. Position sur la carte = géocodage inverse : un clic sur la
+      carte (ou le bouton 🌍 Me géolocaliser) renseigne
+      latitude/longitude puis complète adresse, ville, code postal et
+      département si ces champs sont encore vides. */
 (function () {
-  var activite = document.getElementById("id_activite");
-  var spec = document.getElementById("id_specialite");
-  if (!activite || !spec) { return; }
-  var ligne = spec.closest("p") || spec.parentElement;
-  function maj() {
-    var foodtruck = activite.value === "FOODTRUCK";
-    ligne.style.display = foodtruck ? "" : "none";
-    if (!foodtruck) { spec.value = ""; }
+  var TITRES = { "FOODTRUCK": "🚚 Mon foodtruck",
+                 "TRAITEUR": "🥗 Ma boutique" };
+  var act = document.getElementById("id_activite");
+  var spe = document.getElementById("id_specialite");
+  var ligneSpe = document.getElementById("ligne-specialite");
+  var titre = document.getElementById("titre-ferme");
+
+  function majActivite() {
+    var foodtruck = act && act.value === "FOODTRUCK";
+    if (spe) {
+      spe.disabled = !foodtruck;
+      spe.required = foodtruck;
+      if (!foodtruck) { spe.value = ""; }
+    }
+    if (ligneSpe) { ligneSpe.classList.toggle("champ-grise", !foodtruck); }
+    if (titre && act) {
+      titre.textContent = TITRES[act.value] || "🚜 Ma ferme";
+    }
   }
-  activite.addEventListener("change", maj);
-  maj();
+  if (act) {
+    act.addEventListener("change", majActivite);
+    majActivite();
+  }
+
+  function renseigner(lat, lon) {
+    var carteEl = document.getElementById("carte-ferme");
+    if (carteEl && carteEl._pickMap) { carteEl._pickMap.appliquer(lat, lon); }
+    fetch("https://nominatim.openstreetmap.org/reverse?format=json"
+          + "&countrycodes=fr&lat=" + lat + "&lon=" + lon)
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        var a = (res && res.address) || {};
+        function remplir(id, valeur) {
+          var el = document.getElementById(id);
+          if (el && !(el.value || "").trim() && valeur) { el.value = valeur; }
+        }
+        remplir("id_adresse",
+                [a.house_number, a.road].filter(Boolean).join(" "));
+        remplir("id_ville", a.city || a.town || a.village
+                || a.municipality || "");
+        remplir("id_code_postal", a.postcode || "");
+        remplir("id_departement", (a.postcode || "").slice(0, 2));
+      })
+      .catch(function () { /* géocodage inverse indisponible :
+                              lat/lon sont déjà positionnés */ });
+  }
+
+  /* Clic sur la carte : pick-map.js (defer) s'initialise au
+     DOMContentLoaded avant cet écouteur, _pickMap est donc prêt. */
+  document.addEventListener("DOMContentLoaded", function () {
+    var carteEl = document.getElementById("carte-ferme");
+    if (carteEl && carteEl._pickMap) {
+      carteEl._pickMap.carte.on("click", function (e) {
+        renseigner(e.latlng.lat, e.latlng.lng);
+      });
+    }
+  });
+
+  var btn = document.getElementById("btn-geoloc-moi");
+  if (btn) {
+    btn.addEventListener("click", function () {
+      if (!navigator.geolocation) {
+        alert("Géolocalisation non disponible sur ce navigateur.");
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = "⏳ Localisation…";
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        btn.disabled = false;
+        btn.textContent = "🌍 Me géolocaliser";
+        renseigner(pos.coords.latitude, pos.coords.longitude);
+      }, function () {
+        btn.disabled = false;
+        btn.textContent = "🌍 Me géolocaliser";
+        alert("Position refusée ou indisponible : cliquez directement "
+              + "sur la carte ou utilisez « Localiser ma commune ».");
+      });
+    });
+  }
 })();
 </script>
 {% endblock %}
