@@ -110,12 +110,15 @@ def home(request):
     })
 
 
-def _recherche_producteurs(q, dept, modes, activites):
+def _recherche_producteurs(q, dept, modes, activites,
+                           inclure_demo=True):
     """Jeu de critères -> queryset d'exploitants visibles (partagé par
     la recherche simple et par les filtres combinés enregistrés).
     « modes » et « activites » acceptent une ou plusieurs valeurs
     (listes à choix multiple) : la sélection s'additionne (ex : Bio OU
-    Permaculture), les autres critères se croisent."""
+    Permaculture), les autres critères se croisent. inclure_demo=False
+    exclut les exploitations fictives de démonstration : la bascule
+    🎃 Démo / 🧡 Réel de la recherche filtre ainsi EN AMONT."""
     # Tolère les valeurs uniques héritées (chaîne ou listes plates)
     if isinstance(modes, str):
         modes = [modes] if modes else []
@@ -124,6 +127,8 @@ def _recherche_producteurs(q, dept, modes, activites):
     modes = [m for m in modes if m]
     activites = [a for a in activites if a]
     exploitants = Exploitant.objects.filter(visible=True)
+    if not inclure_demo:
+        exploitants = exploitants.exclude(est_demo=True)
     if q:
         exploitants = exploitants.filter(
             Q(nom_ferme__icontains=q) | Q(ville__icontains=q)
@@ -184,7 +189,9 @@ def producer_search(request):
     # « dept » n'entre PAS dans le queryset : il pilote uniquement
     # le zoom cartographique (data-zone), la carte filtre ensuite
     # les vignettes par emprise.
-    exploitants = _recherche_producteurs(q, "", mode_choisi, activite_choisie)
+    exploitants = _recherche_producteurs(q, "", mode_choisi,
+                                         activite_choisie,
+                                         inclure_demo=demo)
     # Mode de visualisation : « producteurs » (toutes les activités
     # sauf foodtrucks et traiteurs — ils n'ont PLUS rien à faire sur
     # cette carte), « restauration » (uniquement ces deux-là) ou
@@ -208,7 +215,7 @@ def producer_search(request):
     marches = []
     type_marche_choisi = []
     if visu_marches:
-        marches = identifier_marches()
+        marches = identifier_marches(inclure_demo=demo)
         if q:
             marches = [m for m in marches if q.lower() in (
                 f"{m['nom']} {m['ville']} {m['adresse']}".lower())]
@@ -231,21 +238,19 @@ def producer_search(request):
     # dénombrements propres à chaque mode de visualisation
     # (producteurs locaux / traiteurs & foodtrucks / marchés &
     # boutiques de producteurs).
-    nb_pros = (Exploitant.objects.filter(visible=True).count())
-    nb_producteurs_locaux = (Exploitant.objects
-                             .filter(visible=True)
+    nb_pros = visibles.count()
+    nb_producteurs_locaux = (visibles
                              .exclude(
                                  activite__in=activites_restauration)
                              .count())
-    nb_foodtrucks = (Exploitant.objects
-                     .filter(visible=True,
-                             activite=Exploitant.Activite.FOODTRUCK)
+    nb_foodtrucks = (visibles
+                     .filter(activite=Exploitant.Activite.FOODTRUCK)
                      .count())
-    nb_traiteurs = (Exploitant.objects
-                    .filter(visible=True,
-                            activite=Exploitant.Activite.TRAITEUR)
+    nb_traiteurs = (visibles
+                    .filter(activite=Exploitant.Activite.TRAITEUR)
                     .count())
-    tous_marches = marches if visu_marches else identifier_marches()
+    tous_marches = (marches if visu_marches
+                    else identifier_marches(inclure_demo=demo))
     nb_marches = sum(1 for m in tous_marches if m["est_marche"])
     nb_boutiques = len(tous_marches) - nb_marches
     aujourdhui = timezone.localdate()
@@ -356,6 +361,7 @@ def producer_search(request):
         "carte_data": carte_data,
         "activites": activite_cases,
         "visu": visu,
+        "demo": demo,
         "home_carte": home_carte,
         "marches": marches,
         "nb_pros": nb_pros,

@@ -182,10 +182,13 @@ def _fabrique_marche(type_point, cluster, creneaux_par_point):
     }
 
 
-def identifier_marches():
+def identifier_marches(inclure_demo=True):
     """Recalcule à la demande la liste des marchés et boutiques de
     producteurs (points type Marché ou Boutique, exploitants visibles
-    hors traiteurs/foodtrucks, avec coordonnées)."""
+    hors traiteurs/foodtrucks, avec coordonnées). inclure_demo=False
+    retire les exploitations de démonstration : le mode « Réel » de
+    la page de recherche n'affiche alors que les marchés et boutiques
+    tenus par de vrais producteurs."""
     points = (PointLivraison.objects
               .filter(type_point__in=(PointLivraison.Type.MARCHE,
                                       PointLivraison.Type.BOUTIQUE),

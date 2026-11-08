@@ -7,7 +7,13 @@
 {% block retour_dashboard %}{% endblock %}
 {% block content %}
 <div class="entete-chercher">
-  <h1>{% if visu == "restauration" %}🍽️ Trouver un Traiteur ou Foodtruck autour de moi !{% elif visu == "marches" %}🎪 Retrouver mes producteurs locaux au Marché ou en Boutique{% else %}🔍 Trouver mon producteur local !{% endif %}</h1>
+  <div class="titre-recherche">
+    <h1>{% if visu == "restauration" %}🍽️ Trouver un Traiteur ou Foodtruck autour de moi !{% elif visu == "marches" %}🎪 Retrouver mes producteurs locaux au Marché ou en Boutique{% else %}🔍 Trouver mon producteur local !{% endif %}</h1>
+    <button type="button" id="bascule-demo" class="bascule-demo{% if demo %} actif{% endif %}" title="{% if demo %}Démo{% else %}Réel{% endif %}" aria-pressed="{% if demo %}true{% else %}false{% endif %}" aria-label="Bascule Démo / Réel : afficher ou masquer les comptes de démonstration">
+      <span class="bascule-piste"><span class="bascule-curseur"></span></span>
+      <span class="bascule-icone">{% if demo %}🎃{% else %}🧡{% endif %}</span>
+    </button>
+  </div>
   <span class="mode-chip {% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% else %}producteurs{% endif %}">{% if visu == "restauration" %}🍽️ Mode restauration : traiteurs &amp; emplacements de foodtrucks{% elif visu == "marches" %}🎪 Mode marchés : marchés &amp; boutiques de producteurs — identifiés d'après leurs points et créneaux déclarés{% else %}🥬 Mode producteurs : fermes &amp; productions locales{% endif %}</span>
   <div class="stats-portail">
     <span class="stats-item">
@@ -88,7 +94,7 @@
     </div>
   </details>
   {% endif %}
-  {% if filtre_actif %}<a class="btn btn-sm btn-retirer-filtre" href="{% url 'portal:producer_search' %}?visu={{ visu }}" title="Retirer tous les filtres actifs">✕ Retirer les filtres</a>{% endif %}
+  {% if filtre_actif %}<a class="btn btn-sm btn-retirer-filtre" href="{% url 'portal:producer_search' %}?visu={{ visu }}{% if not demo %}&demo=0{% endif %}" title="Retirer tous les filtres actifs">✕ Retirer les filtres</a>{% endif %}
   <button class="btn{% if filtre_actif %} btn-filtre-actif{% endif %}" type="submit">Filtrer</button>
 </form>
 
