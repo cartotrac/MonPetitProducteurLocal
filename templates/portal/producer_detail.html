@@ -191,10 +191,10 @@
       <li>{{ point.emoji_type }} <strong>{{ point.nom }}</strong> <span class="muted">({{ point.get_type_point_display }})</span> — {{ point.adresse }}, {{ point.code_postal }} {{ point.ville }}
         {% if point.note %}<br><span class="muted">{{ point.note }}</span>{% endif %}
         {% comment %}Itinéraire Google Maps (survol « Itinéraire
-           google maps ») uniquement pour les MARCHÉS et EMPLACEMENTS
+           google maps ») pour les MARCHÉS, EMPLACEMENTS et BOUTIQUES
            publics : la position exacte des points de livraison
            n'est transmise qu'aux clients des paniers livrés.{% endcomment %}
-        {% if point.type_point == 'MARCHE' or point.type_point == 'EMPLACEMENT' %}{% if point.latitude and point.longitude %}<br>
+        {% if point.type_point == 'MARCHE' or point.type_point == 'EMPLACEMENT' or point.type_point == 'BOUTIQUE' %}{% if point.latitude and point.longitude %}<br>
           {% with lat=point.latitude|unlocalize lon=point.longitude|unlocalize %}
             <a class="btn btn-sm btn-outline" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination={{ lat }},{{ lon }}" title="Itinéraire google maps">→ Itinéraire</a>
           {% endwith %}
@@ -211,7 +211,7 @@
     {% for creneau in creneaux %}
       <li>{{ creneau.get_jour_display }} {{ creneau.heure_debut|time:"H:i" }}–{{ creneau.heure_fin|time:"H:i" }}
           — {{ creneau.get_frequence_display }}
-          {% if creneau.point_livraison %}({% if creneau.point_livraison.type_point == 'MARCHE' or creneau.point_livraison.type_point == 'EMPLACEMENT' %}{% if creneau.point_livraison.latitude and creneau.point_livraison.longitude %}<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination={{ creneau.point_livraison.latitude|unlocalize }},{{ creneau.point_livraison.longitude|unlocalize }}" title="Itinéraire google maps">{{ creneau.point_livraison.emoji_type }} {{ creneau.point_livraison.nom }}</a>{% else %}{{ creneau.point_livraison.emoji_type }} {{ creneau.point_livraison.nom }}{% endif %}{% else %}{{ creneau.point_livraison.emoji_type }} {{ creneau.point_livraison.nom }}{% endif %}){% endif %}</li>
+          {% if creneau.point_livraison %}({% if creneau.point_livraison.type_point == 'MARCHE' or creneau.point_livraison.type_point == 'EMPLACEMENT' or creneau.point_livraison.type_point == 'BOUTIQUE' %}{% if creneau.point_livraison.latitude and creneau.point_livraison.longitude %}<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination={{ creneau.point_livraison.latitude|unlocalize }},{{ creneau.point_livraison.longitude|unlocalize }}" title="Itinéraire google maps">{{ creneau.point_livraison.emoji_type }} {{ creneau.point_livraison.nom }}</a>{% else %}{{ creneau.point_livraison.emoji_type }} {{ creneau.point_livraison.nom }}{% endif %}{% else %}{{ creneau.point_livraison.emoji_type }} {{ creneau.point_livraison.nom }}{% endif %}){% endif %}</li>
     {% endfor %}
   </ul>
 </section>

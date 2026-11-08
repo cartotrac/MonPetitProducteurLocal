@@ -1,4 +1,4 @@
-{% load unites %}
+{% load unites %}{% load l10n %}
 <h1>🧺 Paniers</h1>
 
 <div class="quick-actions">
@@ -24,7 +24,34 @@
   <a class="btn btn-sm" href="{% url 'portal:order_direct' %}">📝 Saisir une commande directe</a>
   <a class="btn btn-sm btn-outline" href="{% url 'portal:panier_export' %}">⬇️ Export CSV (détail)</a>
   <a class="btn btn-sm btn-outline" href="{% url 'portal:panier_export' %}?mode=production">⬇️ Export production</a>
+  <a class="btn btn-sm btn-outline {% if vue == 'calendrier' %}btn-active{% endif %}" href="{{ request.path }}?{% if filtre_statut %}statut={{ filtre_statut }}&amp;{% endif %}{% if filtre_point %}point={{ filtre_point }}&amp;{% endif %}vue=calendrier">🗓️ Calendrier</a>
+  <a class="btn btn-sm btn-outline {% if vue != 'calendrier' %}btn-active{% endif %}" href="{{ request.path }}{% if filtre_statut or filtre_point %}?{% if filtre_statut %}statut={{ filtre_statut }}{% endif %}{% if filtre_statut and filtre_point %}&amp;{% endif %}{% if filtre_point %}point={{ filtre_point }}{% endif %}{% endif %}">📋 Liste</a>
 </div>
+{% if vue == 'calendrier' %}
+  <p class="muted">Vos paniers de la semaine en 7 cases : naviguez de
+     semaine en semaine, chaque case liste les paniers du jour.</p>
+  <div class="cal-nav quick-actions">
+    <a class="btn btn-outline" href="{{ request.path }}?{% if filtre_statut %}statut={{ filtre_statut }}&amp;{% endif %}{% if filtre_point %}point={{ filtre_point }}&amp;{% endif %}sem={{ sem_prec|unlocalize }}&amp;vue=calendrier">⬅️ Semaine précédente</a>
+    <strong>du {{ semaine_debut|date:"d/m/Y" }} au {{ semaine_fin|date:"d/m/Y" }}</strong>
+    <a class="btn btn-outline" href="{{ request.path }}?{% if filtre_statut %}statut={{ filtre_statut }}&amp;{% endif %}{% if filtre_point %}point={{ filtre_point }}&amp;{% endif %}sem={{ sem_suiv|unlocalize }}&amp;vue=calendrier">Semaine suivante ➡️</a>
+  </div>
+  <div class="cal-semaine">
+    {% for jour in jours_cal %}
+      <div class="cal-jour {% if jour.date < today %}cal-passe{% elif jour.date == today %}cal-courante{% else %}cal-avenir{% endif %}">
+        <h3>{{ jour.date|date:"l d/m" }}</h3>
+        {% for panier in jour.commandes %}
+          <div class="cal-evt statut-{{ panier.statut }}">
+            <strong>🧺 n°{{ panier.numero }} — {% if panier.client %}{{ panier.client.get_full_name|default:panier.client.username }}{% else %}{{ panier.nom_client }}{% endif %}</strong>
+            <span class="badge badge-{{ panier.statut }}">{{ panier.get_statut_display }}</span>
+            <p class="muted">💰 {{ panier.total }} €</p>
+          </div>
+        {% empty %}
+          <p class="muted">—</p>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
 <p class="muted">Les paniers sont regroupés par jour de livraison, du plus
    récent au plus ancien — l'en-tête de chaque jour compte les paniers
    <strong>par statut</strong> (code couleur : orange en préparation,
@@ -44,12 +71,14 @@
           {% if panier.photo_client %}
             <img class="avatar avatar-small" src="{{ panier.photo_client }}" alt="Photo du client">
           {% endif %}
-          <strong>Panier n°{{ panier.numero }} — {% if panier.client %}{{ panier.client.get_full_name|default:panier.client.username }}{% else %}{{ panier.nom_client }}{% endif %}</strong>
+          <strong>Panier n°{{ panier.numero }} — Pour : {% if panier.client %}{{ panier.client.get_full_name|default:panier.client.username }}{% else %}{{ panier.nom_client }}{% endif %}</strong>
           <span class="badge badge-{{ panier.statut }}">{{ panier.get_statut_display }}</span>
+          — 💰 {{ panier.total }} €
         </div>
-        <p>📅 {{ panier.date_livraison|date:"d/m/Y" }}
-           {% if panier.point_livraison %}à {{ panier.point_livraison.nom }}{% endif %}
-           — 💰 {{ panier.total }} €
+        <p>📅 Livraison {{ panier.date_livraison|date:"l d F Y" }}
+           {% if panier.creneau %}à {{ panier.creneau.heure_debut|time:"H:i" }}–{{ panier.creneau.heure_fin|time:"H:i" }}{% endif %}
+           — Emplacement : {% if panier.point_livraison %}{{ panier.point_affiche.nom }}{% else %}—{% endif %}
+           {% if panier.statut == 'LIVRE' %}{% with pt=panier.point_affiche %}{% if pt.latitude %}— <a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ pt.latitude|unlocalize|floatformat:'6' }},{{ pt.longitude|unlocalize|floatformat:'6' }}" target="_blank" rel="noopener" title="Itinéraire google maps">🧭 Itinéraire</a>{% endif %}{% endwith %}{% endif %}
            — {{ panier.lignes.count }} article{{ panier.lignes.count|pluralize }}</p>
         <p class="muted">✉️ {{ panier.email_client }}{% if panier.telephone_client %} · 📞 {{ panier.telephone_client }}{% endif %}{% if panier.tel_client %} · 📞 {{ panier.tel_client }}{% endif %}
            {% if panier.client %}· 💻 client avec compte{% else %}· sans compte{% endif %}</p>
@@ -74,3 +103,4 @@
      une directement) et le panier numéroté sera créé automatiquement.
      <a class="btn btn-outline btn-sm" href="{% url 'portal:order_direct' %}">📝 Saisir une commande directe</a></p>
 {% endfor %}
+{% endif %}

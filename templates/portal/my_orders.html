@@ -22,7 +22,7 @@
     <details class="card order-card statut-{{ panier.statut }} panier-client" open>
       <summary>🧺 Panier n°{{ panier.numero }} — {{ panier.exploitant.nom_ferme }}
         <span class="badge badge-{{ panier.statut }}">{{ panier.get_statut_display }}</span>
-        — 📅 {{ panier.date_livraison|date:"d/m/Y" }} — 💰 {{ panier.total }} €</summary>
+        — 📅 Livraison {{ panier.date_livraison|date:"l d F Y" }} — 💰 {{ panier.total }} €</summary>
       {% for nom_cat, lignes in panier.groupes_lignes %}
         <p class="cat-lignes">{{ nom_cat }}</p>
         <ul>
@@ -110,8 +110,7 @@
             <span class="badge badge-{{ commande.statut }}">{{ commande.get_statut_display }}</span>
           {% endif %}
           — 💰 {{ commande.total }} €</summary>
-        <p>📅 Livraison le {{ commande.date_livraison|date:"d/m/Y" }} :
-           {% if commande.point_livraison %}{{ commande.point_livraison.nom }}{% endif %}
+        <p>📅 Livraison {{ commande.date_livraison|date:"l d F Y" }} — Emplacement : {% if commande.point_livraison %}{{ commande.point_livraison.nom }}{% else %}à préciser{% endif %}
            — 💰 {{ commande.total }} €{% if panier.statut == 'LIVRE' and panier.destination_itineraire %}{% with lat=panier.destination_itineraire.0 lon=panier.destination_itineraire.1 %}
            — 🧭 <a href="https://www.openstreetmap.org/directions?to={{ lat|unlocalize|floatformat:'6' }},{{ lon|unlocalize|floatformat:'6' }}" target="_blank" rel="noopener" title="Itinéraire vers le point de livraison ou la ferme (OpenStreetMap)">Calculer mon itinéraire (OSM)</a>
            / <a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ lat|unlocalize|floatformat:'6' }},{{ lon|unlocalize|floatformat:'6' }}" target="_blank" rel="noopener" title="Itinéraire vers le point de livraison ou la ferme (Google Maps)">Google Maps</a>

@@ -569,7 +569,8 @@ def favoris_toggle(request, slug):
 
 def _horaire_vignette(c):
     """Créneau pour l'encart horaires des vignettes : texte, point
-    nommé et — pour les MARCHÉS et EMPLACEMENTS publics seulement —
+    nommé et — pour les MARCHÉS, EMPLACEMENTS et BOUTIQUES publics
+    seulement —
     un lien d'itinéraire Google Maps (calcul d'itinéraire au
     survol). Les points de livraison gardent leur position exacte
     pour les clients des paniers livrés : rien ne transite sur les
@@ -585,7 +586,8 @@ def _horaire_vignette(c):
         p = c.point_livraison
         entree["point"] = f"{p.emoji_type} {p.nom}"
         if (p.type_point in (PointLivraison.Type.MARCHE,
-                             PointLivraison.Type.EMPLACEMENT)
+                             PointLivraison.Type.EMPLACEMENT,
+                             PointLivraison.Type.BOUTIQUE)
                 and p.latitude is not None
                 and p.longitude is not None):
             entree["itineraire"] = (
@@ -1568,6 +1570,9 @@ def _contexte_commandes(exploitant, statut=None):
     photos, telephones = _profils_clients(
         {c.client_id for c in commandes if c.client_id})
     for c in commandes:
+        # Panier suivi de la commande (créé à la validation) : horaire
+        # du créneau retenu + itinéraire dès que le panier est livré.
+        c.panier_suivi = paniers_valides.get(c.pk)
         c.canal_pref = canaux.get(c.client_id) if c.client_id else None
         c.photo_client = photos.get(c.client_id, "")
         c.tel_client = telephones.get(c.client_id, "")
@@ -1868,11 +1873,15 @@ def order_validate(request, commande_id):
 @exploitant_requis
 def panier_list(request):
     exploitant = exploitant_pour(request.user)
-    return render(request, "portal/pro/paniers.html",
-                  _contexte_paniers(
-                      exploitant,
-                      request.GET.get("statut", "").strip(),
-                      request.GET.get("point", "").strip()))
+    contexte = _contexte_paniers(
+        exploitant,
+        request.GET.get("statut", "").strip(),
+        request.GET.get("point", "").strip())
+    # Vue alternative « calendrier » (?vue=calendrier) : même
+    # mécanique que la page Commandes — le choix Liste/Calendrier
+    # s'applique aux deux rubriques, filtres conservés.
+    contexte.update(_contexte_calendrier(request, contexte["paniers"]))
+    return render(request, "portal/pro/paniers.html", contexte)
 
 
 def _contexte_paniers(exploitant, statut="", point_id=""):
@@ -1880,7 +1889,7 @@ def _contexte_paniers(exploitant, statut="", point_id=""):
     (en-tête du jour : comptage par statut, code couleur associé).
     Partagé par la page « Paniers » et la rubrique de la page Ventes."""
     paniers = (exploitant.paniers
-               .select_related("client", "point_livraison")
+               .select_related("client", "point_livraison", "creneau")
                .prefetch_related("lignes__produit__categorie",
                                  "lignes__produit__origine_standard"))
     if statut in Panier.Statut.values:

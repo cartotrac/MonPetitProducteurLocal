@@ -53,12 +53,14 @@
         {% if commande.photo_client %}
           <img class="avatar avatar-small" src="{{ commande.photo_client }}" alt="Photo du client">
         {% endif %}
-        <strong>#{{ commande.pk }} — {% if commande.client %}{{ commande.client.get_full_name|default:commande.client.username }}{% else %}{{ commande.nom_client }}{% endif %}</strong>
+        <strong>#Commande {{ commande.pk }} — Pour : {% if commande.client %}{{ commande.client.get_full_name|default:commande.client.username }}{% else %}{{ commande.nom_client }}{% endif %}</strong>
         <span class="badge badge-{{ commande.statut }}">{{ commande.get_statut_display }}</span>
+        — 💰 {{ commande.total }} €
       </div>
-      <p>📅 Livraison : {{ commande.date_livraison|date:"d/m/Y" }}
-         {% if commande.point_livraison %}à {{ commande.point_livraison.nom }}{% endif %}
-         — 💰 {{ commande.total }} €</p>
+      <p>📅 Livraison {{ commande.date_livraison|date:"l d F Y" }}
+         {% if commande.panier_suivi and commande.panier_suivi.creneau %}à {{ commande.panier_suivi.creneau.heure_debut|time:"H:i" }}–{{ commande.panier_suivi.creneau.heure_fin|time:"H:i" }}{% endif %}
+         — Emplacement : {% if commande.point_livraison %}{{ commande.point_livraison.nom }}{% else %}à définir à la validation{% endif %}
+         {% if commande.panier_suivi and commande.panier_suivi.statut == 'LIVRE' %}{% with pt=commande.panier_suivi.point_affiche %}{% if pt.latitude %}— <a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ pt.latitude|unlocalize|floatformat:'6' }},{{ pt.longitude|unlocalize|floatformat:'6' }}" target="_blank" rel="noopener" title="Itinéraire google maps">🧭 Itinéraire</a>{% endif %}{% endwith %}{% endif %}</p>
       <p class="muted">✉️ {{ commande.email_client }}{% if commande.telephone_client %} · 📞 {{ commande.telephone_client }}{% endif %}{% if commande.tel_client %} · 📞 {{ commande.tel_client }}{% endif %}
          {% if commande.canal_pref %} · 💬 contact préféré : {{ commande.canal_pref }}{% endif %}</p>
       {% if commande.statut == 'NOUVELLE' %}
