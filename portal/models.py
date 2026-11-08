@@ -198,6 +198,23 @@ class Exploitant(models.Model):
             "creneaux": "créneaux de livraison",
         }
 
+    # Libellé du bouton « Commander » des pages publiques (fiche
+    # producteur et page de commande) : le verbe et l'emoji suivent le
+    # métier — on ne « commande une récolte » que chez un producteur
+    # de récoltes, on ne « commande chez un producteur » un camion.
+    def libelle_commander(self):
+        """Intitulé du bouton d'action public, adapté au métier."""
+        activite = self.activite
+        if activite in (self.Activite.MARAICHER,
+                        self.Activite.ARBORICULTEUR):
+            return "🧺 Commander la récolte"
+        if activite == self.Activite.FOODTRUCK:
+            return "🚚 Commander au truck"
+        if activite == self.Activite.TRAITEUR:
+            return "🍽️ Commander le menu"
+        emoji = self.ACTIVITE_EMOJIS.get(activite, "🛒")
+        return emoji + " Commander"
+
     # Libellé de la fiche pro adapté au métier : un foodtruck ou un
     # traiteur n'exploitent pas une « ferme » — la rubrique Paramètres,
     # le menu et le bouton d'enregistrement utilisent ce libellé.

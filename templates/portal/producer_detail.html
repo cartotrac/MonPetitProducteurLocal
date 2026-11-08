@@ -17,7 +17,7 @@
     {% else %}<span class="badge badge-off">Producteur particulier</span>{% endif %}
     <p class="muted">{{ exploitant.adresse }} — {{ exploitant.code_postal }} {{ exploitant.ville }}</p>
     <div class="producer-cta">
-      <a class="btn btn-lg" href="{% url 'portal:order_create' exploitant.slug %}">🛒 Commander chez ce producteur</a>
+      <a class="btn btn-lg" href="{% url 'portal:order_create' exploitant.slug %}">{{ exploitant.libelle_commander }}</a>
       {% if user.is_authenticated %}
         {% if est_compte_pro %}
           <form method="post" class="inline" action="{% url 'portal:favoris_toggle' exploitant.slug %}">

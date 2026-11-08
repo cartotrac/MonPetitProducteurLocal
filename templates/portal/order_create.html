@@ -2,7 +2,7 @@
 {% load unites %}
 {% block title %}Commander chez {{ exploitant.nom_ferme }} — MonPetitProducteurLocal{% endblock %}
 {% block content %}
-<h1>🛒 Commander chez {{ exploitant.nom_ferme }}</h1>
+<h1>{{ exploitant.libelle_commander }} — {{ exploitant.nom_ferme }}</h1>
 
 {% if mode == 'recolte' %}
   <p>{{ exploitant.vocab.recolte|capfirst }} de la semaine du {{ semaine.lundi|date:"d/m/Y" }}.
