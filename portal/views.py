@@ -324,6 +324,8 @@ def producer_search(request):
                     lat, lon, libelle_position = position
             if lat is None or lon is None:
                 continue
+            # Favori direct depuis le popup de la carte : l'étoile
+            # du marqueur reflète l'état pour le compte connecté.
             carte_data.append({
                 "nom_ferme": e.nom_ferme,
                 "mode_production": e.mode_production,
@@ -336,8 +338,6 @@ def producer_search(request):
                 "position_libelle": libelle_position,
                 "est_demo": e.est_demo,
                 "url": e.get_absolute_url(),
-                /* Favori direct depuis le popup de la carte : l'étoile
-                   du marqueur reflète l'état pour le compte connecté. */
                 "slug": e.slug,
                 "connecte": request.user.is_authenticated,
                 "est_favori": e.slug in favoris_slugs,
