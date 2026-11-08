@@ -1,7 +1,10 @@
 /* Sélecteur d'image externe avec aperçu dynamique.
    S'active automatiquement sur les champs URL de photo/logo
    (#id_photo_externe, #id_logo_externe) : aperçu en direct pendant la
-   saisie, message explicite si le lien ne pointe pas vers une image. */
+   saisie, message explicite si le lien ne pointe pas vers une image.
+   Les champs situés dans un bloc [data-picker-custom] sont ignorés :
+   la page fournit son propre aperçu (photo-picker.js), on ne duplique
+   pas le cadre collé sous le champ. */
 (function () {
   "use strict";
 
@@ -70,6 +73,9 @@
   document.addEventListener("DOMContentLoaded", function () {
     CIBLES.forEach(function (conf) {
       var input = document.getElementById(conf.id);
+      // Mise en page personnalisée (aperçu placé dans la page) :
+      // le champ est pris en charge par photo-picker.js.
+      if (input && input.closest("[data-picker-custom]")) { return; }
       if (input) creerPicker(input, conf);
     });
   });
