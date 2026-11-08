@@ -44,4 +44,7 @@ def instance_contexte(request):
         "instance_admin_nom": admin.get("nom", ""),
         "instance_admin_url": admin.get("url", ""),
         "instance_admin_logo": admin.get("logo", ""),
+        # « Continuer avec Google » : bouton affiché seulement si un
+        # client OAuth est configuré (GOOGLE_CLIENT_ID dans .env).
+        "google_connexion": bool(getattr(settings, "GOOGLE_CLIENT_ID", "")),
     }

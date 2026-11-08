@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Connexion Google impossible — MonPetitProducteurLocal{% endblock %}
+{% block content %}
+<h1>Connexion Google impossible</h1>
+<p class="muted">La connexion avec Google n'a pas abouti (accès refusé,
+   interruption…). Vous pouvez réessayer, ou utiliser votre e-mail et
+   mot de passe habituels.</p>
+<p><a class="btn btn-outline" href="{% url 'login' %}">Retour à la connexion</a></p>
+{% endblock %}

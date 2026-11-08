@@ -11,6 +11,10 @@ urlpatterns = [
     # définit aussi "login/" : la première route gagnante est la nôtre).
     path("comptes/login/", portal_auth_views.connexion, name="login"),
     path("comptes/", include("django.contrib.auth.urls")),  # logout, password...
+    # « Continuer avec Google » : flux OAuth allauth (google/login/,
+    # google/login/callback/…). Placé APRÈS nos routes : la connexion
+    # classique /comptes/login/ reste la nôtre.
+    path("comptes/", include("allauth.urls")),
     path("", include("portal.urls")),
 ]
 

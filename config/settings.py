@@ -37,6 +37,14 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
+    # « Continuer avec Google » (django-allauth) : inscription et
+    # connexion OAuth en 1 clic — le bouton n'est affiché que si
+    # GOOGLE_CLIENT_ID est renseigné (.env / panneau AlwaysData).
+    "django.contrib.sites",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
     "portal.apps.PortalConfig",
 ]
 
@@ -49,6 +57,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -105,6 +114,42 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
+
+# ---- « Continuer avec Google » (django-allauth) ----
+# Client ID et secret OAuth (console.cloud.google.com) dans .env :
+# sans GOOGLE_CLIENT_ID, le bouton Google n'est pas affiché. URI de
+# redirection à déclarer chez Google :
+#   https://mppl.cartotrac.fr/comptes/google/login/callback/
+GOOGLE_CLIENT_ID = env("GOOGLE_CLIENT_ID", "")
+GOOGLE_SECRET = env("GOOGLE_SECRET", "")
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+SITE_ID = 1
+# Le flux Google crée/connecte directement (auto-signup : l'e-mail est
+# vérifié par Google, la photo de profil Google préremplit
+# ProfilClient.photo_url via l'adaptateur). Les inscriptions maison
+# (e-mail + mot de passe) restent gérées par les vues du portail.
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_USERNAME_REQUIRED = False
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
+# Un Localien déjà inscrit avec son e-mail Gmail (mot de passe maison)
+# est connecté directement par Google, sans double compte.
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_LOGIN_ON_EMAIL = True
+SOCIALACCOUNT_ADAPTER = "portal.adapters.PortailSocialAdapter"
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {"client_id": GOOGLE_CLIENT_ID,
+                "secret": GOOGLE_SECRET},
+        "SCOPE": ["profile", "email"],
+        "AUTH_PARAMS": {"access_type": "online"},
+    },
+}
 
 LANGUAGE_CODE = "fr-fr"
 TIME_ZONE = "Europe/Paris"

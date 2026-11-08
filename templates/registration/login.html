@@ -2,6 +2,12 @@
 {% block title %}Connexion — MonPetitMaraicher{% endblock %}
 {% block content %}
 <h1>Connexion</h1>
+{% if google_connexion %}
+<div class="google-bloc">
+  <a class="btn btn-lg btn-google" href="{% url 'google_login' %}?process=login">Continuer avec Google</a>
+  <p class="muted">…ou avec vos identifiants :</p>
+</div>
+{% endif %}
 <p class="muted">💡 Indiquez votre <strong>e-mail</strong> ou votre nom
    d'utilisateur : les deux fonctionnent.</p>
 <form method="post" class="form">

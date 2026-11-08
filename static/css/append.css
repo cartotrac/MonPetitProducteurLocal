@@ -1563,3 +1563,11 @@ html.dark .pagination-lien.actif{background:#2e7d32;border-color:#2e7d32;color:#
   .pagination-barre{justify-content:center;}
   .pagination-taille{margin-left:0;}
 }
+
+/* ===== « Continuer avec Google » (connexion et inscriptions) :
+       affiché uniquement si GOOGLE_CLIENT_ID est configuré. ===== */
+.google-bloc{display:flex;flex-direction:column;gap:.5rem;margin:.4rem 0 1.2rem;align-items:flex-start;}
+.btn-google{display:inline-flex;align-items:center;gap:.5rem;background:#fff;color:#3c4043;border:1px solid #dadce0;font-weight:600;text-decoration:none;}
+.btn-google:hover{background:#f8f9fa;color:#1a73e8;border-color:#c2d6f0;}
+html.dark .btn-google{background:#fff;color:#3c4043;}
+html.dark .btn-google:hover{background:#f1f3f4;}

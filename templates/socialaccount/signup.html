@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Confirmation Google — MonPetitProducteurLocal{% endblock %}
+{% block content %}
+<h1>Confirmer votre compte Google</h1>
+<p class="muted">Complétez ou corrigez les informations fournies par
+   Google avant de créer votre compte.</p>
+<form method="post" class="form">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button class="btn btn-lg" type="submit">Créer mon compte</button>
+</form>
+{% endblock %}
