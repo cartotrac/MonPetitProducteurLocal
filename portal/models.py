@@ -168,7 +168,8 @@ class Exploitant(models.Model):
                              self.Activite.TRAITEUR):
             publication = {
                 "recolte": "carte", "recoltes": "cartes",
-                "recoltes_titre": "Mes cartes",
+                "recoltes_titre": "Cartes",
+                "recoltes_emoji": "📜",
                 "nouvelle_recolte": "➕ Nouvelle carte",
                 "recolte_hebdo": "carte de la semaine",
             }
@@ -176,15 +177,17 @@ class Exploitant(models.Model):
                                self.Activite.ARBORICULTEUR):
             publication = {
                 "recolte": "récolte", "recoltes": "récoltes",
-                "recoltes_titre": "Mes récoltes",
+                "recoltes_titre": "Récoltes",
+                "recoltes_emoji": "🧺",
                 "nouvelle_recolte": "➕ Nouvelle récolte",
                 "recolte_hebdo": "récolte de la semaine",
             }
         else:
             publication = {
                 "recolte": "boutique", "recoltes": "boutiques",
-                "recoltes_titre": "Ma boutique",
-                "nouvelle_recolte": "➕ Nouvelle publication",
+                "recoltes_titre": "Boutiques",
+                "recoltes_emoji": "🛍️",
+                "nouvelle_recolte": "➕ Nouvelle boutique",
                 "recolte_hebdo": "boutique de la semaine",
             }
         if self.en_mode_boutique:
