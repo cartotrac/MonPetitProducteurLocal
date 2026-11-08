@@ -1538,3 +1538,15 @@ html.dark .form-bloc { background: #232820; border-color: #4e5c3d; }
   .profil-photo { justify-content: flex-start; padding-top: 0; }
   .form-duo, .form-duo-ferme, .form-trio { grid-template-columns: 1fr; gap: 0; }
 }
+
+/* ===== Vérificateurs de saisie en direct (form-validateurs.js) :
+       pastille ✓ / ✗ sous le champ pendant la frappe — e-mail,
+       mot de passe et confirmation (inscriptions, Mon profil et
+       section Sécurité). ===== */
+.saisie-indicateur { font-size: 0.82rem; min-height: 1.1em;
+                     margin: 0.15rem 0 0; }
+.saisie-indicateur:empty { display: none; }
+.indicateur-ok { color: #2e7d32; font-weight: 600; }
+.indicateur-erreur { color: #b71c1c; font-weight: 600; }
+html.dark .indicateur-ok { color: #a5d6a7; }
+html.dark .indicateur-erreur { color: #ef9a9a; }
