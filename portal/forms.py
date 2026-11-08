@@ -158,14 +158,18 @@ class InscriptionClientForm(UserCreationForm):
         label="Téléphone", max_length=20, required=False,
         help_text="Optionnel — utile pour être prévenu d'un souci de "
                   "livraison.")
+    photo_externe = forms.URLField(
+        label="Photo de profil externe (drive, cloud, réseau — rien "
+              "n'est hébergé sur le portail)", required=False)
 
-    field_order = ["first_name", "email", "password1", "password2",
-                   "telephone"]
+    field_order = ["first_name", "last_name", "email", "telephone",
+                   "photo_externe", "password1", "password2"]
 
     class Meta:
         model = User
-        fields = ("first_name", "email")
-        labels = {"first_name": "Prénom", "email": "E-mail"}
+        fields = ("first_name", "last_name", "email")
+        labels = {"first_name": "Prénom", "last_name": "Nom",
+                  "email": "E-mail"}
         help_texts = {"email": "Sert d'identifiant de connexion."}
 
     def clean_email(self):
@@ -187,11 +191,13 @@ class InscriptionClientForm(UserCreationForm):
         email = self.cleaned_data["email"].lower().strip()
         user.username = email
         user.email = email
+        user.last_name = self.cleaned_data.get("last_name", "") or ""
         if commit:
             user.save()
             ProfilClient.objects.create(
                 user=user,
-                telephone=self.cleaned_data.get("telephone", ""))
+                telephone=self.cleaned_data.get("telephone", ""),
+                photo_url=self.cleaned_data.get("photo_externe", "") or "")
         return user
 
 
