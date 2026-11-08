@@ -1507,3 +1507,34 @@ html.dark .bascule-demo:hover { background: #2d3a23; border-color: #8fae76; }
 @media (max-width: 720px) {
   .titre-recherche { flex-wrap: wrap; }
 }
+
+/* ===== Blocs de formulaire (inscription pro) et mise en page
+       « Mon profil » : Prénom/Nom puis E-mail/Téléphone côte à côte,
+       aperçu de la photo de profil à droite, URL de la photo en
+       pleine largeur en dessous — compte client, espace pro et
+       inscription pro. ===== */
+.form-bloc { border: 1px solid var(--border); border-radius: var(--radius);
+             padding: 0.9rem 1.2rem 1.2rem; margin: 1.1rem 0;
+             background: var(--card); }
+.form-bloc > h2 { margin: 0.2rem 0 0.4rem; }
+.form-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.2rem; }
+.form-duo-ferme { grid-template-columns: minmax(0, 1fr) minmax(260px, 0.9fr); }
+.form-trio { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 1.2rem; }
+.champ-grise { opacity: 0.55; }
+.case-demo { display: flex; align-items: center; gap: 0.45rem;
+             font-weight: 600; cursor: pointer; }
+.form-champ-demo { align-self: start; }
+.profil-mise-en-page { display: grid;
+  grid-template-columns: minmax(0, 1fr) 136px; gap: 0 1.4rem;
+  align-items: start; }
+.profil-photo { display: flex; justify-content: center; padding-top: 1.2rem; }
+.profil-photo .image-picker { margin: 0; }
+.profil-photo .image-picker-cadre { width: 118px; height: 118px;
+  border-radius: 50%; }
+.profil-photo-url { margin-top: 0.5rem; }
+html.dark .form-bloc { background: #232820; border-color: #4e5c3d; }
+@media (max-width: 640px) {
+  .profil-mise-en-page { grid-template-columns: 1fr; }
+  .profil-photo { justify-content: flex-start; padding-top: 0; }
+  .form-duo, .form-duo-ferme, .form-trio { grid-template-columns: 1fr; gap: 0; }
+}
