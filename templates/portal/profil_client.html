@@ -15,8 +15,34 @@
     <a class="btn btn-outline" href="{% url 'portal:my_orders' %}">Annuler</a>
   </div>
 </form>
+
+  <section class="form-bloc">
+    <h2>🔐 Sécurité</h2>
+    <p class="muted">Modifier le mot de passe de votre compte : votre
+       mot de passe actuel est demandé en confirmation. Vous resterez
+       connecté après l'enregistrement.</p>
+    <form method="post" class="form">
+      {% csrf_token %}
+      <input type="hidden" name="section" value="motdepasse">
+      <div class="form-champ">{{ form_motdepasse.old_password.label_tag }} {{ form_motdepasse.old_password }}
+        {{ form_motdepasse.old_password.errors }}</div>
+      <div class="form-duo">
+        <div class="form-champ">{{ form_motdepasse.new_password1.label_tag }} {{ form_motdepasse.new_password1 }}
+          {{ form_motdepasse.new_password1.errors }}
+          <span class="helptext">{{ form_motdepasse.new_password1.help_text }}</span></div>
+        <div class="form-champ">{{ form_motdepasse.new_password2.label_tag }} {{ form_motdepasse.new_password2 }}
+          {{ form_motdepasse.new_password2.errors }}
+          <span class="helptext">Retapez le nouveau mot de passe pour vérifier.</span></div>
+      </div>
+      <div class="save-bar">
+        <button class="btn" type="submit">🔑 Modifier mon mot de passe</button>
+      </div>
+    </form>
+  </section>
+
 {% endblock %}
 {% block extrajs %}
 <script src="{% static 'js/image-picker.js' %}" defer></script>
 <script src="{% static 'js/photo-picker.js' %}" defer></script>
+<script src="{% static 'js/form-validateurs.js' %}" defer></script>
 {% endblock %}
