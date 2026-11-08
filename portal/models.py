@@ -207,13 +207,10 @@ class Exploitant(models.Model):
         activite = self.activite
         if activite in (self.Activite.MARAICHER,
                         self.Activite.ARBORICULTEUR):
-            return "🧺 Commander la récolte"
+            return "🧺 Commande direct récolte"
         if activite == self.Activite.FOODTRUCK:
             return "🚚 Commander au truck"
-        if activite == self.Activite.TRAITEUR:
-            return "🍽️ Commander le menu"
-        emoji = self.ACTIVITE_EMOJIS.get(activite, "🛒")
-        return emoji + " Commander"
+        return "🧺 Commander nos produits"
 
     # Libellé de la fiche pro adapté au métier : un foodtruck ou un
     # traiteur n'exploitent pas une « ferme » — la rubrique Paramètres,

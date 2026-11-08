@@ -208,6 +208,15 @@
       var cache = form.querySelector('input[name="visu"]');
       if (!cache) { return; }
       cache.value = btn.getAttribute("data-visu") || "";
+      /* Changement de mode : on retire les filtres attributaires
+         actifs (activités, modes de production, types marché) —
+         l'emprise spatiale (recherche texte, département) est
+         conservée : la carte et les vignettes suivent. */
+      form.querySelectorAll(
+        'input[name="activite"], input[name="mode"], ' +
+        'input[name="type_marche"]').forEach(function (caseFiltre) {
+        caseFiltre.checked = false;
+      });
       form.submit();
     });
   });

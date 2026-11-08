@@ -28,7 +28,15 @@ class InscriptionExploitantForm(UserCreationForm):
         help_text="Le nom affiché sur votre vitrine (modifiable ensuite).")
     activite = forms.ChoiceField(
         label="Activité", choices=Exploitant.Activite.choices,
-        initial=Exploitant.Activite.MARAICHER)
+        initial=Exploitant.Activite.MARAICHER,
+        help_text="Le symbole de votre métier apparaît sur votre fiche "
+                  "publique et les vignettes de recherche.")
+    specialite = forms.ChoiceField(
+        label="Spécialité (si foodtruck)", required=False,
+        choices=[("", "— Précisez la spécialité —")]
+        + list(Exploitant.Specialite.choices),
+        help_text="Exigée pour un foodtruck : pizza, burger… "
+                  "elle s'affiche sur les pages publiques.")
     ville = forms.CharField(label="Ville", max_length=100, required=False)
     code_postal = forms.CharField(
         label="Code postal", max_length=10, required=False,
@@ -37,8 +45,9 @@ class InscriptionExploitantForm(UserCreationForm):
     latitude = forms.FloatField(widget=forms.HiddenInput, required=False)
     longitude = forms.FloatField(widget=forms.HiddenInput, required=False)
 
-    field_order = ["nom_ferme", "activite", "ville", "code_postal",
-                   "first_name", "email", "password1", "password2"]
+    field_order = ["nom_ferme", "activite", "specialite", "ville",
+                   "code_postal", "first_name", "email", "password1",
+                   "password2"]
 
     class Meta:
         model = User
@@ -57,9 +66,33 @@ class InscriptionExploitantForm(UserCreationForm):
                 "mot de passe via « Mot de passe oublié ? ».")
         return email
 
+    def clean(self):
+        donnees = super().clean()
+        if (donnees.get("activite") == Exploitant.Activite.FOODTRUCK
+                and not donnees.get("specialite")):
+            self.add_error(
+                "specialite",
+                "Précisez la spécialité de votre foodtruck (pizza, "
+                "burger…) : elle apparaît sur les pages publiques et "
+                "les vignettes.")
+        elif donnees.get("activite") != Exploitant.Activite.FOODTRUCK:
+            donnees["specialite"] = ""
+        return donnees
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         _aide_mot_de_passe(self)
+        # Symboles d'activité dans le choix (même visuel que les
+        # vignettes et pages publiques) et emojis de spécialité.
+        self.fields["activite"].choices = [
+            (code, Exploitant.ACTIVITE_EMOJIS.get(code, "🌾") + " "
+             + libelle)
+            for code, libelle in Exploitant.Activite.choices]
+        self.fields["specialite"].choices = [
+            ("", "— Précisez la spécialité —")] + [
+            (code, Exploitant.SPECIALITE_EMOJIS.get(code, "🚚") + " "
+             + libelle)
+            for code, libelle in Exploitant.Specialite.choices]
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -74,6 +107,7 @@ class InscriptionExploitantForm(UserCreationForm):
                 nom_ferme=self.cleaned_data["nom_ferme"],
                 activite=self.cleaned_data.get(
                     "activite", Exploitant.Activite.MARAICHER),
+                specialite=self.cleaned_data.get("specialite", "") or "",
                 ville=self.cleaned_data.get("ville", ""),
                 code_postal=code_postal,
                 departement=code_postal[:2] if len(code_postal) >= 2 else "",
@@ -196,6 +230,19 @@ class ProfilExploitantForm(forms.ModelForm):
                    "logo", "logo_externe", "description", "adresse", "ville",
                    "code_postal", "departement", "telephone", "latitude",
                    "longitude", "est_demo", "mode_fonctionnement"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Symboles d'activité dans le choix (cohérents avec les
+        # vignettes publiques) et emojis de spécialité foodtruck.
+        self.fields["activite"].choices = [
+            (code, Exploitant.ACTIVITE_EMOJIS.get(code, "🌾") + " "
+             + libelle)
+            for code, libelle in Exploitant.Activite.choices]
+        self.fields["specialite"].choices = [
+            (code, Exploitant.SPECIALITE_EMOJIS.get(code, "🚚") + " "
+             + libelle)
+            for code, libelle in Exploitant.Specialite.choices]
 
     class Meta:
         model = Exploitant

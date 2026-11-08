@@ -1452,3 +1452,16 @@ html.dark dialog.dialog-aide { background: #232820;
   border-color: #8fae76; color: #e6e4da; }
 html.dark dialog.dialog-aide .aide-statuts { background: #2c3625;
   border-color: #4e5c3d; }
+
+/* ===== Steppers de quantité +/− sur les articles commandables ===== */
+.qte-step { padding: 0 9px; margin: 0 2px; line-height: 1.5;
+  font-weight: 700; }
+html.dark .qte-step { background: #2c3625;
+  border-color: #8fae76; color: #dbe8cd; }
+
+/* ===== Barre de filtres recherche : les menus déroulants (activités,
+       modes de production) ne se chevauchent plus — passage à la
+       ligne si besoin, menus au-dessus du contenu. ===== */
+.search-bar { flex-wrap: wrap; }
+.search-bar .filtre-multi { position: relative; }
+.search-bar .filtre-multi-menu { z-index: 1150; }

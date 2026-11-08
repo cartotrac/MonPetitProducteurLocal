@@ -35,4 +35,23 @@
 {% block extrajs %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{% static 'js/pick-map.js' %}" defer></script>
+<script>
+/* Inscription pro : la spécialité n'apparaît (et n'est exigée) que
+   pour un foodtruck — elle s'affiche ensuite sur les pages publiques
+   et les vignettes de recherche. */
+(function () {
+  var act = document.getElementById("id_activite");
+  var spe = document.getElementById("id_specialite");
+  if (!act || !spe) { return; }
+  function majSpe() {
+    var foodtruck = act.value === "FOODTRUCK";
+    var bloc = spe.closest("p") || spe.parentElement;
+    if (bloc) { bloc.hidden = !foodtruck; }
+    spe.required = foodtruck;
+    if (!foodtruck) { spe.value = ""; }
+  }
+  act.addEventListener("change", majSpe);
+  majSpe();
+})();
+</script>
 {% endblock %}

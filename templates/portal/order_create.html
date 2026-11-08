@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load unites %}
+{% load unites %}{% load static %}
 {% block title %}Commander chez {{ exploitant.nom_ferme }} — MonPetitProducteurLocal{% endblock %}
 {% block content %}
 <h1>{{ exploitant.libelle_commander }} — {{ exploitant.nom_ferme }}</h1>
@@ -108,6 +108,7 @@
 </div>
 {% endblock %}
 {% block extrajs %}
+<script src="{% static 'js/qte-steppers.js' %}" defer></script>
 <script>
 /* Lignes en excès : quantité saisie supérieure à la disponibilité
    restante estimée → la ligne passe en orange (alerte visuelle ; la

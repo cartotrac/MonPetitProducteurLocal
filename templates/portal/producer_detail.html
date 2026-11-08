@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load unites %}
+{% load unites %}{% load l10n %}{% load static %}
 {% block title %}{{ exploitant.nom_ferme }} — MonPetitProducteurLocal{% endblock %}
 {% block extra_style %}<style>:root { --accent: {{ vitrine.couleur_theme|default:'#2e7d32' }}; }</style>{% endblock %}
 {% block content %}
@@ -8,7 +8,7 @@
   <div>
     <h1>{{ exploitant.nom_ferme }}</h1>
     <span class="badge badge-activite">{{ exploitant.emoji_vitrine }} {{ exploitant.get_activite_display }}{% if exploitant.activite == 'FOODTRUCK' and exploitant.specialite %} — {{ exploitant.get_specialite_display }}{% endif %}</span>
-    {% if exploitant.est_demo %}<span class="badge badge-demo">🧪 Ferme de démonstration</span>{% endif %}
+    {% if exploitant.est_demo %}<span class="badge badge-demo">🧪 Démo</span>{% endif %}
     {% if exploitant.mode_production == 'AB' %}<span class="badge badge-ab">Certifié AB</span>
     {% elif exploitant.mode_production == 'PERMA' %}<span class="badge badge-perma">Permaculture</span>
     {% elif exploitant.mode_production == 'PAYSAN' %}<span class="badge badge-paysan">Agriculture paysanne</span>
@@ -189,7 +189,13 @@
   <ul>
     {% for point in points_livraison %}
       <li>{{ point.emoji_type }} <strong>{{ point.nom }}</strong> <span class="muted">({{ point.get_type_point_display }})</span> — {{ point.adresse }}, {{ point.code_postal }} {{ point.ville }}
-        {% if point.note %}<br><span class="muted">{{ point.note }}</span>{% endif %}</li>
+        {% if point.note %}<br><span class="muted">{{ point.note }}</span>{% endif %}
+        {% if point.latitude and point.longitude %}<br>
+          {% with lat=point.latitude|unlocalize lon=point.longitude|unlocalize %}
+            <a class="btn btn-sm btn-outline" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination={{ lat }},{{ lon }}" title="Itinéraire vers ce point (Google Maps)">→ Itinéraire</a>
+            <a class="btn btn-sm btn-outline" target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat={{ lat }}&mlon={{ lon }}#map=17/{{ lat }}/{{ lon }}" title="Itinéraire vers ce point (OpenStreetMap)">OSM</a>
+          {% endwith %}
+        {% endif %}</li>
     {% endfor %}
   </ul>
 </section>
@@ -207,5 +213,6 @@
   </ul>
 </section>
 {% endif %}
+{% block extrajs %}<script src="{% static 'js/qte-steppers.js' %}" defer></script>{% endblock %}
 {% endblock %}
 
