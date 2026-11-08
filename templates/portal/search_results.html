@@ -59,6 +59,7 @@
 <form class="search-bar" method="get" action="{% url 'portal:producer_search' %}">
   <input type="hidden" name="visu" value="{{ visu }}">
   <input type="hidden" name="demo" value="{% if demo %}1{% else %}0{% endif %}">
+  <input type="hidden" name="par_page" value="{{ par_page }}">
   <input type="text" name="q" placeholder="{% if visu == 'marches' %}Marché, boutique…{% elif visu == 'restauration' %}Plat, spécialité, nom…{% else %}Produit, ferme…{% endif %}" value="{{ q }}">
   <input type="text" name="dept" placeholder="Département, région ou code postal…" title="Zoome la carte sur un département (nom ou numéro), une région ou un code postal — les vignettes suivent l'emprise" value="{{ dept }}" size="14">
   {% if visu == "marches" %}
@@ -199,6 +200,34 @@
     <p>Aucun producteur ne correspond à votre recherche.</p>
   {% endfor %}
 </div>
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="pagination-barre">
+  <span class="pagination-info">{{ nb_resultats }} producteur{{ nb_resultats|pluralize }} trouvé{{ nb_resultats|pluralize }} — page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
+  <nav class="pagination-liens" aria-label="Pages de résultats">
+    {% if page_obj.has_previous %}
+      <a class="btn btn-outline btn-sm pagination-lien" href="?{{ query_pages }}{% if query_pages %}&amp;{% endif %}page={{ page_obj.previous_page_number }}" title="Page précédente">←</a>
+    {% endif %}
+    {% for n in pages_pagination %}
+      {% if n == "…" %}<span class="pagination-ellipse">…</span>
+      {% elif n == page_obj.number %}<span class="btn btn-sm pagination-lien actif" aria-current="page">{{ n }}</span>
+      {% else %}<a class="btn btn-outline btn-sm pagination-lien" href="?{{ query_pages }}{% if query_pages %}&amp;{% endif %}page={{ n }}">{{ n }}</a>{% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+      <a class="btn btn-outline btn-sm pagination-lien" href="?{{ query_pages }}{% if query_pages %}&amp;{% endif %}page={{ page_obj.next_page_number }}" title="Page suivante">→</a>
+    {% endif %}
+  </nav>
+  <form method="get" class="pagination-taille">
+    {% for nom, valeur in filtres_get %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}
+    <label for="id_par_page">Vignettes par page :</label>
+    <select id="id_par_page" name="par_page" onchange="this.form.submit()">
+      {% for t in par_page_choices %}
+      <option value="{{ t }}"{% if t == par_page %} selected{% endif %}>{{ t }}</option>
+      {% endfor %}
+    </select>
+    <noscript><button class="btn btn-sm" type="submit">OK</button></noscript>
+  </form>
+</div>
+{% endif %}
 {% endif %}
 {% endblock %}
 {% block extrajs %}

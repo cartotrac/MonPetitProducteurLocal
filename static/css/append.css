@@ -1550,3 +1550,16 @@ html.dark .form-bloc { background: #232820; border-color: #4e5c3d; }
 .indicateur-erreur { color: #b71c1c; font-weight: 600; }
 html.dark .indicateur-ok { color: #a5d6a7; }
 html.dark .indicateur-erreur { color: #ef9a9a; }
+
+/* ===== Pagination de la page de recherche (25 vignettes par défaut, réglable 10/25/50/100) ===== */
+.pagination-barre{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;justify-content:space-between;margin:1rem 0 2rem;}
+.pagination-info{font-size:.9rem;}
+.pagination-liens{display:flex;gap:.35rem;flex-wrap:wrap;align-items:center;}
+.pagination-lien.actif{background:#2e7d32;border-color:#2e7d32;color:#fff;pointer-events:none;}
+.pagination-ellipse{color:#999;padding:0 .2rem;}
+.pagination-taille{display:flex;align-items:center;gap:.4rem;font-size:.9rem;margin-left:auto;}
+html.dark .pagination-lien.actif{background:#2e7d32;border-color:#2e7d32;color:#fff;}
+@media (max-width:640px){
+  .pagination-barre{justify-content:center;}
+  .pagination-taille{margin-left:0;}
+}

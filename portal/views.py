@@ -3,7 +3,7 @@ import datetime
 import io
 import re
 from decimal import Decimal, InvalidOperation
-from urllib.parse import parse_qsl
+from urllib.parse import parse_qsl, urlencode
 
 import django.core.mail
 from django.conf import settings
@@ -13,6 +13,7 @@ from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 from django.db.models import Count, Max, Q
@@ -366,8 +367,51 @@ def producer_search(request):
     # cochées — est actif.
     filtre_actif = bool(q or dept or mode_choisi
                         or activite_choisie or type_marche_choisi)
+    # Pagination des vignettes : 25 par page par défaut, réglable
+    # 10 / 25 / 50 / 100 via « par_page ». La CARTE conserve toujours
+    # le jeu complet des résultats filtrés : seule la grille des
+    # vignettes est découpée en pages.
+    try:
+        par_page = int(request.GET.get("par_page", 25))
+    except (TypeError, ValueError):
+        par_page = 25
+    if par_page not in (10, 25, 50, 100):
+        par_page = 25
+    paginator = Paginator(exploitants, par_page)
+    page_obj = paginator.get_page(request.GET.get("page", 1))
+    # Paramètres de l'URL courante (hors pagination) : les liens de
+    # page et le sélecteur « par page » conservent ainsi les filtres
+    # actifs — y compris les listes à choix multiple (mode, activité).
+    filtres_get = [
+        (cle, valeur)
+        for cle in request.GET.keys()
+        if cle not in ("page", "par_page")
+        for valeur in request.GET.getlist(cle)]
+    query_pages = urlencode(filtres_get, doseq=True)
+    # Fenêtre de numéros de page (max 7 boutons + ellipses).
+    nb_pages = paginator.num_pages
+    courante = page_obj.number
+    if nb_pages <= 7:
+        pages_pagination = list(range(1, nb_pages + 1))
+    else:
+        pages_pagination = []
+        precedent = None
+        for n in sorted({1, 2, courante - 1, courante, courante + 1,
+                         nb_pages - 1, nb_pages}):
+            if 1 <= n <= nb_pages:
+                if precedent is not None and n - precedent > 1:
+                    pages_pagination.append("…")
+                pages_pagination.append(n)
+                precedent = n
     return render(request, "portal/search_results.html", {
-        "exploitants": exploitants,
+        "exploitants": page_obj,
+        "nb_resultats": paginator.count,
+        "par_page": par_page,
+        "par_page_choices": (10, 25, 50, 100),
+        "page_obj": page_obj,
+        "pages_pagination": pages_pagination,
+        "filtres_get": filtres_get,
+        "query_pages": query_pages,
         "carte_data": carte_data,
         "activites": activite_cases,
         "visu": visu,
