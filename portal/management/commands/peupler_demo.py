@@ -67,6 +67,7 @@ Comptes créés (mot de passe : demo1234!) :
     Traiteurs   : demo.traiteur.gaillac, demo.traiteur.lavaur,
                   demo.traiteur.montauban, demo.traiteur.brest,
                   demo.traiteur.rennes
+    Restaurants : demo.albi.restaurant, demo.annecy.restaurant
     Nouveautés  : demo.normandie.arboriculteur,
                   demo.provence.maraicher, demo.savoie.eleveur,
                   demo.lyon.fromager, demo.gers.apiculteur,
@@ -1289,6 +1290,49 @@ FERMES = [
         "jus rôti offert avec chaque poulet.",
         specialite=Exploitant.Specialite.ROTISSEUR,
         type_point=PointLivraison.Type.EMPLACEMENT),
+
+    # ── Restaurants : cartes catégorisées (entrées, plats, desserts…)
+    _ferme_spec(
+        "demo.albi.restaurant", "La Table albigeoise",
+        A.RESTAURANT, M.RAISONNE, "81000",
+        "12 rue des Lozerettes",
+        "Albi", 43.933, 2.148, "05 63 00 00 91",
+        "Table albigeoise de saison : le garde-manger du Tarn en "
+        "assiettes — légumes du terroir, farce albigeoise revisité, "
+        "croustade aux pommes de la maison, midi et soir sauf lundi.",
+        Decimal("16.00"),
+        [{"activite": A.RESTAURANT, "limite": 24}],
+        [("Restaurant — 12 rue des Lozerettes",
+          "12 rue des Lozerettes", "Albi", "81000", 43.933, 2.147)],
+        [(2, "12:00", "14:00", 0), (3, "12:00", "14:00", 0),
+         (4, "19:00", "21:30", 0), (5, "12:00", "14:00", 0),
+         (6, "12:00", "14:00", 0)],
+        "La croustade aux pommes du chef est de retour à la carte !",
+        "Au restaurant La Table albigeoise",
+        "Carte de saison renouvelée : farce albigeoise, croustade "
+        "maison, légumes des maraîchers du Tarn — service midi et "
+        "soir, rue des Lozerettes.",
+        type_point=PointLivraison.Type.BOUTIQUE),
+    _ferme_spec(
+        "demo.annecy.restaurant", "Le Comptoir du Lac",
+        A.RESTAURANT, M.AB, "74000",
+        "3 quai des Clarisses",
+        "Annecy", 45.899, 6.129, "04 50 00 00 92",
+        "Comptoir lacustre auvergnat-savoyard : filets de lak "
+        "fumés, diots de Savoie, tartiflette de saison et "
+        "escalope de tomme, quai des Clarisses face au canal.",
+        Decimal("14.50"),
+        [{"activite": A.RESTAURANT, "limite": 24}],
+        [("Restaurant — 3 quai des Clarisses",
+          "3 quai des Clarisses", "Annecy", "74000", 45.899, 6.128)],
+        [(3, "12:00", "14:30", 0), (4, "12:00", "14:30", 0),
+         (5, "12:00", "14:30", 0), (5, "19:00", "22:00", 0),
+         (6, "12:00", "14:30", 1)],
+        "Arrivage de tomme de chèvre : l'escalope du mois change.",
+        "Au Comptoir du Lac, Annecy",
+        "Diots, tartiflette et filets du lac sur le quai des "
+        "Clarisses ; carte bio et de saison, terrasse au canal.",
+        type_point=PointLivraison.Type.BOUTIQUE),
 ]
 
 CLIENTS = [
@@ -1546,14 +1590,16 @@ class Command(BaseCommand):
         """Cartes / boutiques de DÉMONSTRATION couvrant tous les cas
         d'usage. Boutiques de producteurs (fromager, apiculteur,
         éleveur, conserverie, micro-brasseur) : « En boutique en ce
-        moment ». Restauration (traiteurs, foodtrucks) : une ferme sur
+        moment ». Restauration (restaurants, traiteurs, foodtrucks) :
+        une ferme sur
         deux reçoit une carte SAISONNIÈRE (« Carte du moment »),
         l'autre une carte ANNUELLE (« Toute l'année ») — long terme.
         Dans tous les cas, une ligne sur deux porte un stock publié,
         l'autre est vendue sans suivi (illimitée). Une carte déjà
         active est conservée telle quelle."""
-        concernees = ("FOODTRUCK", "TRAITEUR", "FROMAGER", "APICULTEUR",
-                      "CONSERVERIE", "MICRO_BRASSEUR", "ELEVEUR")
+        concernees = ("FOODTRUCK", "TRAITEUR", "RESTAURANT", "FROMAGER",
+                      "APICULTEUR", "CONSERVERIE", "MICRO_BRASSEUR",
+                      "ELEVEUR")
         nb_cartes = 0
         fermes = list(Exploitant.objects.filter(
             est_demo=True, activite__in=concernees).order_by("id"))
@@ -1561,7 +1607,8 @@ class Command(BaseCommand):
             if ferme.cartes.filter(
                     statut=Carte.Statut.ACTIVE).exists():
                 continue
-            restauration = ferme.activite in ("FOODTRUCK", "TRAITEUR")
+            restauration = ferme.activite in ("FOODTRUCK", "TRAITEUR",
+                                              "RESTAURANT")
             annuelle = restauration and rang % 2 == 1
             carte = Carte.objects.create(
                 exploitant=ferme,
@@ -1569,12 +1616,20 @@ class Command(BaseCommand):
                      else "Carte du moment" if restauration
                      else "En boutique en ce moment"),
                 statut=Carte.Statut.ACTIVE)
+            nb_max = 12 if ferme.activite == "RESTAURANT" else 8
             produits = list(ferme.produits.filter(actif=True)
                             .select_related("categorie")
-                            .order_by("categorie__position", "nom")[:8])
+                            .order_by("categorie__position", "nom")
+                            [:nb_max])
             for n, produit in enumerate(produits):
                 section = ""
-                if restauration:
+                if ferme.activite == "RESTAURANT":
+                    # Carte catégorisée / thématisée : chaque rubrique
+                    # suit la catégorie catalogue du plat (Entrées,
+                    # Plats, Accompagnements, Desserts, Boissons…).
+                    section = (produit.categorie.nom
+                               if produit.categorie else "Plats")
+                elif restauration:
                     section = ("Entrées" if n < 2
                                else "Plats" if n < 6 else "Desserts")
                 elif produit.categorie:
@@ -1591,7 +1646,8 @@ class Command(BaseCommand):
         if nb_cartes:
             self.stdout.write(self.style.SUCCESS(
                 "Cartes de démo créées : " + str(nb_cartes)
-                + " carte(s) active(s) — traiteurs et foodtrucks "
+                + " carte(s) active(s) — restaurants, traiteurs et "
+                + "foodtrucks "
                 "(cartes saisonnières ou annuelles), boutiques de "
                 "producteurs (éleveurs inclus), lignes avec ou sans "
                 "stock publié."))
