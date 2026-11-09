@@ -6,6 +6,14 @@
 {% endblock %}
 {% block retour_dashboard %}{% endblock %}
 {% block content %}
+{% if salutation %}
+<div class="salutation-chercheur">
+  <p class="salutation-texte">👋 Ravi de vous retrouver aujourd'hui, <strong>{{ salutation.nom }}</strong> !</p>
+  {% if salutation.espace %}
+  <p class="salutation-espace"><span class="badge badge-activite">{{ salutation.role_libelle }}</span> pour le compte de <strong>{{ salutation.espace }}</strong> — {{ salutation.activite }}{% if salutation.specialite %} · {{ salutation.specialite }}{% endif %}</p>
+  {% endif %}
+</div>
+{% endif %}
 <div class="entete-chercher">
   <div class="titre-recherche">
     <h1>{% if visu == "restauration" %}🍽️ Trouver un Traiteur ou Foodtruck autour de moi !{% elif visu == "marches" %}🎪 Retrouver mes producteurs locaux au Marché ou en Boutique{% else %}🔍 Trouver mon producteur local !{% endif %}</h1>

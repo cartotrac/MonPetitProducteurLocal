@@ -1613,3 +1613,21 @@ html.dark .ou-separateur::after{border-top-color:#4e5c3d;}
 .choix-carte .choix-texte{font-size:.85rem;opacity:.75;}
 html.dark .choix-carte{background:#232820;border-color:#4e5c3d;}
 @media (max-width:640px){.choix-grille{grid-template-columns:1fr;}}
+
+/* ---- Salutation « Ravi de vous retrouver aujourd'hui » (page
+   recherche) : alias ou nom du compte, puis en mode espace pro le
+   rôle, la structure, l'activité et la spécialité. ---- */
+.salutation-chercheur {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.8rem;
+  margin: 0 0 0.6rem 0;
+  padding: 0.6rem 0.9rem;
+  background: #f2f8f2;
+  border-left: 4px solid #2e7d32;
+  border-radius: 10px;
+}
+.salutation-chercheur .salutation-texte { margin: 0; font-size: 1.05rem; }
+.salutation-chercheur .salutation-espace { margin: 0; font-size: 0.92rem; color: #455; }
+html[data-theme="sombre"] .salutation-chercheur { background: #1d2a1d; }

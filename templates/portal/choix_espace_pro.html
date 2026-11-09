@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Quel espace aujourd'hui ? — MonPetitProducteurLocal{% endblock %}
+{% block content %}
+<h1>👋 {{ salutation_nom }} — quel espace aujourd'hui ?</h1>
+<p class="muted">Votre compte accède à plusieurs espaces pro. Choisissez
+   celui que vous gérez pour cette session — ou continuez en Localien :
+   vos commandes seront passées à votre nom (alias). Le choix est
+   réversible à chaque connexion.</p>
+<form method="post" class="choix-grille">
+  {% csrf_token %}
+  {% for e in espaces %}
+  <button type="submit" name="espace" value="{{ e.exploitant.pk }}" class="choix-carte">
+    <span class="choix-icone">{{ e.exploitant.emoji_vitrine }}</span>
+    <strong>{{ e.exploitant.nom_ferme }}</strong>
+    <span class="badge badge-activite">{{ e.role_libelle }}</span>
+    <span class="choix-texte">{{ e.exploitant.get_activite_display }}{% if e.exploitant.specialite %} · {{ e.exploitant.get_specialite_display }}{% endif %}{% if e.exploitant.ville %} — {{ e.exploitant.ville }}{% endif %}</span>
+  </button>
+  {% endfor %}
+  <button type="submit" name="action" value="client" class="choix-carte">
+    <span class="choix-icone">🧺</span>
+    <strong>Continuer en Localien</strong>
+    <span class="choix-texte">Commander mes producteurs locaux au nom
+      propre (alias), garder mes favoris et mes commandes.</span>
+  </button>
+</form>
+{% endblock %}
