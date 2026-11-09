@@ -50,9 +50,10 @@ class PortailSocialAdapter(DefaultSocialAccountAdapter):
                            "votre mot de passe.")
             raise ImmediateHttpResponse(redirect("login"))
 
-    def save_user(self, request, sociallogin, form=None, commit=True):
-        user = super().save_user(request, sociallogin, form=form,
-                                 commit=commit)
+    def save_user(self, request, sociallogin, form=None):
+        # allauth 65 appelle save_user sans « commit » : signature
+        # strictement identique à DefaultSocialAccountAdapter.
+        user = super().save_user(request, sociallogin, form=form)
         # Marqueur de session : ce compte vient d'être créé via Google —
         # l'atterrissage passe par la page de choix d'espace (client ou
         # pro), sauf si le parcours d'origine a déjà fixé l'intention.
