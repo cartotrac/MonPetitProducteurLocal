@@ -1318,7 +1318,7 @@ FERMES = [
         A.RESTAURANT, M.AB, "74000",
         "3 quai des Clarisses",
         "Annecy", 45.899, 6.129, "04 50 00 00 92",
-        "Comptoir lacustre auvergnat-savoyard : filets de lak "
+        "Comptoir lacustre auvergnat-savoyard : filets du lac "
         "fumés, diots de Savoie, tartiflette de saison et "
         "escalope de tomme, quai des Clarisses face au canal.",
         Decimal("14.50"),
