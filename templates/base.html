@@ -25,8 +25,19 @@
 <header class="site-header">
   <nav class="nav container">
     <div class="nav-gauche">
-      <a class="brand" href="{% url 'portal:home' %}" id="brand-accueil"><img class="brand-logo" src="{% static 'img/logo.svg' %}" alt="Logo MonPetitProducteurLocal" width="30" height="30"> MonPetitProducteurLocal{% if exploitant_courant %}<span class="brand-demo-badge" title="Instance de démonstration">DÉMO</span>{% endif %}</a>
+      <a class="brand" href="{% url 'portal:home' %}" id="brand-accueil"><img class="brand-logo" src="{% static 'img/logo.svg' %}" alt="Logo MonPetitProducteurLocal" width="30" height="30"> MonPetitProducteurLocal{% if mode_pro %}<span class="brand-demo-badge" title="Instance de démonstration">DÉMO</span>{% endif %}</a>
       <button class="btn-darkmode" type="button" id="btn-darkmode" title="Basculer en mode sombre" aria-label="Basculer en mode sombre">🌙</button>
+      {% if user.is_authenticated and nb_espaces_pro %}
+        {% if mode_pro %}
+        <form class="inline" method="post" action="{% url 'portal:bascule_espace' %}">
+          {% csrf_token %}<button class="btn-darkmode" type="submit" name="action" value="grand-public" title="Revenir en grand public : commander au nom propre (alias)" aria-label="Revenir en grand public">🧺</button>
+        </form>
+        {% else %}
+        <form class="inline" method="post" action="{% url 'portal:bascule_espace' %}">
+          {% csrf_token %}<button class="btn-darkmode" type="submit" name="action" value="pro" title="Accéder à mon espace pro" aria-label="Accéder à mon espace pro">🚜</button>
+        </form>
+        {% endif %}
+      {% endif %}
     </div>
     <button class="nav-burger" type="button" id="nav-burger"
             aria-controls="nav-principal" aria-expanded="false"
@@ -34,7 +45,7 @@
     <div class="nav-links" id="nav-principal">
       <a href="{% url 'portal:producer_search' %}" class="nav-chercher {% if request.path == '/recherche/' %}nav-actif{% endif %}" title="Trouver mes producteurs locaux" aria-label="Trouver mes producteurs locaux"><span class="nav-chercher-icone"><span class="nav-chercher-colis">🧺</span><span class="nav-chercher-loupe">🔍</span></span><span class="nav-chercher-texte">Trouver</span></a>
       {% if user.is_authenticated %}
-        {% if exploitant_courant %}
+        {% if mode_pro %}
           <a href="{% url 'portal:dashboard' %}" class="{% if request.path == '/espace-pro/' %}nav-actif{% endif %}">Dashboard</a>
           <div class="nav-gestion">
             <a class="nav-gestion-titre{% if '/espace-produits' in request.path or '/clients' in request.path or '/espace-ventes' in request.path or '/espace-commandes' in request.path or '/espace-paniers' in request.path or '/points-livraison' in request.path or '/mes-producteurs' in request.path %} nav-actif{% endif %}" href="{% url 'portal:product_list' %}">Gestion ▾</a>
@@ -62,8 +73,8 @@
             <div class="nav-gestion-menu">
               <a href="{% url 'portal:param_rubrique' 'profil' %}">👤 Mon profil</a>
               <a href="{% url 'portal:param_rubrique' 'ferme' %}">{{ exploitant_courant.titre_fiche }}</a>
-              {% if user.exploitant %}<a href="{% url 'portal:equipe_manage' %}">👥 Mon équipe</a>{% endif %}
-              {% if user.exploitant %}<a href="{% url 'portal:param_rubrique' 'messagerie' %}">✉️ Messagerie</a>{% endif %}
+              {% if est_proprietaire %}<a href="{% url 'portal:equipe_manage' %}">👥 Mon équipe</a>{% endif %}
+              {% if est_proprietaire %}<a href="{% url 'portal:param_rubrique' 'messagerie' %}">✉️ Messagerie</a>{% endif %}
             </div>
           </div>
         {% else %}
@@ -87,7 +98,7 @@
   {% for message in messages %}
     <div class="flash {{ message.tags }}">{{ message }}</div>
   {% endfor %}
-  {% if exploitant_courant %}
+  {% if mode_pro %}
     {% block retour_dashboard %}{% endblock %}
   {% endif %}
   {% block content %}{% endblock %}
@@ -112,7 +123,7 @@
       <a href="{% url 'portal:home' %}">Accueil</a>
       <a href="{% url 'portal:producer_search' %}">Chercher un producteur</a>
       {% if user.is_authenticated %}
-        {% if exploitant_courant %}
+        {% if mode_pro %}
           <a href="{% url 'portal:dashboard' %}">Dashboard</a>
           <a href="{% url 'portal:ventes' %}">Ventes</a>
           <a href="{% url 'portal:points_manage' %}">Points &amp; créneaux</a>
@@ -122,7 +133,7 @@
           <a href="{% url 'portal:pub_rubrique' 'annonces' %}">Annonces</a>
           <a href="{% url 'portal:param_rubrique' 'profil' %}">Mon profil</a>
           <a href="{% url 'portal:param_rubrique' 'ferme' %}">{{ exploitant_courant.titre_fiche }}</a>
-          {% if user.exploitant %}<a href="{% url 'portal:equipe_manage' %}">Mon équipe</a>{% endif %}
+          {% if est_proprietaire %}<a href="{% url 'portal:equipe_manage' %}">Mon équipe</a>{% endif %}
         {% else %}
           <a href="{% url 'portal:my_orders' %}">Mes commandes</a>
           <a href="{% url 'portal:mes_producteurs' %}">Mes producteurs</a>
@@ -154,7 +165,7 @@
 </div>
 <button class="btn-aide-flottant" type="button" id="btn-aide" title="Aide : le portail en bref" aria-label="Aide : le portail en bref">ℹ️</button>
 <dialog id="dialog-aide" class="dialog-aide" aria-label="Aide du portail">
-  {% if exploitant_courant %}{% include "portal/_fiche_aide_pro.html" %}{% else %}{% include "portal/_fiche_aide_public.html" %}{% endif %}
+  {% if mode_pro %}{% include "portal/_fiche_aide_pro.html" %}{% else %}{% include "portal/_fiche_aide_public.html" %}{% endif %}
   <form method="dialog" class="dialog-demo-actions">
     <button class="btn" type="submit">Fermer ✕</button>
   </form>
@@ -265,7 +276,7 @@
   });
 })();
 </script>
-{% if exploitant_courant %}
+{% if mode_pro %}
 <dialog id="dialog-demo-portail" class="dialog-demo">
   <h2>🚧 Portail en cours de développement</h2>
   <p><strong>Bienvenue sur l'instance de démonstration !</strong></p>

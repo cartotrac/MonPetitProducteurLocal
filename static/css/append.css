@@ -1630,4 +1630,35 @@ html.dark .choix-carte{background:#232820;border-color:#4e5c3d;}
 }
 .salutation-chercheur .salutation-texte { margin: 0; font-size: 1.05rem; }
 .salutation-chercheur .salutation-espace { margin: 0; font-size: 0.92rem; color: #455; }
-html[data-theme="sombre"] .salutation-chercheur { background: #1d2a1d; }
+html.dark .salutation-chercheur { background: #1d241c; border-left-color: #7cb342; }
+html.dark .salutation-chercheur .salutation-espace { color: #aab599; }
+
+/* ---- Menu mobile (burger) : lisibilité garantie quel que soit le
+   thème couleur de l'exploitation — le menu déroulant reprend les
+   couleurs neutres du portail : texte vert foncé sur fond blanc en
+   mode normal, texte clair sur fond sombre en mode sombre. ---- */
+@media (max-width: 820px) {
+  .nav-links { background: #fff !important; }
+  .nav-links a, .nav-links .btn-link, .nav-gestion-titre,
+  .nav-gestion-menu a {
+    color: #1b5e20 !important; opacity: 1;
+  }
+  .nav-links a.nav-actif:not(.btn) {
+    background: #e8f5e9 !important; box-shadow: none; border-radius: 6px;
+  }
+  html.dark .nav-links { background: #151d11 !important; }
+  html.dark .nav-links a, html.dark .nav-links .btn-link,
+  html.dark .nav-gestion-titre, html.dark .nav-gestion-menu a {
+    color: #e6e4da !important;
+  }
+  html.dark .nav-links a.nav-actif:not(.btn) {
+    background: rgba(255,255,255,0.16) !important; box-shadow: none;
+  }
+}
+
+/* ---- Menu déroulant « Gestion » (desktop) : couleurs fixes et
+   lisibles, indépendantes du thème couleur de l'exploitation. ---- */
+.nav-gestion-menu { background: #fff; }
+.nav-gestion-menu a { color: #1b5e20; }
+html.dark .nav-gestion-menu { background: #1a2314; }
+html.dark .nav-gestion-menu a { color: #e6e4da; }
