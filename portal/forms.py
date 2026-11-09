@@ -430,6 +430,12 @@ class ProfilPersonnelForm(forms.Form):
     photo_externe = forms.URLField(
         label="Photo de profil externe (drive, cloud, réseau — rien "
               "n'est hébergé sur le portail)", required=False)
+    alias = forms.CharField(
+        label="Alias affiché", max_length=80, required=False,
+        help_text="S'il est renseigné, cet alias remplace votre nom "
+                  "partout où il apparaît (salutation, commandes passées "
+                  "en votre nom propre) — laissez vide pour garder votre "
+                  "nom complet.")
 
 
 class BulletinForm(forms.ModelForm):

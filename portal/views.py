@@ -37,7 +37,8 @@ from .models import (Annonce, Bulletin, Carte, Categorie, Commande,
                     ParametresVitrine, PointLivraison, PreferenceContact,
                     Produit, ProduitStandard, ProfilClient,
                     SemaineRecolte, StatistiqueQuotidienne, Visiteur,
-                    exploitant_pour)
+                    espace_actif, espaces_pro, exploitant_actif,
+                    exploitant_pour, nom_affiche)
 from .notifications import envoyer_sms, notifier_client
 from .management.commands.charger_catalogues_activites import (
     emoji_pour_nom)
@@ -55,7 +56,11 @@ def apres_connexion(request):
     pro » court-circuitent ce choix : le type est déjà décidé."""
     if not request.user.is_authenticated:
         return redirect("portal:home")
-    if exploitant_pour(request.user) is not None:
+    espaces = espaces_pro(request.user)
+    if len(espaces) > 1:
+        return redirect("portal:choix_espace_pro")
+    if len(espaces) == 1:
+        request.session["mppl_espace_actif"] = espaces[0][0].pk
         return redirect("portal:dashboard")
     intention = request.session.pop("mppl_google_intent", None)
     compte_neuf = request.session.pop("mppl_compte_neuf", False)
@@ -74,7 +79,11 @@ def choix_espace(request):
     devenir Localien (client) et créer un espace pro. Le choix n'est
     pas définitif — un client peut créer son espace pro plus tard, un
     pro reste un client à part entière."""
-    if exploitant_pour(request.user) is not None:
+    espaces = espaces_pro(request.user)
+    if len(espaces) > 1:
+        return redirect("portal:choix_espace_pro")
+    if len(espaces) == 1:
+        request.session["mppl_espace_actif"] = espaces[0][0].pk
         return redirect("portal:dashboard")
     if request.method == "POST":
         if request.POST.get("action") == "pro":
@@ -84,6 +93,42 @@ def choix_espace(request):
                                   "locaux.")
         return redirect("portal:my_orders")
     return render(request, "portal/choix_espace.html")
+
+
+@login_required
+def choix_espace_pro(request):
+    """Connexion d'un compte rattaché à plusieurs espaces pro : choix
+    de l'espace à gérer pour cette session — ou continuer en
+    Localien (commandes au nom propre). Le choix est réversible à
+    chaque connexion."""
+    espaces = espaces_pro(request.user)
+    if len(espaces) < 2:
+        return redirect("portal:apres_connexion")
+    if request.method == "POST":
+        if request.POST.get("action") == "client":
+            request.session.pop("mppl_espace_actif", None)
+            messages.success(request, "Vous continuez en Localien : "
+                             "vos commandes sont passées à votre nom.")
+            return redirect("portal:my_orders")
+        try:
+            pk = int(request.POST.get("espace", "0"))
+        except (TypeError, ValueError):
+            pk = 0
+        for ex, _role in espaces:
+            if ex.pk == pk:
+                request.session["mppl_espace_actif"] = pk
+                return redirect("portal:dashboard")
+        messages.error(request, "Espace introuvable : choisissez dans "
+                       "la liste.")
+        return redirect("portal:choix_espace_pro")
+    return render(request, "portal/choix_espace_pro.html", {
+        "espaces": [{
+            "exploitant": ex,
+            "role_libelle": ("Gérant·e / propriétaire"
+                             if role == "GERANT" else "Compte rattaché"),
+        } for ex, role in espaces],
+        "salutation_nom": nom_affiche(request.user),
+    })
 
 
 def google_entree_pro(request):
@@ -152,7 +197,7 @@ def home(request):
     nb_boutiques = len(marches_identifies) - nb_marches
     nb_clients = (User.objects
                   .filter(exploitant__isnull=True,
-                          membre_exploitation__isnull=True).count())
+                          membres_exploitation__isnull=True).count())
     nb_visiteurs = Visiteur.objects.count()
     aujourdhui = timezone.localdate()
     StatistiqueQuotidienne.objects.update_or_create(
@@ -312,7 +357,7 @@ def producer_search(request):
     nb_producteurs = Exploitant.objects.filter(visible=True).count()
     nb_clients = (User.objects
                   .filter(exploitant__isnull=True,
-                          membre_exploitation__isnull=True).count())
+                          membres_exploitation__isnull=True).count())
     nb_visiteurs = Visiteur.objects.count()
     # Badges de la page selon le mode : total des pros inscrits puis
     # dénombrements propres à chaque mode de visualisation
@@ -368,7 +413,7 @@ def producer_search(request):
     # navigateur pour un client connecté, pas de bouton sinon.
     home_carte = None
     if request.user.is_authenticated:
-        moi = exploitant_pour(request.user)
+        moi = exploitant_actif(request)
         if moi and moi.latitude is not None and moi.longitude is not None:
             home_carte = {"lat": moi.latitude, "lon": moi.longitude}
         else:
@@ -472,7 +517,23 @@ def producer_search(request):
                     pages_pagination.append("…")
                 pages_pagination.append(n)
                 precedent = n
+    # Salutation personnalisée (en tête de la page) : alias ou nom
+    # du compte ; en mode espace pro, rôle et structure suivent.
+    salutation = None
+    if request.user.is_authenticated:
+        salutation = {"nom": nom_affiche(request.user)}
+        actif = espace_actif(request)
+        if actif is not None:
+            salutation["espace"] = actif.nom_ferme
+            salutation["role_libelle"] = (
+                "Gérant·e / propriétaire"
+                if actif.user_id == request.user.id
+                else "Compte rattaché")
+            salutation["activite"] = actif.get_activite_display()
+            salutation["specialite"] = (actif.get_specialite_display()
+                                        if actif.specialite else "")
     return render(request, "portal/search_results.html", {
+        "salutation": salutation,
         "exploitants": page_obj,
         "nb_resultats": paginator.count,
         "par_page": par_page,
@@ -660,7 +721,7 @@ def producer_detail(request, slug):
         "restes": restes,
         "est_favori": est_favori,
         "nature_favori": nature_favori,
-        "est_compte_pro": exploitant_pour(request.user) is not None,
+        "est_compte_pro": exploitant_actif(request) is not None,
         "meteo": meteo_synthese(exploitant),
         "points_livraison": exploitant.points_livraison.all(),
         "creneaux": exploitant.creneaux.select_related("point_livraison"),
@@ -681,7 +742,7 @@ def favoris_toggle(request, slug):
         nature = Favori.Nature.CLIENT
     # Un non-pro ne peut créer que des favoris « client »
     if (nature != Favori.Nature.CLIENT
-            and exploitant_pour(request.user) is None):
+            and exploitant_actif(request) is None):
         nature = Favori.Nature.CLIENT
     favori = Favori.objects.filter(user=request.user,
                                    exploitant=exploitant).first()
@@ -761,7 +822,7 @@ def mes_producteurs(request):
         visible=True, commandes__client=request.user)
         .exclude(pk__in=exploitant_ids)
         .distinct().order_by("nom_ferme"))
-    est_pro = exploitant_pour(request.user) is not None
+    est_pro = exploitant_actif(request) is not None
     favoris_slugs = list(Favori.objects.filter(
         user=request.user).values_list("exploitant__slug", flat=True))
     if est_pro:
@@ -807,7 +868,7 @@ def register_exploitant(request):
     « Continuer avec Google » : le Localien crée son espace pro sans
     retaper prénom, nom, e-mail ni photo)."""
     if request.user.is_authenticated:
-        if exploitant_pour(request.user) is not None:
+        if exploitant_actif(request) is not None:
             # Déjà pro : rien à recréer ici.
             return redirect("portal:dashboard")
         if request.method == "POST":
@@ -873,7 +934,9 @@ def proprietaire_requis(fonction):
     Les membres de l'équipe n'ont accès qu'à la gestion courante :
     récoltes, commandes, paniers, points de livraison."""
     def wrapper(request, *args, **kwargs):
-        if not hasattr(request.user, "exploitant"):
+        exploitant_courant = exploitant_actif(request)
+        if (exploitant_courant is None
+                or exploitant_courant.user_id != request.user.id):
             messages.error(
                 request, "Action réservée au gestionnaire principal de "
                 "l'exploitation (fiche ferme, SIRET, équipe, catalogue).")
@@ -1028,7 +1091,7 @@ def dashboard(request):
     vitrine publique en direct à droite, hero météo et bandeau des
     créneaux de livraison (jour + horaires). Produits rangés par
     catégorie, éditables sur place (libellé, unité, prix)."""
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     produits = (exploitant.produits.filter(actif=True)
                 .select_related("categorie", "origine_standard")
                 .order_by("categorie__position", "categorie__nom",
@@ -1077,7 +1140,7 @@ def product_list(request):
     catégories, ajout/retrait en lot — pendant que le dashboard ne
     garde que la gestion des catégories et le déplacement des
     produits entre catégories."""
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     produits = (exploitant.produits.filter(actif=True)
                 .select_related("categorie", "origine_standard")
                 .order_by("categorie__position", "categorie__nom",
@@ -1103,7 +1166,7 @@ def product_list(request):
 @exploitant_requis
 @proprietaire_requis
 def produit_creer(request):
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     if request.method == "POST":
         form = ProduitForm(request.POST, request.FILES, exploitant=exploitant)
         if form.is_valid():
@@ -1127,10 +1190,10 @@ def produit_creer(request):
 @proprietaire_requis
 def produit_modifier(request, pk):
     produit = get_object_or_404(Produit, pk=pk,
-                                exploitant=exploitant_pour(request.user))
+                                exploitant=exploitant_actif(request))
     if request.method == "POST":
         form = ProduitForm(request.POST, request.FILES, instance=produit,
-                           exploitant=exploitant_pour(request.user))
+                           exploitant=exploitant_actif(request))
         if form.is_valid():
             produit = form.save(commit=False)
             _enregistrer_image_externe(produit,
@@ -1140,7 +1203,7 @@ def produit_modifier(request, pk):
             return redirect("portal:product_list")
     else:
         form = ProduitForm(instance=produit,
-                           exploitant=exploitant_pour(request.user))
+                           exploitant=exploitant_actif(request))
     return render(request, "portal/pro/product_form.html",
                   {"form": form, "titre": "Modifier le produit",
                    "categories_url": "portal:categories_manage"})
@@ -1153,7 +1216,7 @@ def produit_edition_rapide(request):
     modifiés en place, ET ergonomie complète — ajout de produit, ajout
     de catégorie, reclassement des produits (▲▼, changement de
     catégorie) et des catégories, sans quitter la page."""
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
 
     def _produits_de_la_categorie(categorie):
         qs = exploitant.produits.filter(actif=True)
@@ -1420,7 +1483,7 @@ def harvest_list(request):
     """Toutes les récoltes de l'exploitant (fréquence libre : hebdo,
     moins souvent… c'est lui qui choisit). Publication / dépublication
     en un clic (impact immédiat sur la vitrine), suppression possible."""
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     today = timezone.localdate()
     lundi_courant = today - datetime.timedelta(days=today.weekday())
 
@@ -1481,7 +1544,7 @@ def harvest_manage(request, semaine_id=None, nouvelle=False):
     La date (lundi) est modifiable : déplacer la récolte change la semaine
     affichée sur la vitrine (refus propre si déjà existante).
     """
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     today = timezone.localdate()
     lundi = today - datetime.timedelta(days=today.weekday())
     semaine = None
@@ -1672,7 +1735,7 @@ def _notifier_sans_echec(request, panier, type_msg):
 @login_required
 @exploitant_requis
 def order_list(request, statut=None):
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     contexte = _contexte_commandes(
         exploitant, statut, request.GET.get("annulation", "").strip())
     # Vue alternative « calendrier » (?vue=calendrier)
@@ -1790,7 +1853,7 @@ def order_direct_create(request):
     téléphone, au marché… La commande est immédiatement validée et le
     panier numéroté créé (contenu ajustable ensuite). Les prix de
     référence du catalogue s'appliquent."""
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     produits = list(exploitant.produits.filter(actif=True)
                     .select_related("categorie", "origine_standard")
                     .order_by("categorie__position", "nom"))
@@ -1949,7 +2012,7 @@ def order_validate(request, commande_id):
     Le panier numéroté est créé avec le contenu ajusté : point de départ
     du contenu livré (DATA_MODEL v0.3). Le client est notifié.
     """
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     commande = get_object_or_404(Commande, pk=commande_id, exploitant=exploitant)
     if (request.method == "POST"
             and commande.statut == Commande.Statut.NOUVELLE):
@@ -2047,7 +2110,7 @@ def order_validate(request, commande_id):
 @login_required
 @exploitant_requis
 def panier_list(request):
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     contexte = _contexte_paniers(
         exploitant,
         request.GET.get("statut", "").strip(),
@@ -2097,7 +2160,7 @@ def ventes(request):
     """🧾 Ventes : UNE page, DEUX rubriques — commandes reçues puis
     paniers, avec les mêmes contenus que les deux pages historiques
     (les filtres détaillés restent sur celles-ci)."""
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     commandes = _contexte_commandes(exploitant)
     paniers = _contexte_paniers(exploitant)
     contexte = {
@@ -2124,7 +2187,7 @@ def panier_export_csv(request):
     - detail (défaut) : ligne par ligne, chaque panier avec son client ;
     - production : récapitulatif par produit des paniers LIVRÉS/REÇUS
       (seule source du décompte de production). Filtre date optionnel."""
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     date_filter = request.GET.get("date", "").strip()
     mode = request.GET.get("mode", "detail")
     paniers = (exploitant.paniers.select_related("client", "point_livraison")
@@ -2212,7 +2275,7 @@ def panier_detail(request, panier_id):
     comparé côte à côte aux quantités souhaitées par le client, avec
     commentaire visible par le client. Chaque changement de statut notifie
     le client (panier prêt, livraison faite) selon son canal préféré."""
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     panier = get_object_or_404(Panier, pk=panier_id, exploitant=exploitant)
     verrouille = panier.statut in (Panier.Statut.LIVRE,
                                    Panier.Statut.RECU,
@@ -2380,7 +2443,7 @@ def clients_suivi(request):
     """Suivi « Mes clients » : regroupement par identité contact (compte
     client ou nom + e-mail/téléphone), cumul des commandes, paniers et
     chiffre d'affaires, canal de contact préféré."""
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     q = request.GET.get("q", "").strip().lower()
     registre = {}
 
@@ -2446,7 +2509,7 @@ def cartes_manage(request):
     l'affiche en plus de l'encart de la semaine. Les lignes reprennent
     les produits du catalogue (de référence ou perso) ou restent
     libres (plat du jour, menu…)."""
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     if not exploitant.a_carte_boutique:
         messages.info(request, "Les cartes / boutiques concernent les "
                       "traiteurs, foodtrucks et producteurs en mode "
@@ -2592,7 +2655,7 @@ def cartes_manage(request):
 def points_manage(request):
     """Points de livraison & créneaux (issue #9) : création, suppression,
     créneaux récurrents (jour, horaires, fréquence, capacité)."""
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "point_creer":
@@ -2798,7 +2861,7 @@ def catalogue_standard(request):
     """Catalogues embarqués de produits types (issue #1), un par
     activité : par défaut celui de l'activité de l'exploitant, tous les
     autres restant accessibles (onglets)."""
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     activite_courante = (request.GET.get("activite", "")
                          or exploitant.activite)
     if activite_courante not in Exploitant.Activite.values:
@@ -2833,7 +2896,7 @@ def catalogue_copier(request):
     """Copie les produits types sélectionnés dans le catalogue de
     l'exploitant : catégorie créée si besoin, prix optionnel, traçabilité
     origine_standard (issue #1)."""
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     if request.method == "POST":
         ids = request.POST.getlist("std")
         copies = 0
@@ -2879,7 +2942,7 @@ def categories_manage(request):
     """Gestion des catégories de l'exploitant (issue #5) : créer,
     renommer, réordonner, supprimer. Supprimer ne touche pas les produits
     (ils passent « sans catégorie»)."""
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "creer":
@@ -3181,8 +3244,8 @@ def order_create(request, slug):
     pré-remplit quantités, date et point de livraison.
     """
     exploitant = get_object_or_404(Exploitant, slug=slug, visible=True)
-    if (exploitant_pour(request.user) is not None
-            and exploitant_pour(request.user).pk == exploitant.pk):
+    if (exploitant_actif(request) is not None
+            and exploitant_actif(request).pk == exploitant.pk):
         messages.info(request, "Vous êtes le producteur de cette ferme : "
                      "utilisez « Saisir une commande » dans votre espace "
                      "pro pour enregistrer une commande (la vôtre par "
@@ -3271,9 +3334,22 @@ def order_create(request, slug):
                            "Commande invalide : vérifiez les quantités et la date.")
             return _afficher(_soumis(request, offres))
         if request.user.is_authenticated:
-            client, nom_client = request.user, (
-                request.user.get_full_name() or request.user.username)
-            email_client, telephone_client = request.user.email, ""
+            client = request.user
+            actif = espace_actif(request)
+            if actif is not None:
+                # Mode espace pro : la commande est passée au nom de
+                # la structure, avec les coordonnées de la fiche pro.
+                nom_client = actif.nom_ferme
+                email_client = actif.user.email
+                telephone_client = actif.telephone
+            else:
+                # Mode client : nom propre ou alias, coordonnées perso.
+                nom_client = nom_affiche(request.user)
+                email_client = request.user.email
+                profil_courant = getattr(request.user, "profil_client",
+                                         None)
+                telephone_client = (profil_courant.telephone
+                                    if profil_courant else "")
         else:
             client = None
             nom_client = request.POST.get("nom_client", "").strip()
@@ -3654,18 +3730,28 @@ def _enregistrer_infos_perso(request, redirect_vers, **redirect_kwargs):
         user.last_name = form.cleaned_data["nom"]
         user.save()
         profil.telephone = form.cleaned_data["telephone"]
+        profil.alias = (form.cleaned_data.get("alias", "") or "").strip()
         profil.photo_url = form.cleaned_data.get("photo_externe", "")
         profil.save()
         # Propager l'identité aux commandes et paniers déjà enregistrés
         # (y compris validés) : les snapshots nom/e-mail/téléphone suivent
         # le profil, pour l'affichage comme pour les contacts producteur.
-        nom_complet = (user.get_full_name() or user.username)[:150]
+        nom_complet = nom_affiche(user)[:150]
         maj = {"nom_client": nom_complet, "email_client": user.email}
         telephone = (form.cleaned_data.get("telephone") or "")[:20]
         if telephone:
             maj["telephone_client"] = telephone
-        Commande.objects.filter(client=user).update(**maj)
-        Panier.objects.filter(client=user).update(**maj)
+        # Les commandes passées au nom d'une structure (mode espace
+        # pro) gardent leur identité : seules celles au nom propre
+        # suivent l'alias / le nom du compte.
+        noms_structure = [ex.nom_ferme
+                          for ex, _role in espaces_pro(user)]
+        hors_structure = (Q(nom_client__in=noms_structure)
+                          if noms_structure else Q())
+        Commande.objects.filter(client=user).exclude(
+            hors_structure).update(**maj)
+        Panier.objects.filter(client=user).exclude(
+            hors_structure).update(**maj)
         messages.success(request, "Vos informations personnelles ont été "
                          "mises à jour (commandes et paniers inclus).")
         return redirect(redirect_vers, **redirect_kwargs)
@@ -3754,6 +3840,7 @@ def profil_client(request):
         form = ProfilPersonnelForm(initial={
             "prenom": request.user.first_name,
             "nom": request.user.last_name,
+            "alias": profil.alias,
             "telephone": profil.telephone,
             "photo_externe": profil.photo_url,
         })
@@ -3769,7 +3856,7 @@ def profil_client(request):
 def equipe_manage(request):
     """Gestion de l'équipe de l'exploitation : page dédiée du menu
     « Gestion » (ajout / retrait des comptes rattachés)."""
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     if request.method == "POST":
         action = request.POST.get("action")
         if action == "ajouter":
@@ -3785,13 +3872,10 @@ def equipe_manage(request):
                     messages.error(request, f"Aucun compte « {cle} » : la "
                                    "personne doit d'abord créer un compte "
                                    "sur le portail.")
-                elif hasattr(user, "exploitant"):
-                    messages.error(request, f"« {cle} » possède déjà sa "
-                                   "propre exploitation : impossible de "
-                                   "le rattacher.")
-                elif hasattr(user, "membre_exploitation"):
+                elif MembreExploitation.objects.filter(
+                        user=user, exploitant=exploitant).exists():
                     messages.error(request, f"« {cle} » est déjà membre "
-                                   "d'une exploitation.")
+                                   "de cette exploitation.")
                 else:
                     MembreExploitation.objects.create(
                         user=user, exploitant=exploitant,
@@ -3834,11 +3918,10 @@ def param_rubrique(request, rubrique):
     et passerelle SMS). Chaque page s'enregistre séparément."""
     if rubrique not in ("profil", "ferme", "messagerie"):
         return redirect("portal:param_rubrique", rubrique="profil")
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     vitrine, _cree = ParametresVitrine.objects.get_or_create(
         exploitant=exploitant)
-    est_proprietaire = (hasattr(request.user, "exploitant")
-                        and request.user.exploitant.pk == exploitant.pk)
+    est_proprietaire = exploitant.user_id == request.user.id
     if rubrique == "messagerie" and not est_proprietaire:
         return redirect("portal:param_rubrique", rubrique="profil")
     messagerie = vitrine.messagerie or {}
@@ -3963,6 +4046,7 @@ def param_rubrique(request, rubrique):
         form_profil = ProfilPersonnelForm(initial={
             "prenom": request.user.first_name,
             "nom": request.user.last_name,
+            "alias": profil.alias,
             "telephone": profil.telephone,
             "photo_externe": profil.photo_url,
         })
@@ -4033,7 +4117,7 @@ def pub_rubrique(request, rubrique):
     ET des commandes sans compte qui en ont laissé un)."""
     if rubrique not in ("newsletter", "annonces"):
         return redirect("portal:pub_rubrique", rubrique="newsletter")
-    exploitant = exploitant_pour(request.user)
+    exploitant = exploitant_actif(request)
     nb_destinataires = (exploitant.commandes.exclude(email_client="")
                         .values("email_client").distinct().count())
 

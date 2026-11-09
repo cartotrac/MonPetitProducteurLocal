@@ -10,14 +10,19 @@ catalogue) des membres limités à la gestion courante.
 from django.conf import settings
 from django.utils import timezone
 
-from .models import Visiteur, exploitant_pour
+from .models import Visiteur, exploitant_actif
 
 
 def exploitant_contexte(request):
     try:
+        courant = exploitant_actif(request)
         return {
-            "exploitant_courant": exploitant_pour(request.user),
-            "est_proprietaire": hasattr(request.user, "exploitant"),
+            # Espace pro sélectionné pour cette session (multi-espace :
+            # choix à la connexion), sinon l'espace par défaut du compte.
+            "exploitant_courant": courant,
+            "est_proprietaire": (
+                courant is not None
+                and courant.user_id == request.user.id),
         }
     except Exception:
         return {"exploitant_courant": None, "est_proprietaire": False}

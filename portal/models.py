@@ -429,6 +429,11 @@ class ProfilClient(models.Model):
         "Photo externe", blank=True,
         help_text="Lien vers une photo hébergée ailleurs (drive, cloud, "
                   "réseau) : rien n'est hébergé par le portail.")
+    alias = models.CharField(
+        "Alias affiché", max_length=80, blank=True,
+        help_text="S'il est renseigné, l'alias remplace le nom du compte "
+                  "partout où il apparaît (salutation, commandes passées "
+                  "en nom propre) — personnalisable dans « Mon profil ».")
 
     def __str__(self):
         return f"Client : {self.user.get_full_name() or self.user.username}"
@@ -1285,8 +1290,8 @@ class MembreExploitation(models.Model):
     commandes et paniers via exploitant_pour().
     """
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE,
-                                 related_name="membre_exploitation")
+    user = models.ForeignKey(User, on_delete=models.CASCADE,
+                             related_name="membres_exploitation")
     exploitant = models.ForeignKey(Exploitant, on_delete=models.CASCADE,
                                     related_name="membres")
     telephone = models.CharField("Téléphone", max_length=20, blank=True)
@@ -1296,6 +1301,9 @@ class MembreExploitation(models.Model):
         verbose_name = "Membre de l'exploitation"
         verbose_name_plural = "Membres de l'exploitation"
         ordering = ["ajoute_le"]
+        # Un compte peut être rattaché à plusieurs espaces pro (multi-
+        # espace / multi-activité), mais une seule fois par espace.
+        unique_together = ("user", "exploitant")
 
     def __str__(self):
         return (f"{self.user.get_full_name() or self.user.username}"
@@ -1373,15 +1381,77 @@ class StatistiqueQuotidienne(models.Model):
                f"{self.nb_clients} / {self.nb_visiteurs}"
 
 
+def nom_affiche(user):
+    """Nom affiché du compte : l'alias personnalisé s'il est
+    renseigné, sinon prénom + nom, sinon l'identifiant."""
+    if user is None or not getattr(user, "is_authenticated", False):
+        return ""
+    profil = getattr(user, "profil_client", None)
+    if profil is not None and profil.alias:
+        return profil.alias
+    return user.get_full_name() or user.username
+
+
+def espaces_pro(user):
+    """Tous les espaces pro accessibles à ce compte : celui dont il
+    est propriétaire (Exploitant.user) puis ceux où il est membre —
+    un même compte peut ainsi gérer plusieurs espaces / activités.
+    Retourne [(exploitant, "GERANT" | "MEMBRE"), ...]."""
+    if user is None or not getattr(user, "is_authenticated", False):
+        return []
+    espaces = []
+    proprietaire = getattr(user, "exploitant", None)
+    pk_propriete = proprietaire.pk if proprietaire is not None else None
+    if proprietaire is not None:
+        espaces.append((proprietaire, "GERANT"))
+    for membre in user.membres_exploitation.select_related(
+            "exploitant").order_by("ajoute_le"):
+        if membre.exploitant_id != pk_propriete:
+            espaces.append((membre.exploitant, "MEMBRE"))
+    return espaces
+
+
+def espace_actif(request):
+    """Espace pro choisi pour cette session, ou None (mode Localien :
+    commandes au nom propre). La sélection (mppl_espace_actif en
+    session) n'est valable que si le compte y a toujours accès."""
+    user = getattr(request, "user", None)
+    if user is None or not getattr(user, "is_authenticated", False):
+        return None
+    pk = request.session.get("mppl_espace_actif")
+    if pk is None:
+        return None
+    for exploitant, _role in espaces_pro(user):
+        if exploitant.pk == pk:
+            return exploitant
+    return None
+
+
+def exploitant_actif(request):
+    """Espace pro affiché côté pro : la sélection de session si elle
+    est valable, sinon l'espace par défaut (propriété puis premier
+    rattachement)."""
+    user = getattr(request, "user", None)
+    if user is None or not getattr(user, "is_authenticated", False):
+        return None
+    actif = espace_actif(request)
+    if actif is not None:
+        return actif
+    return exploitant_pour(user)
+
+
 def exploitant_pour(user):
-    """L'exploitation gérée par ce compte, ou None : soit le compte
-    propriétaire (Exploitant.user), soit un membre rattaché."""
+    """L'espace pro PAR DÉFAUT de ce compte, ou None : celui dont il
+    est propriétaire (Exploitant.user), sinon le premier rattachement
+    (par date d'ajout). Pour l'espace réellement sélectionné en
+    session, voir exploitant_actif(request)."""
     if user is None or not getattr(user, "is_authenticated", False):
         return None
     exploitant = getattr(user, "exploitant", None)
     if exploitant is not None:
         return exploitant
-    membre = getattr(user, "membre_exploitation", None)
+    membre = user.membres_exploitation.select_related(
+        "exploitant").order_by("ajoute_le").first()
     if membre is not None:
         return membre.exploitant
     return None
