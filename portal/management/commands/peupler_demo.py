@@ -1327,7 +1327,7 @@ FERMES = [
           "3 quai des Clarisses", "Annecy", "74000", 45.899, 6.128)],
         [(3, "12:00", "14:30", 0), (4, "12:00", "14:30", 0),
          (5, "12:00", "14:30", 0), (5, "19:00", "22:00", 0),
-         (6, "12:00", "14:30", 1)],
+         (6, "12:00", "14:30", 0)],
         "Arrivage de tomme de chèvre : l'escalope du mois change.",
         "Au Comptoir du Lac, Annecy",
         "Diots, tartiflette et filets du lac sur le quai des "
