@@ -29,6 +29,15 @@ Usage :
                                            # commandes/paniers des
                                            # SEULES fermes de démo et
                                            # régénère le jeu
+    python manage.py peupler_demo --reset-complet
+                                           # GRAND NETTOYAGE : purge les
+                                           # comptes de démo, efface
+                                           # commandes, paniers, récoltes
+                                           # et cartes de TOUS les
+                                           # comptes (les comptes réels
+                                           # non démo sont conservés,
+                                           # vidés de leurs données),
+                                           # puis repeuple le jeu
 
 Comptes d'essai « sans engagement » (mot de passe demo1234!) :
     demo.pro     : espace producteur (La Ferme Découverte)
@@ -58,6 +67,12 @@ Comptes créés (mot de passe : demo1234!) :
     Traiteurs   : demo.traiteur.gaillac, demo.traiteur.lavaur,
                   demo.traiteur.montauban, demo.traiteur.brest,
                   demo.traiteur.rennes
+    Nouveautés  : demo.normandie.arboriculteur,
+                  demo.provence.maraicher, demo.savoie.eleveur,
+                  demo.lyon.fromager, demo.gers.apiculteur,
+                  demo.alsace.conserverie, demo.lille.microbrasseur,
+                  demo.nice.traiteur, demo.orleans.foodtruck.burger,
+                  demo.reims.foodtruck.rotisseur
     Clients     : demo.cliente, demo.client
     Marchés    : jeu étendu « marchés & boutiques partagés » —
                  demo.maraicher.giroussens, demo.apiculteur.lavaur,
@@ -92,7 +107,9 @@ MOT_DE_PASSE_DEMO = "demo1234!"
 # juste après l'id le plus élevé restant en base (à 1 si la table
 # est vidée) — jamais en dessous d'un id existant.
 TABLES_SEQUENCE = ("portal_commande", "portal_panier",
-                   "portal_lignecommande", "portal_lignepanier")
+                   "portal_lignecommande", "portal_lignepanier",
+                   "portal_carte", "portal_lignecarte",
+                   "portal_semainerecolte", "portal_lignerecolte")
 
 
 def reinitialiser_sequences():
@@ -106,6 +123,10 @@ def reinitialiser_sequences():
         return
     with connection.cursor() as curseur:
         for table in TABLES_SEQUENCE:
+            # Table absente (base non migrée) : ignorée sans erreur.
+            curseur.execute("SELECT to_regclass(%s)", [table])
+            if not curseur.fetchone()[0]:
+                continue
             # table provient de TABLES_SEQUENCE (constante interne) :
             # aucune injection possible ; MAX(id) rend le réalignement
             # idempotent et sûr même sur une base non vidée.
@@ -1047,6 +1068,227 @@ FERMES = [
         "Galettes de sarrasin et crêpes maison vendredi soir et "
         "samedi midi place de la Libération, cidre doux du coin.",
         type_point=PointLivraison.Type.EMPLACEMENT),
+
+    # ── Nouveautés régionales : dix pros diversifiés pour couvrir
+    #    tous les cas d'usage — récoltes publiées ou « à publier »
+    #    (maraîcher, arboriculteur), boutiques avec ou sans stock
+    #    publié (éleveur, fromager, apiculteur, conserverie,
+    #    micro-brasseur), cartes saisonnières ou annuelles, lignes
+    #    avec ou sans stock (traiteur, foodtrucks). ───────────────
+    _ferme_spec(
+        "demo.normandie.arboriculteur", "Vergers du Pays d'Auge",
+        A.ARBORICULTEUR, M.AB, "27210",
+        "Route des Vergers, lieu-dit Le Clos",
+        "Beaumont-en-Auge", 49.283, 0.156, "02 31 00 00 81",
+        "Pommeraie du Pays d'Auge en agriculture biologique : "
+        "pommes à couteau, poires, jus pressés à la ferme et "
+        "cidre doux, vendus directement au verger et au marché.",
+        Decimal("2.10"),
+        [{"activite": A.ARBORICULTEUR, "limite": 20},
+         {"activite": A.APICULTEUR, "limite": 4}],
+        [("Marché de Beaumont", "Place du marché",
+          "Beaumont-en-Auge", "27210", 49.283, 0.155),
+         ("Verger du Clos", "Route des Vergers",
+          "Beaumont-en-Auge", "27210", 49.284, 0.157)],
+        [(6, "09:00", "12:30", 0), (5, "15:30", "18:30", 1)],
+        "Premières poires Passe-Crassane de la saison.",
+        "Récolte de la semaine aux Vergers du Pays d'Auge",
+        "Pommes Royal Gala et jus frais au marché de Beaumont ; "
+        "premières poires Passe-Crassane du verger, à réserver "
+        "avec votre panier."),
+    _ferme_spec(
+        "demo.provence.maraicher", "Les Terrasses du Mistral",
+        A.MARAICHER, M.PERMA, "84120",
+        "Chemin des Restanques, lieu-dit Les Terrès",
+        "Pertuis", 43.692, 5.506, "04 90 00 00 82",
+        "Jardin maraîcher en permaculture sur les terrasses du "
+        "Luberon : légumes de soleil, herbes de Provence et "
+        "melons de Cavaillon, en vente directe au marché.",
+        Decimal("2.40"),
+        [{"activite": A.MARAICHER, "limite": 24},
+         {"activite": A.APICULTEUR, "limite": 3}],
+        [("Marché de Pertuis", "Place Jean Jaurès",
+          "Pertuis", "84120", 43.692, 5.504),
+         ("Ferme des Terrasses", "Chemin des Restanques",
+          "Pertuis", "84120", 43.690, 5.509)],
+        [(6, "08:00", "12:30", 0), (3, "16:30", "19:00", 1)],
+        "Melons de Cavaillon à maturité — les derniers de la saison !",
+        "Paniers de la semaine aux Terrasses du Mistral",
+        "Tomates cœur de bœuf, courgettes rondes et melons mûrs "
+        "au marché de Pertuis ; aubergines grillées à la ferme "
+        "mercredi soir."),
+    _ferme_spec(
+        "demo.savoie.eleveur", "Ferme des Bauges",
+        A.ELEVEUR, M.PAYSAN, "73000",
+        "Route du Semnoz, lieu-dit Le Cotterg",
+        "Chambéry", 45.564, 5.918, "04 79 00 00 83",
+        "Élevage de tarines et d'abondances en pays de Savoie : "
+        "tome des Bauges au lait cru, viande de boucherie et "
+        "charcuterie de montagne, tout est fait à la ferme.",
+        Decimal("5.20"),
+        [{"activite": A.ELEVEUR, "limite": 24}],
+        [("Marché de Chambéry", "Place des Éléphants",
+          "Chambéry", "73000", 45.566, 5.920),
+         ("Ferme du Cotterg", "Route du Semnoz",
+          "Chambéry", "73000", 45.559, 5.922)],
+        [(2, "08:30", "12:30", 0), (5, "16:00", "19:00", 1)],
+        "Tome des Bauges d'affinage 5 semaines — arrivage du jeudi.",
+        "Produits de la semaine à la Ferme des Bauges",
+        "Tome au lait cru et caillettes de savoie au marché de "
+        "Chambéry ; la boutique de la ferme est ouverte vendredi "
+        "de 16 h à 19 h.",
+        type_point=PointLivraison.Type.BOUTIQUE),
+    _ferme_spec(
+        "demo.lyon.fromager", "Fromagerie des Monts d'Or",
+        A.FROMAGER, M.AB, "69250",
+        "Route de Poleymieux, lieu-dit La Cave",
+        "Saint-Cyr-au-Mont-d'Or", 45.812, 4.826, "04 78 00 00 84",
+        "Fromagerie fermière des Monts d'Or en agriculture "
+        "biologique : saint-marcellin, rigottes et tomme de "
+        "vache, affinées dans la cave de la maison.",
+        Decimal("4.80"),
+        [{"activite": A.FROMAGER, "limite": 20},
+         {"activite": A.APICULTEUR, "limite": 2}],
+        [("Marché de la Croix-Rousse", "Boulevard de la Croix-Rousse",
+          "Lyon", "69001", 45.772, 4.828),
+         ("Cave des Monts d'Or", "Route de Poleymieux",
+          "Saint-Cyr-au-Mont-d'Or", "69250", 45.813, 4.825)],
+        [(2, "08:00", "12:30", 0), (5, "15:00", "19:00", 1)],
+        "Saint-marcellin frais du jour — affinage 8 jours.",
+        "Fromages de la semaine à la Fromagerie des Monts d'Or",
+        "Saint-marcellin et rigottes au marché de la Croix-Rousse ; "
+        "la cave de la ferme ouvre vendredi après-midi pour les "
+        "tomes affinées 3 mois.",
+        type_point=PointLivraison.Type.BOUTIQUE),
+    _ferme_spec(
+        "demo.gers.apiculteur", "Ruchers de l'Adour",
+        A.APICULTEUR, M.RAISONNE, "32000",
+        "Chemin des Tilleuls, lieu-dit Houeillat",
+        "Auch", 43.646, 0.586, "05 62 00 00 85",
+        "Miellerie gersoise entre Adour et collines : miels "
+        "toutes fleurs, de chêne et de fleur d'acacia, pollen "
+        "frais et propolis, récoltés sur les coteaux du Gers.",
+        Decimal("6.50"),
+        [{"activite": A.APICULTEUR, "limite": 24}],
+        [("Marché d'Auch", "Place de la Libération",
+          "Auch", "32000", 43.647, 0.586),
+         ("Miellerie de l'Adour", "Chemin des Tilleuls",
+          "Auch", "32000", 43.644, 0.588)],
+        [(4, "08:00", "12:30", 0), (5, "15:30", "18:30", 1)],
+        "Miel de chêne du printemps — pots de 500 g en stock.",
+        "Miels de la semaine aux Ruchers de l'Adour",
+        "Miel de chêne et pollen frais au marché d'Auch ; fleur "
+        "d'acacia en quantité limitée à la miellerie vendredi.",
+        type_point=PointLivraison.Type.BOUTIQUE),
+    _ferme_spec(
+        "demo.alsace.conserverie", "Conserverie du Kochersberg",
+        A.CONSERVERIE, M.PAYSAN, "67370",
+        "Rue du Village, lieu-dit Le Fgout",
+        "Truchtersheim", 48.832, 7.598, "03 88 00 00 86",
+        "Atelier alsacien du Kochersberg : choucroute cuite au "
+        "fût, baeckeoffe en bocal, terrines et tartes maison, "
+        "cuissons de saison à l'ancienne.",
+        Decimal("4.60"),
+        [{"activite": A.CONSERVERIE, "limite": 24}],
+        [("Marché de Truchtersheim", "Place de la Mairie",
+          "Truchtersheim", "67370", 48.833, 7.597),
+         ("Atelier du Kochersberg", "Rue du Village",
+          "Truchtersheim", "67370", 48.831, 7.599)],
+        [(3, "08:30", "12:00", 0), (5, "16:00", "18:30", 1)],
+        "Baeckeoffe du mois : la fournée sort vendredi.",
+        "Bocaux de la semaine à la Conserverie du Kochersberg",
+        "Choucroute au fût et baeckeoffe en bocal au marché de "
+        "Truchtersheim ; terrine de gibier en édition limitée "
+        "à l'atelier.",
+        type_point=PointLivraison.Type.BOUTIQUE),
+    _ferme_spec(
+        "demo.lille.microbrasseur", "Brasserie du Beffroi",
+        A.MICRO_BRASSEUR, M.RAISONNE, "59000",
+        "Rue des Canonniers, entrepôt 12",
+        "Lille", 50.629, 3.057, "03 20 00 00 87",
+        "Micro-brasserie lilloise : blondes des Flandres, ambrée "
+        "au malt caramalt et bière de garde traditionnelle, en "
+        "fûts 20 L pour les associations et bouteilles à la brasserie.",
+        Decimal("4.30"),
+        [{"activite": A.MICRO_BRASSEUR, "limite": 18},
+         {"activite": A.APICULTEUR, "limite": 2}],
+        [("Brasserie du Beffroi", "Rue des Canonniers",
+          "Lille", "59000", 50.630, 3.058),
+         ("Marché de Wazemmes", "Place de la Nouvelle Aventure",
+          "Lille", "59000", 50.627, 3.052)],
+        [(3, "15:00", "19:30", 0), (2, "08:00", "13:00", 1)],
+        "Ambrée caramalmalt du mois — fûts et bouteilles à la brasserie.",
+        "Bières de la semaine à la Brasserie du Beffroi",
+        "Blonde des Flandres et bière de garde à la brasserie ; "
+        "ambrée caramalt en fûts 20 L pour les associations, "
+        "retrait mardi et mercredi.",
+        type_point=PointLivraison.Type.BOUTIQUE),
+    _ferme_spec(
+        "demo.nice.traiteur", "Traiteur du Vieux Nice",
+        A.TRAITEUR, M.CONV, "06300",
+        "12 rue Sainte-Réparate",
+        "Nice", 43.696, 7.265, "04 93 00 00 88",
+        "Traiteur niçois du Vieux Nice : socca, pissaladière, "
+        "petits farcis et salade niçoise à emporter, huile "
+        "d'olive de la maison et tourtes de saison.",
+        Decimal("8.90"),
+        [{"activite": A.TRAITEUR, "limite": 12}],
+        [("Boutique du Vieux Nice", "12 rue Sainte-Réparate",
+          "Nice", "06300", 43.696, 7.264)],
+        [(2, "09:00", "18:30", 0), (3, "09:00", "18:30", 0),
+         (4, "09:00", "18:30", 0), (5, "09:00", "18:30", 0),
+         (6, "09:00", "13:00", 0)],
+        "Petits farcis niçois : la fournée du matin sort à 11 h.",
+        "Chez le Traiteur du Vieux Nice",
+        "Socca chaude et pissaladière tous les midis, tourte de "
+        "bles à la boutique rue Sainte-Réparate.",
+        type_point=PointLivraison.Type.BOUTIQUE),
+    _ferme_spec(
+        "demo.orleans.foodtruck.burger", "Burger sur Loire",
+        A.FOODTRUCK, M.RAISONNE, "45000",
+        "Place du Martroi (soirs et midi)",
+        "Orléans", 47.902, 1.904, "02 38 00 00 89",
+        "Camion burger orléanais : bœuf du Loiret, cheddar "
+        "affiné, frites maison et sauce secrète de la maison, "
+        "place du Martroi midi et soir.",
+        Decimal("9.80"),
+        [{"activite": A.FOODTRUCK, "limite": 12}],
+        [("Emplacement place du Martroi", "Place du Martroi",
+          "Orléans", "45000", 47.902, 1.903),
+         ("Quai du Châtelet", "Quai du Châtelet",
+          "Orléans", "45000", 47.901, 1.905)],
+        [(2, "11:30", "14:00", 0), (4, "18:00", "22:00", 0),
+         (5, "11:30", "14:00", 1)],
+        "Le double cheddar du mois est de retour au camion !",
+        "Au camion cette semaine chez Burger sur Loire",
+        "Burgers du bœuf du Loiret midi et soir place du "
+        "Martroi ; frites maison et sauce secrète, sans oublier "
+        "le cheddar affiné.",
+        specialite=Exploitant.Specialite.BURGER,
+        type_point=PointLivraison.Type.EMPLACEMENT),
+    _ferme_spec(
+        "demo.reims.foodtruck.rotisseur", "Rôtisserie de Champagne",
+        A.FOODTRUCK, M.CONV, "51100",
+        "Place d'Erlon (parking sud)",
+        "Reims", 49.258, 4.031, "03 26 00 00 90",
+        "Camion rôtissoire rémois : poulets de Champagne dorés "
+        "à la broche, pommes grenaille confites et jus rôti, "
+        "place d'Erlon du mercredi au samedi.",
+        Decimal("11.50"),
+        [{"activite": A.FOODTRUCK, "limite": 12}],
+        [("Emplacement place d'Erlon", "Place d'Erlon",
+          "Reims", "51100", 49.258, 4.030),
+         ("Croix Rouge", "Place de la Croix-Rouge",
+          "Reims", "51100", 49.271, 4.027)],
+        [(3, "11:00", "14:00", 0), (5, "11:00", "14:00", 0),
+         (6, "11:00", "14:30", 1)],
+        "Poulets de Champagne à la broche — arrivage du mercredi.",
+        "Au camion cette semaine, Rôtisserie de Champagne",
+        "Poulets rôtis et grenailles confites mercredi et "
+        "vendredi place d'Erlon, samedi à la Croix Rouge ; "
+        "jus rôti offert avec chaque poulet.",
+        specialite=Exploitant.Specialite.ROTISSEUR,
+        type_point=PointLivraison.Type.EMPLACEMENT),
 ]
 
 CLIENTS = [
@@ -1067,9 +1309,10 @@ CLIENTS = [
 class Command(BaseCommand):
     help = ("Crée des données de démonstration fictives (Tarn et "
             "départements limitrophes, Bretagne, Loire, Corse, Réunion, "
-            "Martinique ; clients, commandes et paniers). Idempotent ; "
-            "--purge efface tout compte de démo, même d'un jeu plus "
-            "ancien.")
+            "Martinique, nouveaux pros régionaux ; clients, commandes "
+            "et paniers). Idempotent ; --purge efface tout compte de "
+            "démo ; --reset-complet purge et efface toutes les "
+            "données (comptes réels conservés) puis repeuple.")
 
     def add_arguments(self, parser):
         parser.add_argument("--purge", action="store_true",
@@ -1085,6 +1328,13 @@ class Command(BaseCommand):
             help=("Efface UNIQUEMENT les commandes et paniers des "
                   "fermes de démonstration (les commandes réelles "
                   "sont conservées) puis régénère le jeu de démo."))
+        parser.add_argument(
+            "--reset-complet", action="store_true",
+            help=("GRAND NETTOYAGE : purge les comptes de démo et "
+                  "efface TOUTES les commandes, paniers, récoltes "
+                  "et cartes de la base (les comptes réels non démo "
+                  "sont conservés, vidés de leurs données), puis "
+                  "repeuple le jeu de démo complet."))
 
     def _lundi(self):
         today = timezone.localdate()
@@ -1195,7 +1445,11 @@ class Command(BaseCommand):
 
         # Récolte de la semaine en cours (publiée) + une semaine à venir
         lundi = self._lundi()
-        for decal, publiee in ((0, True), (7, True)):
+        # Semaine en cours publiée + semaine à venir publiée + une
+        # seconde semaine à venir NON publiée (en préparation) : de
+        # quoi montrer côté pro une récolte prête « à publier » et
+        # le bouton de publication correspondant.
+        for decal, publiee in ((0, True), (7, True), (14, False)):
             semaine = SemaineRecolte.objects.create(
                 exploitant=exploitant,
                 lundi=lundi + datetime.timedelta(days=decal),
@@ -1289,25 +1543,30 @@ class Command(BaseCommand):
         return commande
 
     def _cartes_demo(self):
-        """Cartes / boutiques de DÉMONSTRATION : une carte ACTIVE par
-        traiteur et foodtruck (« Carte du moment » — sections Entrées,
-        Plats, Desserts) et par producteur en mode boutique (fromager,
-        apiculteur, conserverie, micro-brasseur — « En boutique en ce
-        moment »). Les lignes reprennent les produits actifs de la
-        ferme ; une carte déjà active est conservée telle quelle."""
+        """Cartes / boutiques de DÉMONSTRATION couvrant tous les cas
+        d'usage. Boutiques de producteurs (fromager, apiculteur,
+        éleveur, conserverie, micro-brasseur) : « En boutique en ce
+        moment ». Restauration (traiteurs, foodtrucks) : une ferme sur
+        deux reçoit une carte SAISONNIÈRE (« Carte du moment »),
+        l'autre une carte ANNUELLE (« Toute l'année ») — long terme.
+        Dans tous les cas, une ligne sur deux porte un stock publié,
+        l'autre est vendue sans suivi (illimitée). Une carte déjà
+        active est conservée telle quelle."""
         concernees = ("FOODTRUCK", "TRAITEUR", "FROMAGER", "APICULTEUR",
-                      "CONSERVERIE", "MICRO_BRASSEUR")
+                      "CONSERVERIE", "MICRO_BRASSEUR", "ELEVEUR")
         nb_cartes = 0
-        fermes = Exploitant.objects.filter(
-            est_demo=True, activite__in=concernees)
-        for ferme in fermes:
+        fermes = list(Exploitant.objects.filter(
+            est_demo=True, activite__in=concernees).order_by("id"))
+        for rang, ferme in enumerate(fermes):
             if ferme.cartes.filter(
                     statut=Carte.Statut.ACTIVE).exists():
                 continue
             restauration = ferme.activite in ("FOODTRUCK", "TRAITEUR")
+            annuelle = restauration and rang % 2 == 1
             carte = Carte.objects.create(
                 exploitant=ferme,
-                nom=("Carte du moment" if restauration
+                nom=("Toute l'année" if annuelle
+                     else "Carte du moment" if restauration
                      else "En boutique en ce moment"),
                 statut=Carte.Statut.ACTIVE)
             produits = list(ferme.produits.filter(actif=True)
@@ -1320,18 +1579,107 @@ class Command(BaseCommand):
                                else "Plats" if n < 6 else "Desserts")
                 elif produit.categorie:
                     section = produit.categorie.nom
+                # Alternance des cas d'usage « avec / sans stock » :
+                # une ligne sur deux publie un stock, les autres sont
+                # vendues en illimité (stock vide).
+                stock = Decimal(8 + 3 * n) if n % 2 == 0 else None
                 LigneCarte.objects.create(
                     carte=carte, produit=produit, section=section,
                     unite_vente=produit.unite_vente, prix=None,
-                    position=n + 1)
+                    stock=stock, position=n + 1)
             nb_cartes += 1
         if nb_cartes:
             self.stdout.write(self.style.SUCCESS(
                 "Cartes de démo créées : " + str(nb_cartes)
-                + " carte(s) active(s) — traiteurs, foodtrucks et "
-                "boutiques de producteurs."))
+                + " carte(s) active(s) — traiteurs et foodtrucks "
+                "(cartes saisonnières ou annuelles), boutiques de "
+                "producteurs (éleveurs inclus), lignes avec ou sans "
+                "stock publié."))
+
+    def _purger_demo(self):
+        # Purge LARGE : tout compte « demo.* », toute exploitation
+        # marquée « démo » (même créée par un jeu plus ancien
+        # aujourd'hui disparu de la liste) et les fermes du jeu
+        # courant (au cas où un compte aurait été renommé).
+        connus = ([s["utilisateur"] for s in FERMES]
+                  + [s["utilisateur"] for s in CLIENTS])
+        users = (User.objects.filter(username__startswith="demo.")
+                 | User.objects.filter(exploitant__est_demo=True)
+                 | User.objects.filter(
+                     exploitant__nom_ferme__in=[
+                         s["ferme"] for s in FERMES])
+                 ).distinct()
+        # Les lignes de commandes et paniers de démo portent des
+        # clés étrangères PROTÉGÉES (produits, points) : sans cet
+        # effacement préalable, la suppression du compte échoue
+        # (ProtectedError) et les fermes sont conservées avec leurs
+        # anciens points — les nouveaux types MARCHE/BOUTIQUE ne
+        # sont alors jamais appliqués au jeu de démo.
+        cibles = list(users)
+        ids = [u.pk for u in cibles]
+        Panier.objects.filter(exploitant__user_id__in=ids).delete()
+        Commande.objects.filter(exploitant__user_id__in=ids).delete()
+        n, purges = 0, []
+        for user in cibles:
+            try:
+                n += user.delete()[0]
+                purges.append(user.username)
+            except Exception as erreur:  # PROTECT éventuel
+                self.stdout.write(self.style.ERROR(
+                    f"Impossible de supprimer {user.username} "
+                    f"({erreur})."))
+        if connus and not purges:
+            self.stdout.write(self.style.NOTICE(
+                "Aucun compte de démo trouvé à purger."))
+        elif purges:
+            self.stdout.write(self.style.SUCCESS(
+                f"Comptes de démo supprimés : "
+                f"{', '.join(sorted(purges))} ({n} objet(s))."))
+        # Les index sont réalignés sur l'id le plus élevé restant :
+        # à 1 si la purge a vidé toute la base (100 % démo), sinon
+        # à la suite des commandes/paniers réels conservés — aucun
+        # doublon possible au repeuplement.
+        base_vide = (not Panier.objects.exists()
+                     and not Commande.objects.exists())
+        reinitialiser_sequences()
+        if base_vide:
+            self.stdout.write(self.style.SUCCESS(
+                "Base sans commande ni panier : index réinitialisés."))
+        else:
+            self.stdout.write(self.style.SUCCESS(
+                "Commandes/paniers réels conservés : index réalignés "
+                "à la suite des id existants."))
+
+
+    def _reset_complet(self):
+        """GRAND NETTOYAGE : efface les données de TOUS les comptes,
+        démo et réels — commandes, paniers, cartes/boutiques et
+        récoltes hebdomadaires. Les COMPTES non démo (admin, pros et
+        clients réels) sont conservés, vidés de leurs données."""
+        stats = [(Panier.objects.count(), "panier(s)"),
+                 (Commande.objects.count(), "commande(s)"),
+                 (Carte.objects.count(), "carte(s)"),
+                 (SemaineRecolte.objects.count(), "récolte(s)")]
+        Panier.objects.all().delete()
+        Commande.objects.all().delete()
+        Carte.objects.all().delete()
+        SemaineRecolte.objects.all().delete()
+        reinitialiser_sequences()
+        self.stdout.write(self.style.SUCCESS(
+            "Base nettoyée : "
+            + ", ".join(str(n) + " " + libelle for n, libelle in stats)
+            + " supprimé(s) — les comptes réels sont conservés vides "
+              "de leurs données, index réalignés."))
 
     def handle(self, *args, **options):
+        if options["reset_complet"]:
+            # GRAND NETTOYAGE : purge des comptes de démo PUIS
+            # effacement des commandes, paniers, récoltes et cartes
+            # de TOUS les comptes (les comptes réels non démo sont
+            # conservés, vidés de leurs données). Le peuplement
+            # ci-dessous reconstruit ensuite le jeu complet.
+            self._purger_demo()
+            self._reset_complet()
         if options["purge"]:
             # Purge LARGE : tout compte « demo.* », toute exploitation
             # marquée « démo » (même créée par un jeu plus ancien
@@ -1497,11 +1845,12 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(
             f"Démonstration prête : {len(FERMES)} fermes fictives "
-            "(Tarn et départements limitrophes, Bretagne, Loire, Corse, "
-            "Réunion, Martinique + 2 micro-brasseries et 2 conserveries "
-            "en boutique, 5 foodtrucks et 5 traiteurs) avec "
+            "(Tarn et limitrophes, Bretagne, Loire, Corse, Réunion, "
+            "Martinique + 10 pros régionaux diversifiés) avec "
             f"{len(CLIENTS)} clients, commandes à valider, paniers en "
-            "préparation, prêts et livrés (lecture seule)."))
+            "préparation, prêts et livrés, récoltes publiées et une "
+            "semaine à venir « à publier », cartes saisonnières ou "
+            "annuelles et boutiques avec ou sans stock publié."))
         self.stdout.write("Connexion producteur : demo.maraicher, "
                           "demo.vergers, demo.fromager, etc. — mot de "
                           "passe " + MOT_DE_PASSE_DEMO)
