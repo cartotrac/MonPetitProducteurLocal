@@ -9,6 +9,17 @@
 (function () {
   "use strict";
 
+/* Échappement HTML : toute valeur issue des données (noms, villes,
+   URL, horaires) est neutralisée avant insertion dans un popup ou une
+   info-bulle — XSS stockée impossible (audit sécurité, lot 1). */
+function esc(t) {
+  return String(t == null ? "" : t)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+
   var FOND_IGN = "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile" +
     "&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal" +
     "&FORMAT=image/png&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}";
@@ -62,8 +73,8 @@
                     (symboles[p.type] || "📍") + "</span>",
               iconSize: [22, 22], iconAnchor: [11, 11]
             })
-          }).bindPopup("<strong>" + p.nom + "</strong>")
-            .bindTooltip(p.nom, { direction: "top" })
+          }).bindPopup("<strong>" + esc(p.nom) + "</strong>")
+            .bindTooltip(esc(p.nom), { direction: "top" })
             .addTo(carte);
         });
         if (bornes.length) {

@@ -1,5 +1,16 @@
 /* Carte Leaflet des producteurs — MonPetitMaraicher */
 
+/* Échappement HTML : toute valeur issue des données (noms, villes,
+   URL, horaires) est neutralisée avant insertion dans un popup ou une
+   info-bulle — XSS stockée impossible (audit sécurité, lot 1). */
+function esc(t) {
+  return String(t == null ? "" : t)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+
 // Styles par mode de production
 var CAT_STYLES = {
   AB:      { color: "#1b5e20", label: "Agriculture Biologique (AB)" },
@@ -48,8 +59,8 @@ fetch(document.body.dataset.geojsonUrl)
         fillColor: style.color,
         fillOpacity: 0.85
       }).bindPopup(
-        "<strong>" + e.nom_ferme + "</strong><br>" + (e.ville || "") +
-        '<br><a href="' + e.url + '">Voir la ferme →</a>'
+        "<strong>" + esc(e.nom_ferme) + "</strong><br>" + esc(e.ville || "") +
+        '<br><a href="' + esc(e.url) + '">Voir la ferme →</a>'
       );
       marker._category = e.mode_production;
       markers.push(marker);

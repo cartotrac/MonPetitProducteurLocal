@@ -21,6 +21,16 @@ var CAT_STYLES = {
   CONV:     { color: "#546e7a", label: "Conventionnelle" }
 };
 
+/* Échappement HTML : toute valeur issue des données (noms, villes,
+   URL, horaires) est neutralisée avant insertion dans un popup ou une
+   info-bulle — XSS stockée impossible (audit sécurité, lot 1). */
+function esc(t) {
+  return String(t == null ? "" : t)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 var bloc = document.getElementById("donnees-carte");
 var carte = L.map("carte-recherche").setView([46.6, 2.4], 6);
 
@@ -140,7 +150,7 @@ carte.on("overlayadd", function (e) {
         var props = feature.properties || {};
         var nom = props.nom || props.NOM || props.code || props.CODE || "";
         if (nom) {
-          couche.bindPopup("<strong>" + nom + "</strong>");
+          couche.bindPopup("<strong>" + esc(nom) + "</strong>");
         }
         // Étiquette permanente : masquée par défaut (classe CSS) et
         // révélée par majLabels au-delà du seuil de zoom de sa couche.
@@ -150,7 +160,7 @@ carte.on("overlayadd", function (e) {
             var code = props.code || props.CODE || props.code_dep || "";
             etiquette = (code ? code + " — " : "") + nom;
           }
-          couche.bindTooltip(etiquette, {
+          couche.bindTooltip(esc(etiquette), {
             permanent: true,
             direction: "center",
             className: "label-admin label-" + conf.etiquette
@@ -252,20 +262,20 @@ exploitants.forEach(function (e) {
     var iconeM = L.divIcon({
       className: "marker-exploitant",
       html: '<span class="marker-activite marker-marche">' +
-            e.symbole + "</span>",
+            esc(e.symbole) + "</span>",
       iconSize: [22, 22], iconAnchor: [11, 11]
     });
-    var horairesM = (e.horaires_txt || []).join("<br>");
+    var horairesM = (e.horaires_txt || []).map(esc).join("<br>");
     var markerM = L.marker([e.latitude, e.longitude],
                            { icon: iconeM }).bindPopup(
-      "<strong>" + e.nom + "</strong>" +
+      "<strong>" + esc(e.nom) + "</strong>" +
       '<br><span class="muted">' +
       (e.type === "MARCHE" ? "🎪 Marché" : "🏪 Boutique") +
       " · " + e.nb_producteurs + " producteur" +
       (e.nb_producteurs > 1 ? "s" : "") + "</span>" +
       (horairesM ? "<br>" + horairesM : "") +
-      "<br>" + (e.ville || "") +
-      '<br><a href="' + e.url + '">Voir la fiche →</a>'
+      "<br>" + esc(e.ville || "") +
+      '<br><a href="' + esc(e.url) + '">Voir la fiche →</a>'
     );
     markerM._activite = e.type;
     markers.push(markerM);
@@ -292,14 +302,14 @@ exploitants.forEach(function (e) {
     className: "marker-exploitant",
     html: '<span class="marker-activite' +
           (e.activite === "FOODTRUCK" && e.specialite
-             ? " marker-foodtruck" : "") + '">' + symbole + "</span>" +
+             ? " marker-foodtruck" : "") + '">' + esc(symbole) + "</span>" +
           '<span class="marker-point" style="background:' + style.color + '"></span>',
     iconSize: [22, 22], iconAnchor: [11, 11]
   });
   /* Position dynamique (foodtrucks) : emplacement du créneau en
      cours ou du prochain arrêt, calculé au moment de la recherche. */
   var positionDyn = (e.position_libelle || "")
-    ? '<br><span class="muted">📍 ' + e.position_libelle + "</span>"
+    ? '<br><span class="muted">📍 ' + esc(e.position_libelle) + "</span>"
     : "";
   /* Favori direct depuis le popup : étoile pour les visiteurs
      connectés — soumission POST vers favoris_toggle puis retour
@@ -309,7 +319,7 @@ exploitants.forEach(function (e) {
   if (e.connecte && e.url_favori) {
     var csrfPopup = (blocCarte.getAttribute("data-csrf") || "").trim();
     favoriPopup =
-      '<form method="post" action="' + e.url_favori + '" ' +
+      '<form method="post" action="' + esc(e.url_favori) + '" ' +
       'class="popup-favori-form">' +
       '<input type="hidden" name="csrfmiddlewaretoken" value="' +
       csrfPopup + '">' +
@@ -319,17 +329,17 @@ exploitants.forEach(function (e) {
       (e.est_favori ? " actif" : "") + '" title="' +
       (e.est_favori ? "Retirer des favoris" : "Ajouter aux favoris") +
       '" aria-label="' + (e.est_favori ? "Retirer " : "Ajouter ") +
-      e.nom_ferme + (e.est_favori ? " des favoris" : " aux favoris") +
+      esc(e.nom_ferme) + (e.est_favori ? " des favoris" : " aux favoris") +
       '">' + (e.est_favori ? "⭐" : "☆") + "</button></form> ";
   }
   var marker = L.marker([e.latitude, e.longitude], { icon: icone }).bindPopup(
-    "<strong>" + e.nom_ferme + "</strong>" +
-    (libelle ? '<br><span class="muted">' + libelle + "</span>" : "") +
+    "<strong>" + esc(e.nom_ferme) + "</strong>" +
+    (libelle ? '<br><span class="muted">' + esc(libelle) + "</span>" : "") +
     badgeDemo +
-    "<br>" + (e.ville || "") +
+    "<br>" + esc(e.ville || "") +
     positionDyn +
     "<br>" + favoriPopup +
-    '<a href="' + e.url + '">Nos Produits →</a>'
+    '<a href="' + esc(e.url) + '">Nos Produits →</a>'
   );
   marker._category = e.mode_production;
   marker._activite = e.activite;

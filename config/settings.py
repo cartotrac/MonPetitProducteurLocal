@@ -25,9 +25,33 @@ def env(key, default=None):
     return os.environ.get(key, default)
 
 
-SECRET_KEY = env("DJANGO_SECRET_KEY", "dev-insecure-key-change-me")
-DEBUG = env("DJANGO_DEBUG", "1") == "1"
+# --- Durcissement (audit sécurité, lot 1) : DEBUG désactivé par
+# défaut, SECRET_KEY obligatoire en production, HTTPS forcé derrière
+# le proxy AlwaysData, cookies session/CSRF en Secure, HSTS un an. ---
+DEBUG = env("DJANGO_DEBUG", "0") == "1"
+
+from django.core.exceptions import ImproperlyConfigured  # noqa: E402
+
+SECRET_KEY = env("DJANGO_SECRET_KEY", "")
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = "dev-insecure-key-change-me"
+    else:
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY est requis en production : définissez-la "
+            "dans le .env ou le panneau AlwaysData.")
+
 ALLOWED_HOSTS = [h for h in env("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h]
+
+# HTTPS derrière le proxy AlwaysData : le portail n'est servi qu'en
+# https ; en dev (DEBUG), les cookies restent utilisables en http.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = (not DEBUG) and (env("DJANGO_SSL_REDIRECT", "1") == "1")
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 INSTALLED_APPS = [
     "django.contrib.admin",

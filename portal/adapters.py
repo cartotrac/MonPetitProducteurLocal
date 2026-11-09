@@ -4,11 +4,14 @@ photo de profil Google (URL externe : rien n'est hébergé par le portail)
 préremplit ProfilClient.photo_url, exactement comme une saisie manuelle
 du champ « Photo de profil externe ».
 
-pre_social_login rattache en outre un compte Google à un compte local
-existant qui partage le même e-mail (comptes créés avant l'arrivée de
-la connexion Google, inscription maison) : connexion directe au lieu
-d'un échec d'unicité qui remontait en erreur serveur 500."""
+pre_social_login rattache un compte Google à un compte local existant
+uniquement si l'e-mail de ce compte est VÉRIFIÉ (EmailAddress vérifiée :
+comptes créés par Google ou e-mails confirmés). Sans cette condition,
+n'importe qui pourrait inscrire l'e-mail d'une victime et hériter de sa
+connexion Google à sa première visite — prise de contrôle avant
+inscription (audit sécurité)."""
 
+from allauth.account.models import EmailAddress
 from allauth.account.utils import perform_login
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
@@ -24,11 +27,10 @@ class PortailSocialAdapter(DefaultSocialAccountAdapter):
     Localien », connexion, préremplissage de l'inscription pro)."""
 
     def pre_social_login(self, request, sociallogin):
-        """Avant la connexion Google : si un compte local utilise déjà
-        le même e-mail, on rattache le compte Google à ce compte et on
-        connecte directement l'utilisateur. Plusieurs comptes avec le
-        même e-mail (client ET producteur démo) : message explicite au
-        lieu d'une erreur serveur."""
+        """Avant la connexion Google : rattacher et connecter
+        directement si UN compte local VÉRIFIÉ porte le même e-mail.
+        Comptes locaux non vérifiés : jamais rattachés — message et
+        retour au formulaire de connexion (mot de passe)."""
         if sociallogin.is_existing:
             return
         if request.user.is_authenticated:
@@ -37,17 +39,20 @@ class PortailSocialAdapter(DefaultSocialAccountAdapter):
         if not email:
             return
         correspondants = list(User.objects.filter(email__iexact=email))
-        if len(correspondants) == 1:
+        if (len(correspondants) == 1
+                and EmailAddress.objects.filter(
+                    user=correspondants[0], verified=True).exists()):
             sociallogin.connect(request, correspondants[0])
             perform_login(request, correspondants[0],
                           email_verification="none")
             raise ImmediateHttpResponse(
                 redirect("portal:apres_connexion"))
-        if len(correspondants) > 1:
+        if correspondants:
             messages.error(request,
-                           "Plusieurs comptes utilisent déjà cet e-mail "
-                           "(client et producteur) : connectez-vous avec "
-                           "votre mot de passe.")
+                           "Un compte existe déjà avec cet e-mail : "
+                           "connectez-vous avec votre mot de passe. (Le "
+                           "rattachement Google ne se fait que sur un "
+                           "e-mail vérifié.)")
             raise ImmediateHttpResponse(redirect("login"))
 
     def save_user(self, request, sociallogin, form=None):
