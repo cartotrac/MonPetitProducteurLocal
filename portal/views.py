@@ -203,7 +203,8 @@ def home(request):
     chiffres clés segmentés (pros par métier, marchés et boutiques
     identifiés, clients, visiteurs) avec historique 30 jours."""
     activites_restauration = (Exploitant.Activite.FOODTRUCK,
-                              Exploitant.Activite.TRAITEUR)
+                              Exploitant.Activite.TRAITEUR,
+                              Exploitant.Activite.RESTAURANT)
     nb_pros = (Exploitant.objects.filter(visible=True).count())
     nb_visibles = Exploitant.objects.filter(visible=True).count()
     nb_producteurs_locaux = (Exploitant.objects
@@ -216,6 +217,10 @@ def home(request):
     nb_traiteurs = (Exploitant.objects
                     .filter(visible=True,
                             activite=Exploitant.Activite.TRAITEUR).count())
+    nb_restaurants = (Exploitant.objects
+                      .filter(visible=True,
+                              activite=Exploitant.Activite.RESTAURANT)
+                      .count())
     marches_identifies = identifier_marches()
     nb_marches = sum(1 for m in marches_identifies if m["est_marche"])
     nb_boutiques = len(marches_identifies) - nb_marches
@@ -240,6 +245,7 @@ def home(request):
         "nb_producteurs_locaux": nb_producteurs_locaux,
         "nb_foodtrucks": nb_foodtrucks,
         "nb_traiteurs": nb_traiteurs,
+        "nb_restaurants": nb_restaurants,
         "nb_marches": nb_marches,
         "nb_boutiques": nb_boutiques,
         "nb_clients": nb_clients,
@@ -350,7 +356,8 @@ def producer_search(request):
     visu = request.GET.get("visu", "").strip()
     visu_marches = visu == "marches"
     activites_restauration = (Exploitant.Activite.FOODTRUCK,
-                              Exploitant.Activite.TRAITEUR)
+                              Exploitant.Activite.TRAITEUR,
+                              Exploitant.Activite.RESTAURANT)
     if visu == "restauration":
         exploitants = exploitants.filter(
             activite__in=activites_restauration)
@@ -398,6 +405,9 @@ def producer_search(request):
     nb_traiteurs = (visibles
                     .filter(activite=Exploitant.Activite.TRAITEUR)
                     .count())
+    nb_restaurants = (visibles
+                      .filter(activite=Exploitant.Activite.RESTAURANT)
+                      .count())
     tous_marches = (marches if visu_marches
                     else identifier_marches(inclure_demo=demo))
     nb_marches = sum(1 for m in tous_marches if m["est_marche"])
@@ -576,6 +586,7 @@ def producer_search(request):
         "nb_producteurs_locaux": nb_producteurs_locaux,
         "nb_foodtrucks": nb_foodtrucks,
         "nb_traiteurs": nb_traiteurs,
+        "nb_restaurants": nb_restaurants,
         "nb_marches": nb_marches,
         "nb_boutiques": nb_boutiques,
         "nb_producteurs": nb_producteurs,

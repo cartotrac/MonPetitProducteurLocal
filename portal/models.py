@@ -43,6 +43,7 @@ class Exploitant(models.Model):
         CONSERVERIE = "CONSERVERIE", "Conserverie"
         FOODTRUCK = "FOODTRUCK", "Foodtruck"
         TRAITEUR = "TRAITEUR", "Traiteur·e"
+        RESTAURANT = "RESTAURANT", "Restaurant"
         AUTRE = "AUTRE", "Autre production locale"
 
     class Specialite(models.TextChoices):
@@ -67,7 +68,8 @@ class Exploitant(models.Model):
                        "ELEVEUR": "🐄", "FROMAGER": "🧀",
                        "APICULTEUR": "🍯", "MICRO_BRASSEUR": "🍺",
                        "CONSERVERIE": "🥫", "FOODTRUCK": "🚚",
-                       "TRAITEUR": "🥗", "AUTRE": "🌾"}
+                       "TRAITEUR": "🥗", "RESTAURANT": "🍽️",
+                       "AUTRE": "🌾"}
 
     user = models.OneToOneField(User, on_delete=models.CASCADE,
                                 related_name="exploitant")
@@ -89,7 +91,8 @@ class Exploitant(models.Model):
         blank=True, default="",
         help_text="Affine l'activité — réservé pour l'instant aux "
                   "foodtrucks (sandwichs & plats, pizza, burger, "
-                  "traiteur, rôtisseur).")
+                  "traiteur, rôtisseur) ; les spécialités des "
+                  "restaurants arriveront prochainement.")
     logo = models.ImageField("Logo miniature", upload_to=logo_chemin,
                              blank=True, null=True)
     description = models.TextField("Présentation de l'exploitation", blank=True)
@@ -158,14 +161,15 @@ class Exploitant(models.Model):
         """Libellés adaptés à l'ACTIVITÉ pour la publication, et au
         MODE de fonctionnement pour les lieux. « Récoltes » pour les
         productions végétales (maraîchers, arboriculteurs) ; « Cartes »
-        pour la restauration (foodtrucks, traiteurs — carte du jour,
-        sans notion de stock obligatoire) ; « Boutiques » pour toutes
+        pour la restauration (foodtrucks, traiteurs, restaurants —
+        carte du jour, sans notion de stock obligatoire) ; « Boutiques » pour toutes
         les autres activités (fromagerie, élevage, miellerie,
         conserverie, microbrasserie…). Les lieux suivent le mode :
         points de livraison et créneaux en paniers hebdo, points de
         vente et horaires d'ouverture en boutique."""
         if self.activite in (self.Activite.FOODTRUCK,
-                             self.Activite.TRAITEUR):
+                             self.Activite.TRAITEUR,
+                             self.Activite.RESTAURANT):
             publication = {
                 "recolte": "carte", "recoltes": "cartes",
                 "recoltes_titre": "Cartes",
@@ -217,6 +221,8 @@ class Exploitant(models.Model):
         if activite in (self.Activite.MARAICHER,
                         self.Activite.ARBORICULTEUR):
             return "🧺 Commande direct récolte"
+        if activite == self.Activite.RESTAURANT:
+            return "🍽️ Commander au restaurant"
         if activite == self.Activite.FOODTRUCK:
             return "🚚 Commander au truck"
         return "🧺 Commander nos produits"
@@ -224,9 +230,24 @@ class Exploitant(models.Model):
     # Libellé de la fiche pro adapté au métier : un foodtruck ou un
     # traiteur n'exploitent pas une « ferme » — la rubrique Paramètres,
     # le menu et le bouton d'enregistrement utilisent ce libellé.
+    # Libellé de la fiche pro adapté au métier : l'onglet Paramètres
+    # et le menu nomment l'espace selon l'activité — « Ma ferme » pour
+    # les productions (maraîcher, arboriculteur, éleveur), « Ma
+    # fromagerie », « Ma miellerie », « Ma boutique » pour les
+    # activités de transformation (brasserie, conserverie), et le
+    # métier de la restauration (restaurant, traiteur, foodtruck).
     LIBELLES_FICHE = {
+        "MARAICHER": ("🥬", "Ma ferme"),
+        "ARBORICULTEUR": ("🍎", "Ma ferme"),
+        "ELEVEUR": ("🐄", "Ma ferme"),
+        "AUTRE": ("🌾", "Ma ferme"),
+        "FROMAGER": ("🧀", "Ma fromagerie"),
+        "APICULTEUR": ("🍯", "Ma miellerie"),
+        "MICRO_BRASSEUR": ("🍺", "Ma boutique"),
+        "CONSERVERIE": ("🥫", "Ma boutique"),
+        "RESTAURANT": ("🍽️", "Mon restaurant"),
+        "TRAITEUR": ("🥗", "Mon traiteur"),
         "FOODTRUCK": ("🚚", "Mon foodtruck"),
-        "TRAITEUR": ("🥗", "Ma boutique"),
     }
 
     @property
@@ -241,6 +262,11 @@ class Exploitant(models.Model):
         une entrée de menu."""
         emoji, libelle = self.LIBELLES_FICHE.get(
             self.activite, ("🚜", "Ma ferme"))
+        # Foodtruck : l'icône porte aussi la spécialité (🚚🍕, 🚚🍔…),
+        # comme sur la carte et les vignettes.
+        if (self.activite == self.Activite.FOODTRUCK
+                and self.specialite):
+            emoji = emoji + self.emoji_specialite
         return f"{emoji} {libelle}"
 
     # Libellé « équipe » selon l'activité, page publique producteur :
@@ -255,6 +281,7 @@ class Exploitant(models.Model):
         "CONSERVERIE": "L'équipe de la conserverie",
         "FOODTRUCK": "L'équipe du foodtruck",
         "TRAITEUR": "L'équipe de traiteurs",
+        "RESTAURANT": "L'équipe du restaurant",
         "AUTRE": "L'équipe de la ferme",
     }
 
