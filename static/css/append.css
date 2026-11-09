@@ -1662,3 +1662,20 @@ html.dark .salutation-chercheur .salutation-espace { color: #aab599; }
 .nav-gestion-menu a { color: #1b5e20; }
 html.dark .nav-gestion-menu { background: #1a2314; }
 html.dark .nav-gestion-menu a { color: #e6e4da; }
+
+
+/* ===== Bouton « Trouver mon producteur » flottant détaché : sur
+       mobile il est déplacé hors du menu burger replié vers <body>
+       pendant le défilement (cf. base.html) — les règles préfixées
+       « .nav-links a… » ne le ciblent plus, styles autonomes PC et
+       mobile. ===== */
+body > a.nav-chercher.nav-chercher-flottant {
+  display: inline-flex; align-items: center; text-decoration: none;
+}
+body > a.nav-chercher.nav-chercher-flottant:hover { color: #fff; }
+html.dark body > a.nav-chercher.nav-chercher-flottant {
+  background: rgba(38, 48, 31, 0.92); color: #e6e4da;
+}
+html.dark body > a.nav-chercher.nav-chercher-flottant:hover {
+  background: #33402a; color: #e6e4da;
+}

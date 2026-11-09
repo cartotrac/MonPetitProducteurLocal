@@ -34,7 +34,7 @@
         </form>
         {% else %}
         <form class="inline" method="post" action="{% url 'portal:bascule_espace' %}">
-          {% csrf_token %}<button class="btn-darkmode" type="submit" name="action" value="pro" title="Accéder à mon espace pro" aria-label="Accéder à mon espace pro">🚜</button>
+          {% csrf_token %}<button class="btn-darkmode" type="submit" name="action" value="pro" title="Accéder à mon espace pro" aria-label="Accéder à mon espace pro">{% if nb_espaces_pro == 1 %}{{ exploitant_courant.emoji_vitrine }}{% else %}🚜{% endif %}</button>
         </form>
         {% endif %}
       {% endif %}
@@ -199,6 +199,7 @@
   var dark = document.getElementById("btn-darkmode");
   var trouver = document.querySelector(".nav-chercher");
   var session = document.querySelector(".session-flottante");
+  var trouverParent = null, trouverSuivant = null;
   var bandeau = document.querySelector(".site-header");
   var bandeauDisparu = bandeau ? function () {
     return bandeau.getBoundingClientRect().bottom < 0;
@@ -214,6 +215,21 @@
          accessible, flottant en haut à droite. */
       if (trouver) {
         trouver.classList.toggle("nav-chercher-flottant", flottant);
+        /* Sur téléphone, le bouton « Trouver » vit dans le menu
+           burger replié : un enfant de .nav-links masqué ne
+           s'affiche pas même en position:fixed. On le déplace
+           dans <body> pendant le défilement, puis on le remet à
+           sa place dans le menu au retour du bandeau. */
+        if (flottant && trouver.parentNode !== document.body) {
+          trouverParent = trouver.parentNode;
+          trouverSuivant = trouver.nextSibling;
+          document.body.appendChild(trouver);
+        } else if (!flottant && trouver.parentNode === document.body
+                   && trouverParent) {
+          trouverParent.insertBefore(trouver, trouverSuivant);
+          trouverParent = null;
+          trouverSuivant = null;
+        }
       }
       /* Bouton session : réduit à un point vert (connecté, action
          déconnexion) ou rouge (déconnecté, action connexion), placé
