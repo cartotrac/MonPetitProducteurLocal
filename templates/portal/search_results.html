@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}{% load l10n %}
-{% block title %}{% if visu == "restauration" %}Traiteurs & Foodtrucks{% elif visu == "marches" %}Marchés & Boutiques{% else %}Recherche{% endif %} — MonPetitProducteurLocal{% endblock %}
+{% block title %}{% if visu == "restauration" %}Restauration & Foodtrucks{% elif visu == "marches" %}Marchés & Boutiques{% else %}Recherche{% endif %} — MonPetitProducteurLocal{% endblock %}
 {% block extrahead %}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 {% endblock %}
@@ -16,13 +16,13 @@
 {% endif %}
 <div class="entete-chercher">
   <div class="titre-recherche">
-    <h1>{% if visu == "restauration" %}🍽️ Trouver un Traiteur ou Foodtruck autour de moi !{% elif visu == "marches" %}🎪 Retrouver mes producteurs locaux au Marché ou en Boutique{% else %}🔍 Trouver mon producteur local !{% endif %}</h1>
+    <h1>{% if visu == "restauration" %}🍽️ Trouver un Restaurant, un Traiteur ou un Foodtruck autour de moi !{% elif visu == "marches" %}🎪 Retrouver mes producteurs locaux au Marché ou en Boutique{% else %}🔍 Trouver mon producteur local !{% endif %}</h1>
     <button type="button" id="bascule-demo" class="bascule-demo{% if demo %} actif{% endif %}" title="{% if demo %}Démo{% else %}Réel{% endif %}" aria-pressed="{% if demo %}true{% else %}false{% endif %}" aria-label="Bascule Démo / Réel : afficher ou masquer les comptes de démonstration">
       <span class="bascule-piste"><span class="bascule-curseur"></span></span>
       <span class="bascule-icone">{% if demo %}🎃{% else %}🧡{% endif %}</span>
     </button>
   </div>
-  <span class="mode-chip {% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% else %}producteurs{% endif %}">{% if visu == "restauration" %}🍽️ Mode restauration : traiteurs &amp; emplacements de foodtrucks{% elif visu == "marches" %}🎪 Mode marchés : marchés &amp; boutiques de producteurs — identifiés d'après leurs points et créneaux déclarés{% else %}🥬 Mode producteurs : fermes &amp; productions locales{% endif %}</span>
+  <span class="mode-chip {% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% else %}producteurs{% endif %}">{% if visu == "restauration" %}🍽️ Mode restauration : restaurants, traiteurs &amp; emplacements de foodtrucks{% elif visu == "marches" %}🎪 Mode marchés : marchés &amp; boutiques de producteurs — identifiés d'après leurs points et créneaux déclarés{% else %}🥬 Mode producteurs : fermes &amp; productions locales{% endif %}</span>
   <div class="stats-portail">
     <span class="stats-item">
       <button type="button" class="badge badge-activite" data-stats="producteurs">🤝 {{ nb_pros }} professionnel{{ nb_pros|pluralize }} nous font confiance</button>
@@ -37,7 +37,7 @@
     </span>
     <span class="stats-item">
       {% if visu == "marches" %}<span class="badge badge-marche">🎪 {{ nb_marches }} marché{{ nb_marches|pluralize }} &amp; 🏪 {{ nb_boutiques }} boutique{{ nb_boutiques|pluralize }} de producteur{{ nb_boutiques|pluralize }}</span>
-      {% elif visu == "restauration" %}<span class="badge badge-activite">🥗 {{ nb_traiteurs }} traiteur{{ nb_traiteurs|pluralize }} &amp; 🚚 {{ nb_foodtrucks }} foodtruck{{ nb_foodtrucks|pluralize }}</span>
+      {% elif visu == "restauration" %}<span class="badge badge-activite">🥗 {{ nb_traiteurs }} traiteur{{ nb_traiteurs|pluralize }} · 🍽️ {{ nb_restaurants }} restaurant{{ nb_restaurants|pluralize }} &amp; 🚚 {{ nb_foodtrucks }} foodtruck{{ nb_foodtrucks|pluralize }}</span>
       {% else %}<span class="badge badge-ab">🥬 {{ nb_producteurs_locaux }} {% if nb_producteurs_locaux > 1 %}producteurs locaux{% else %}producteur local{% endif %}</span>{% endif %}
     </span>
     <span class="stats-item">
@@ -64,15 +64,41 @@
     </span>
   </div>
 </div>
+
+
+<section class="map-section">
+  <div class="mode-choix mode-choix-entete" role="group" aria-label="Mode de visualisation">
+    <button type="button" data-visu="" class="mode-bouton producteurs{% if not visu %} actif{% endif %}" title="Fermes et productions locales : maraîchers, éleveurs, fromageries…">🥬 Producteurs</button>
+    <button type="button" data-visu="restauration" class="mode-bouton restauration{% if visu == "restauration" %} actif{% endif %}" title="Repas : restaurants, traiteurs et emplacements de foodtrucks">🍽️ Restauration &amp; Foodtrucks</button>
+    <button type="button" data-visu="marches" class="mode-bouton marches{% if visu == "marches" %} actif{% endif %}" title="Marchés et boutiques où retrouver les producteurs locaux">🎪 Marchés &amp; Boutiques</button>
+  </div>
+  <div class="map-canvas-wrap{% if visu == "restauration" %} visu-restauration{% elif visu == "marches" %} visu-marches{% endif %}">
+    <h2 class="map-titre">🗺️ {% if visu == "restauration" %}Restaurants, traiteurs &amp; foodtrucks trouvés{% elif visu == "marches" %}Marchés &amp; boutiques identifiés{% else %}Producteurs trouvés{% endif %}{% if carte_data %} ({{ carte_data|length }}){% endif %}</h2>
+    {% if carte_data %}
+      <div id="carte-recherche" class="map-canvas" data-mode="{% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% else %}producteurs{% endif %}" data-zone="{{ dept }}" data-csrf="{{ csrf_token }}"></div>
+      {{ carte_data|json_script:"donnees-carte" }}
+      {{ home_carte|json_script:"home-carte" }}
+    {% else %}
+      <p class="muted">{% if visu == "marches" %}Aucun marché ou boutique identifié dans ces résultats :
+         les producteurs n'ont pas encore déclaré de stand de marché ou de
+         point de vente géolocalisé.{% else %}Aucun producteur géolocalisé dans ces résultats :
+         les fermes concernées n'ont pas renseigné de position sur la carte.{% endif %}</p>
+    {% endif %}
+  </div>
+</section>
+
+{# ---- Filtres : SOUS LA CARTE, dans l'ordre souhaité —
+   1) le filtre d'activité (marchés/boutiques en mode marchés, renommé
+      « Activités » avec les symboles 🎪 & 🏪) ; 2) les deux filtres à
+   saisir (recherche libre puis département/région/CP) ; 3) le filtre
+   mode de production à droite (mode producteurs). ---- #}
 <form class="search-bar" method="get" action="{% url 'portal:producer_search' %}">
   <input type="hidden" name="visu" value="{{ visu }}">
   <input type="hidden" name="demo" value="{% if demo %}1{% else %}0{% endif %}">
   <input type="hidden" name="par_page" value="{{ par_page }}">
-  <input type="text" name="q" placeholder="{% if visu == 'marches' %}Marché, boutique…{% elif visu == 'restauration' %}Plat, spécialité, nom…{% else %}Produit, ferme…{% endif %}" value="{{ q }}">
-  <input type="text" name="dept" placeholder="Département, région ou code postal…" title="Zoome la carte sur un département (nom ou numéro), une région ou un code postal — les vignettes suivent l'emprise" value="{{ dept }}" size="14">
   {% if visu == "marches" %}
   <details class="filtre-multi">
-    <summary>🎪 Marchés &amp; 🏪 Boutiques{% if type_marche_choisi %} ({{ type_marche_choisi|length }}){% endif %} ▾</summary>
+    <summary>Activités 🎪 &amp; 🏪{% if type_marche_choisi %} ({{ type_marche_choisi|length }}){% endif %} ▾</summary>
     <div class="filtre-multi-menu">
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="MARCHE"{% if 'MARCHE' in type_marche_choisi %} checked{% endif %}> 🎪 Marchés</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="BOUTIQUE"{% if 'BOUTIQUE' in type_marche_choisi %} checked{% endif %}> 🏪 Boutiques de producteurs</label>
@@ -82,7 +108,7 @@
   {% endif %}
   {% if visu != "marches" %}
   <details class="filtre-multi">
-    <summary>🥬 Activités{% if activite_choisie %} ({{ activite_choisie|length }}){% endif %} ▾</summary>
+    <summary>{% if visu == "restauration" %}🍽️{% else %}🥬{% endif %} Activités{% if activite_choisie %} ({{ activite_choisie|length }}){% endif %} ▾</summary>
     <div class="filtre-multi-menu">
       {% for code, libelle in activites %}
         <label class="filtre-multi-choix"><input type="checkbox" name="activite" value="{{ code }}"{% if code in activite_choisie %} checked{% endif %}> {{ libelle }}</label>
@@ -91,6 +117,8 @@
     </div>
   </details>
   {% endif %}
+  <input type="text" name="q" placeholder="{% if visu == 'marches' %}Marché, boutique…{% elif visu == 'restauration' %}Plat, carte, nom…{% else %}Produit, ferme…{% endif %}" value="{{ q }}">
+  <input type="text" name="dept" placeholder="Département, région ou code postal…" title="Zoome la carte sur un département (nom ou numéro), une région ou un code postal — les vignettes suivent l'emprise" value="{{ dept }}" size="14">
   {% if not visu %}
   <details class="filtre-multi">
     <summary>🌱 Modes de production{% if mode_choisi %} ({{ mode_choisi|length }}){% endif %} ▾</summary>
@@ -107,27 +135,6 @@
   {% if filtre_actif %}<a class="btn btn-sm btn-retirer-filtre" href="{% url 'portal:producer_search' %}?visu={{ visu }}{% if not demo %}&demo=0{% endif %}" title="Retirer tous les filtres actifs">✕ Retirer les filtres</a>{% endif %}
   <button class="btn{% if filtre_actif %} btn-filtre-actif{% endif %}" type="submit">Filtrer</button>
 </form>
-
-<section class="map-section">
-  <div class="mode-choix mode-choix-entete" role="group" aria-label="Mode de visualisation">
-    <button type="button" data-visu="" class="mode-bouton producteurs{% if not visu %} actif{% endif %}" title="Fermes et productions locales : maraîchers, éleveurs, fromageries…">🥬 Producteurs</button>
-    <button type="button" data-visu="restauration" class="mode-bouton restauration{% if visu == "restauration" %} actif{% endif %}" title="Repas : traiteurs et emplacements de foodtrucks">🍽️ Traiteurs &amp; Foodtrucks</button>
-    <button type="button" data-visu="marches" class="mode-bouton marches{% if visu == "marches" %} actif{% endif %}" title="Marchés et boutiques où retrouver les producteurs locaux">🎪 Marchés &amp; Boutiques</button>
-  </div>
-  <div class="map-canvas-wrap{% if visu == "restauration" %} visu-restauration{% elif visu == "marches" %} visu-marches{% endif %}">
-    <h2 class="map-titre">🗺️ {% if visu == "restauration" %}Traiteurs &amp; foodtrucks trouvés{% elif visu == "marches" %}Marchés &amp; boutiques identifiés{% else %}Producteurs trouvés{% endif %}{% if carte_data %} ({{ carte_data|length }}){% endif %}</h2>
-    {% if carte_data %}
-      <div id="carte-recherche" class="map-canvas" data-mode="{% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% else %}producteurs{% endif %}" data-zone="{{ dept }}" data-csrf="{{ csrf_token }}"></div>
-      {{ carte_data|json_script:"donnees-carte" }}
-      {{ home_carte|json_script:"home-carte" }}
-    {% else %}
-      <p class="muted">{% if visu == "marches" %}Aucun marché ou boutique identifié dans ces résultats :
-         les producteurs n'ont pas encore déclaré de stand de marché ou de
-         point de vente géolocalisé.{% else %}Aucun producteur géolocalisé dans ces résultats :
-         les fermes concernées n'ont pas renseigné de position sur la carte.{% endif %}</p>
-    {% endif %}
-  </div>
-</section>
 
 {% if visu == "marches" %}
 <div class="grid producers">

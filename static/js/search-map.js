@@ -189,6 +189,7 @@ var ACTIVITES = {
   "CONSERVERIE": "🥫 Conserverie",
   "FOODTRUCK": "🚚 Foodtruck",
   "TRAITEUR": "🥗 Traiteur·e",
+  "RESTAURANT": "🍽️ Restaurant",
   "AUTRE": "🌾 Autre production locale"
 };
 
@@ -196,7 +197,7 @@ var ACTIVITES = {
 var blocCarte = document.getElementById("carte-recherche");
 var modeCarte = (blocCarte && blocCarte.getAttribute("data-mode"))
   || "producteurs";
-var ACTIVITES_RESTAURATION = ["FOODTRUCK", "TRAITEUR"];
+var ACTIVITES_RESTAURATION = ["FOODTRUCK", "TRAITEUR", "RESTAURANT"];
 /* Activités affichées dans la légende selon le mode : tout sauf
    foodtruck / traiteur en mode producteurs, uniquement ces deux-là
    en mode restauration (la légende suit la bascule). */
@@ -400,7 +401,7 @@ modeCtrl.onAdd = function () {
   btn.textContent = cible === "restauration" ? "🍽️"
                   : cible === "marches" ? "🎪" : "🥬";
   btn.title = cible === "restauration"
-    ? "Basculer : traiteurs & foodtrucks"
+    ? "Basculer : restauration & foodtrucks"
     : cible === "marches" ? "Basculer : marchés & boutiques"
     : "Basculer : producteurs";
   btn.setAttribute("aria-label", btn.title);

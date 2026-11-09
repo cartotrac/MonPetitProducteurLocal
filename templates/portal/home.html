@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Producteurs locaux, traiteurs &amp; foodtrucks — MonPetitProducteurLocal{% endblock %}
+{% block title %}Producteurs locaux, restauration &amp; foodtrucks — MonPetitProducteurLocal{% endblock %}
 {% block content %}
 
 {# ---- Bandeau d'action ---- #}
 <section class="action-bar">
-  <a class="btn btn-lg" href="{% url 'portal:producer_search' %}">🔍 Trouver producteurs, marchés, traiteurs &amp; foodtrucks</a>
+  <a class="btn btn-lg" href="{% url 'portal:producer_search' %}">🔍 Trouver producteurs, marchés, restauration &amp; foodtrucks</a>
   <a class="btn btn-outline btn-lg" href="{% url 'portal:register_producer' %}">🧑‍🌾 Je suis producteur — rejoindre le réseau</a>
 </section>
 
@@ -15,7 +15,7 @@
   <p class="hero-lead">
     MonPetitProducteurLocal met en relation les producteurs locaux indépendants —
     maraîchers, arboriculteurs, éleveurs, fromagers, apiculteurs… — et désormais
-    aussi les traiteurs et foodtrucks de votre territoire, avec leurs emplacements
+    aussi les restaurants, traiteurs et foodtrucks de votre territoire, avec leurs emplacements
     du soir. Chaque pro reste maître de ses prix, de ses produits et de ses
     clients : le portail est un outil au service des circuits courts, pas un
     intermédiaire. Un bien commun, libre et réplicable.
@@ -31,8 +31,8 @@
       <p>Marchés, AMAP, ferme : chaque producteur définit ses points de retrait et créneaux, jour par jour.</p></div>
     <div class="feature"><h3>🎪 Marchés &amp; boutiques identifiés</h3>
       <p>Les stands et points de vente déclarés par les producteurs sont agrégés : un marché, une fiche, des horaires déduits — même quand plusieurs y vendent.</p></div>
-    <div class="feature"><h3>🍽️ Traiteurs &amp; foodtrucks</h3>
-      <p>Pizzas, burgers, sandwichs, rôtisserie : les emplacements du soir des foodtrucks et les boutiques des traiteurs, sur la même carte.</p></div>
+    <div class="feature"><h3>🍽️ Restauration &amp; foodtrucks</h3>
+      <p>Restaurants, traiteurs et emplacements du soir des foodtrucks : pizzas, burgers, sandwichs, rôtisserie — sur la même carte.</p></div>
     <div class="feature"><h3>🛒 Commande directe</h3>
       <p>Le client commande auprès du producteur qui valide : paniers préparés pour chaque jour de livraison.</p></div>
     <div class="feature"><h3>✉️ Communication directe</h3>
@@ -40,7 +40,7 @@
   </div>
   <p class="hero-lead muted">Trois modes de recherche sur la
      <a href="{% url 'portal:producer_search' %}">page de recherche</a> :
-     🥬 producteurs, 🍽️ traiteurs &amp; foodtrucks, 🎪 marchés &amp; boutiques —
+     🥬 producteurs, 🍽️ restauration &amp; foodtrucks, 🎪 marchés &amp; boutiques —
      la carte, les filtres et les vignettes s'adaptent à chaque mode.</p>
 </section>
 
@@ -56,6 +56,9 @@
     <div class="chiffre-carte"><span class="chiffre-emoji">🥗</span>
       <strong class="chiffre-nb">{{ nb_traiteurs }}</strong>
       <span>traiteur{{ nb_traiteurs|pluralize }}</span></div>
+    <div class="chiffre-carte"><span class="chiffre-emoji">🍽️</span>
+      <strong class="chiffre-nb">{{ nb_restaurants }}</strong>
+      <span>restaurant{{ nb_restaurants|pluralize }}</span></div>
     <div class="chiffre-carte"><span class="chiffre-emoji">🚚</span>
       <strong class="chiffre-nb">{{ nb_foodtrucks }}</strong>
       <span>foodtruck{{ nb_foodtrucks|pluralize }}</span></div>
