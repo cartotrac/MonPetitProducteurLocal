@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Bienvenue — choisissez votre espace — MonPetitProducteurLocal{% endblock %}
+{% block content %}
+<h1>👋 Bienvenue{% if user.get_full_name %} {{ user.get_full_name }}{% endif %} !</h1>
+<p class="muted">Votre compte est prêt ({{ user.email }}). Comment
+   souhaitez-vous utiliser le portail ?</p>
+<form method="post" class="choix-grille">
+  {% csrf_token %}
+  <button type="submit" name="action" value="client" class="choix-carte">
+    <span class="choix-icone">🧺</span>
+    <strong>Devenir Localien</strong>
+    <span class="choix-texte">Commander mes producteurs locaux, garder
+      mes favoris et suivre mes commandes.</span>
+  </button>
+  <button type="submit" name="action" value="pro" class="choix-carte">
+    <span class="choix-icone">🚜</span>
+    <strong>Créer mon espace pro</strong>
+    <span class="choix-texte">Ferme, boutique, foodtruck ou traiteur :
+      ma vitrine, mes récoltes et mes ventes en circuit court.</span>
+  </button>
+</form>
+<p class="muted">Ce choix n'est pas définitif : un Localien peut
+   toujours créer son espace pro plus tard, et un pro reste un client
+   à part entière (commander chez d'autres producteurs).</p>
+{% endblock %}

@@ -1599,3 +1599,17 @@ html.dark .charte-table th{background:#2c3526;}
 html.dark .ou-separateur{color:#9aa89a;}
 html.dark .ou-separateur::before,
 html.dark .ou-separateur::after{border-top-color:#4e5c3d;}
+
+
+/* ===== Page de choix d'espace (première connexion d'un compte Google) :
+       deux grandes cartes cliquables, client ou espace pro. ===== */
+.choix-grille{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0 1rem;}
+.choix-carte{display:flex;flex-direction:column;align-items:center;gap:.45rem;
+             padding:1.4rem 1.1rem;text-align:center;cursor:pointer;font:inherit;
+             color:inherit;background:var(--card,#fff);
+             border:2px solid var(--border,#dfe5dc);border-radius:14px;}
+.choix-carte:hover{border-color:#2e7d32;box-shadow:0 2px 10px rgba(46,125,50,.18);}
+.choix-carte .choix-icone{font-size:2rem;}
+.choix-carte .choix-texte{font-size:.85rem;opacity:.75;}
+html.dark .choix-carte{background:#232820;border-color:#4e5c3d;}
+@media (max-width:640px){.choix-grille{grid-template-columns:1fr;}}

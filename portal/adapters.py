@@ -53,6 +53,10 @@ class PortailSocialAdapter(DefaultSocialAccountAdapter):
     def save_user(self, request, sociallogin, form=None, commit=True):
         user = super().save_user(request, sociallogin, form=form,
                                  commit=commit)
+        # Marqueur de session : ce compte vient d'être créé via Google —
+        # l'atterrissage passe par la page de choix d'espace (client ou
+        # pro), sauf si le parcours d'origine a déjà fixé l'intention.
+        request.session["mppl_compte_neuf"] = True
         photo = ((sociallogin.account.extra_data or {})
                  .get("picture") or "")
         if photo:

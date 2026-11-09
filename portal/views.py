@@ -49,12 +49,58 @@ UNITES_ENTIERES = ("PC", "BO", "BQ")
 def apres_connexion(request):
     """Après connexion (et après inscription) : un compte pro tombe
     directement sur son dashboard ; un client sur « Mes commandes » ;
-    un visiteur non connecté sur l'accueil."""
+    un visiteur non connecté sur l'accueil. Un compte Google tout neuf
+    (créé depuis la page de connexion) passe d'abord par le choix
+    d'espace ; les parcours « Devenir Localien » et « Créer mon espace
+    pro » court-circuitent ce choix : le type est déjà décidé."""
     if not request.user.is_authenticated:
         return redirect("portal:home")
     if exploitant_pour(request.user) is not None:
         return redirect("portal:dashboard")
+    intention = request.session.pop("mppl_google_intent", None)
+    compte_neuf = request.session.pop("mppl_compte_neuf", False)
+    if intention == "pro":
+        return redirect("portal:register_producer")
+    if intention == "client":
+        return redirect("portal:my_orders")
+    if compte_neuf:
+        return redirect("portal:choix_espace")
     return redirect("portal:my_orders")
+
+
+@login_required
+def choix_espace(request):
+    """Première connexion d'un compte Google tout neuf : choix entre
+    devenir Localien (client) et créer un espace pro. Le choix n'est
+    pas définitif — un client peut créer son espace pro plus tard, un
+    pro reste un client à part entière."""
+    if exploitant_pour(request.user) is not None:
+        return redirect("portal:dashboard")
+    if request.method == "POST":
+        if request.POST.get("action") == "pro":
+            return redirect("portal:register_producer")
+        messages.success(request, "Bienvenue ! Votre compte client est "
+                                  "prêt : commandez vos producteurs "
+                                  "locaux.")
+        return redirect("portal:my_orders")
+    return render(request, "portal/choix_espace.html")
+
+
+def google_entree_pro(request):
+    """« Continuer avec Google » depuis « Créer mon espace pro » :
+    l'intention est mémorisée en session — au retour de Google, le
+    formulaire de l'exploitation (nom, activité, carte…) est proposé
+    directement, le profil étant repris du compte Google."""
+    request.session["mppl_google_intent"] = "pro"
+    return redirect(reverse("google_login") + "?process=signup")
+
+
+def google_entree_client(request):
+    """« Continuer avec Google » depuis « Devenir Localien » : au
+    retour de Google, le compte client est prêt et l'utilisateur tombe
+    directement sur « Mes commandes »."""
+    request.session["mppl_google_intent"] = "client"
+    return redirect(reverse("google_login") + "?process=signup")
 
 
 def mentions_legales(request):

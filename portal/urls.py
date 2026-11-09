@@ -25,6 +25,12 @@ urlpatterns = [
     # Authentification / inscription
     path("apres-connexion/", views.apres_connexion,
          name="apres_connexion"),
+    path("apres-connexion/choix/", views.choix_espace,
+         name="choix_espace"),
+    path("connexion/google/pro/", views.google_entree_pro,
+         name="google_entree_pro"),
+    path("connexion/google/client/", views.google_entree_client,
+         name="google_entree_client"),
     path("inscription/exploitant/", views.register_exploitant,
          name="register_producer"),
     path("inscription/client/", views.register_client,
