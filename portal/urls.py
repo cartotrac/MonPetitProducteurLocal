@@ -29,6 +29,8 @@ urlpatterns = [
          name="choix_espace"),
     path("apres-connexion/choix-espace/", views.choix_espace_pro,
          name="choix_espace_pro"),
+    path("bascule-espace/", views.bascule_espace,
+         name="bascule_espace"),
     path("connexion/google/pro/", views.google_entree_pro,
          name="google_entree_pro"),
     path("connexion/google/client/", views.google_entree_client,

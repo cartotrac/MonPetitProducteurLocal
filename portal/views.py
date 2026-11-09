@@ -131,6 +131,30 @@ def choix_espace_pro(request):
     })
 
 
+@login_required
+def bascule_espace(request):
+    """Bascule du bandeau (bouton à côté du mode sombre) : entre
+    l'espace pro — multi-espace : page de choix si besoin — et le
+    grand public « Localien » (menus clients, commandes au nom
+    propre / alias)."""
+    if request.method != "POST":
+        return redirect("portal:home")
+    if request.POST.get("action") == "pro":
+        espaces = espaces_pro(request.user)
+        if not espaces:
+            return redirect("portal:apres_connexion")
+        if len(espaces) == 1:
+            request.session["mppl_espace_actif"] = espaces[0][0].pk
+            return redirect("portal:dashboard")
+        return redirect("portal:choix_espace_pro")
+    # Retour en grand public : plus d'espace sélectionné, bandeau et
+    # menus côté client, commandes au nom propre (alias).
+    request.session.pop("mppl_espace_actif", None)
+    messages.success(request, "Retour en grand public : vos commandes "
+                     "sont passées à votre nom (alias).")
+    return redirect("portal:producer_search")
+
+
 def google_entree_pro(request):
     """« Continuer avec Google » depuis « Créer mon espace pro » :
     l'intention est mémorisée en session — au retour de Google, le
@@ -1092,6 +1116,10 @@ def dashboard(request):
     créneaux de livraison (jour + horaires). Produits rangés par
     catégorie, éditables sur place (libellé, unité, prix)."""
     exploitant = exploitant_actif(request)
+    if espace_actif(request) is None and exploitant is not None:
+        # Accès direct au dashboard depuis le mode Localien : on
+        # repasse en mode espace pro pour la cohérence des menus.
+        request.session["mppl_espace_actif"] = exploitant.pk
     produits = (exploitant.produits.filter(actif=True)
                 .select_related("categorie", "origine_standard")
                 .order_by("categorie__position", "categorie__nom",

@@ -10,22 +10,32 @@ catalogue) des membres limités à la gestion courante.
 from django.conf import settings
 from django.utils import timezone
 
-from .models import Visiteur, exploitant_actif
+from .models import (Visiteur, espace_actif, espaces_pro,
+                     exploitant_actif, exploitant_pour)
 
 
 def exploitant_contexte(request):
     try:
-        courant = exploitant_actif(request)
+        # Mode espace pro : une sélection de session VALIDE. Sinon le
+        # compte est « en Localien » : bandeau et menus côté client,
+        # commandes au nom propre (alias) — l'espace par défaut reste
+        # affiché en secours pour un accès direct aux pages pro.
+        actif = espace_actif(request)
+        courant = (actif if actif is not None
+                   else exploitant_pour(request.user))
+        nb_espaces = (len(espaces_pro(request.user))
+                      if request.user.is_authenticated else 0)
         return {
-            # Espace pro sélectionné pour cette session (multi-espace :
-            # choix à la connexion), sinon l'espace par défaut du compte.
             "exploitant_courant": courant,
+            "mode_pro": actif is not None,
+            "nb_espaces_pro": nb_espaces,
             "est_proprietaire": (
-                courant is not None
-                and courant.user_id == request.user.id),
+                actif is not None
+                and actif.user_id == request.user.id),
         }
     except Exception:
-        return {"exploitant_courant": None, "est_proprietaire": False}
+        return {"exploitant_courant": None, "mode_pro": False,
+                "nb_espaces_pro": 0, "est_proprietaire": False}
 
 
 def instance_contexte(request):
