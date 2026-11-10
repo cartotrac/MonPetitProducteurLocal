@@ -277,7 +277,7 @@ def _recherche_producteurs(q, dept, modes, activites,
         exploitants = exploitants.exclude(est_demo=True)
     if q:
         exploitants = exploitants.filter(
-            Q(nom_ferme__icontains=q) | Q(ville__icontains=q)
+            Q(nom_espace__icontains=q) | Q(ville__icontains=q)
             | Q(code_postal__icontains=q)
             | Q(departement__icontains=q)
             | Q(produits__nom__icontains=q)
@@ -369,7 +369,7 @@ def producer_search(request):
     elif not visu_marches and visu != "tout":
         exploitants = exploitants.exclude(
             activite__in=activites_restauration)
-    exploitants = list(exploitants.order_by("nom_ferme"))
+    exploitants = list(exploitants.order_by("nom_espace"))
     # Marchés & boutiques identifiés (modes marches et All-in-1) :
     # entités virtuelles recalculées à la demande ; les filtres texte
     # et département s'y appliquent aussi (nom, ville, adresse, CP).
@@ -495,7 +495,7 @@ def producer_search(request):
                                       lignes_stats),
               "clients": _serie_stats("nb_clients", lignes_stats),
               "visiteurs": _serie_stats("nb_visiteurs", lignes_stats)}
-    # Horaires de retrait / boutique : créneaux récurrents par ferme,
+    # Horaires de retrait / boutique : créneaux récurrents par espace,
     # affichés au survol des vignettes.
     horaires = {}
     for c in (CreneauLivraison.objects
@@ -507,7 +507,7 @@ def producer_search(request):
     for e in exploitants:
         e.horaires = horaires.get(e.pk, [])
     # Favoris de l'utilisateur connecté : l'étoile des vignettes est
-    # pleine pour les fermes déjà suivies.
+    # pleine pour les espaces déjà suivis.
     favoris_slugs = (
         list(Favori.objects.filter(
             user=request.user, exploitant__in=exploitants)
@@ -561,7 +561,7 @@ def producer_search(request):
             # Favori direct depuis le popup de la carte : l'étoile
             # du marqueur reflète l'état pour le compte connecté.
             carte_data.append({
-                "nom_ferme": e.nom_ferme,
+                "nom_espace": e.nom_espace,
                 "mode_production": e.mode_production,
                 "activite": e.activite,
                 "specialite": e.specialite if e.activite in Exploitant.ACTIVITES_AVEC_SPECIALITE else "",
@@ -638,7 +638,7 @@ def producer_search(request):
         salutation = {"nom": nom_affiche(request.user)}
         actif = espace_actif(request)
         if actif is not None:
-            salutation["espace"] = actif.nom_ferme
+            salutation["espace"] = actif.nom_espace
             salutation["role_libelle"] = (
                 "Gérant·e / propriétaire"
                 if actif.user_id == request.user.id
@@ -710,7 +710,7 @@ def producteurs_geojson(request):
             continue
         data.append({
             "slug": e.slug,
-            "nom_ferme": e.nom_ferme,
+            "nom_espace": e.nom_espace,
             "mode_production": e.mode_production,
             "activite": e.activite,
             "specialite": e.specialite if e.activite in Exploitant.ACTIVITES_AVEC_SPECIALITE else "",
@@ -750,7 +750,7 @@ def marche_detail(request, slug):
 
 def producer_detail(request, slug):
     """Page publique d'un exploitant : récolte de la semaine + à venir,
-    météo en direct à la ferme et bandeau des créneaux de livraison."""
+    météo en direct sur place et bandeau des créneaux de livraison."""
     exploitant = get_object_or_404(Exploitant, slug=slug, visible=True)
     today = timezone.localdate()
     lundi = today - datetime.timedelta(days=today.weekday())
@@ -867,16 +867,16 @@ def favoris_toggle(request, slug):
                                    exploitant=exploitant).first()
     if favori:
         favori.delete()
-        messages.info(request, f"{exploitant.nom_ferme} retiré de vos "
+        messages.info(request, f"{exploitant.nom_espace} retiré de vos "
                        "favoris.")
     else:
         Favori.objects.create(user=request.user, exploitant=exploitant,
                               nature=nature)
         libelle = dict(Favori.Nature.choices).get(nature, "")
-        messages.success(request, f"{exploitant.nom_ferme} ajouté à vos "
+        messages.success(request, f"{exploitant.nom_espace} ajouté à vos "
                          f"favoris ⭐ ({libelle.lower()})")
     # Depuis une vignette (recherche, favoris), revenir à la page
-    # d'origine au lieu de la vitrine de la ferme.
+    # d'origine au lieu de la vitrine de l'espace.
     suite = request.POST.get("next", "")
     if suite.startswith("/"):
         return redirect(suite)
@@ -913,7 +913,7 @@ def _horaire_vignette(c):
 
 
 def _horaires_exploitants(exploitants):
-    """Créneaux récurrents de boutique / point de livraison par ferme,
+    """Créneaux récurrents de boutique / point de livraison par espace,
     pour l'encart horaires des vignettes (même présentation que la
     page de recherche)."""
     horaires = {}
@@ -930,8 +930,8 @@ def _horaires_exploitants(exploitants):
 @login_required
 def mes_producteurs(request):
     """Les favoris du compte : côté client, les producteurs suivis et
-    les fermes déjà commandées ; côté pro, distinction Fournisseurs /
-    Clients pro (les fermes déjà commandées sont intégrées). Les
+    les espaces déjà commandés ; côté pro, distinction Fournisseurs /
+    Clients pro (les espaces déjà commandés sont intégrées). Les
     vignettes reprennent la présentation de la page de recherche
     (horaires au survol inclus)."""
     favoris = list(Favori.objects.filter(user=request.user)
@@ -940,12 +940,12 @@ def mes_producteurs(request):
     deja_commandes = (Exploitant.objects.filter(
         visible=True, commandes__client=request.user)
         .exclude(pk__in=exploitant_ids)
-        .distinct().order_by("nom_ferme"))
+        .distinct().order_by("nom_espace"))
     est_pro = exploitant_actif(request) is not None
     favoris_slugs = list(Favori.objects.filter(
         user=request.user).values_list("exploitant__slug", flat=True))
     if est_pro:
-        # Les fermes déjà commandées sont classées « client pro »
+        # Les espaces déjà commandés sont classés « client pro »
         deja = list(deja_commandes)
         fournisseurs = [f.exploitant for f in favoris
                         if f.nature == Favori.Nature.FOURNISSEUR]
@@ -982,8 +982,8 @@ def _enregistrer_image_externe(produit, url):
     produit.attributs = attributs
 
 def register_exploitant(request):
-    """Inscription pro : formulaire complet (compte + ferme) pour un
-    visiteur — ou « ferme seule » pour un compte DÉJÀ connecté (cas
+    """Inscription pro : formulaire complet (compte + espace) pour un
+    visiteur — ou « espace seul » pour un compte DÉJÀ connecté (cas
     « Continuer avec Google » : le Localien crée son espace pro sans
     retaper prénom, nom, e-mail ni photo)."""
     if request.user.is_authenticated:
@@ -1095,7 +1095,7 @@ exploitant_requis = user_passes_test(est_exploitant, login_url="portal:login")
 
 def proprietaire_requis(fonction):
     """Réservé au gestionnaire principal (compte propriétaire de
-    l'exploitation) : fiche ferme/SIRET, équipe, catalogue et catégories.
+    l'exploitation) : fiche espace/SIRET, équipe, catalogue et catégories.
     Les membres de l'équipe n'ont accès qu'à la gestion courante :
     récoltes, commandes, paniers, points de livraison."""
     def wrapper(request, *args, **kwargs):
@@ -1104,7 +1104,7 @@ def proprietaire_requis(fonction):
                 or exploitant_courant.user_id != request.user.id):
             messages.error(
                 request, "Action réservée au gestionnaire principal de "
-                "l'exploitation (fiche ferme, SIRET, équipe, catalogue).")
+                "l'exploitation (fiche espace, SIRET, équipe, catalogue).")
             return redirect("portal:dashboard")
         return fonction(request, *args, **kwargs)
     return wrapper
@@ -1188,7 +1188,7 @@ def _phrases_point(point, creneaux):
         parties.append(partie)
     horaires = ", ".join(parties)
     if point is None:
-        return f"📍 Retirez vos colis à la ferme {horaires}"
+        return f"📍 Retirez vos colis sur place {horaires}"
     if point.type_point == PointLivraison.Type.BOUTIQUE:
         return (f"🏪 {point.nom} ({point.ville}) : ouverte {horaires}")
     if est_marche:
@@ -3417,7 +3417,7 @@ def order_create(request, slug):
     exploitant = get_object_or_404(Exploitant, slug=slug, visible=True)
     if (exploitant_actif(request) is not None
             and exploitant_actif(request).pk == exploitant.pk):
-        messages.info(request, "Vous êtes le producteur de cette ferme : "
+        messages.info(request, "Vous êtes le producteur de cet espace : "
                      "utilisez « Saisir une commande » dans votre espace "
                      "pro pour enregistrer une commande (la vôtre par "
                      "exemple).")
@@ -3510,7 +3510,7 @@ def order_create(request, slug):
             if actif is not None:
                 # Mode espace pro : la commande est passée au nom de
                 # la structure, avec les coordonnées de la fiche pro.
-                nom_client = actif.nom_ferme
+                nom_client = actif.nom_espace
                 email_client = actif.user.email
                 telephone_client = actif.telephone
             else:
@@ -3915,7 +3915,7 @@ def _enregistrer_infos_perso(request, redirect_vers, **redirect_kwargs):
         # Les commandes passées au nom d'une structure (mode espace
         # pro) gardent leur identité : seules celles au nom propre
         # suivent l'alias / le nom du compte.
-        noms_structure = [ex.nom_ferme
+        noms_structure = [ex.nom_espace
                           for ex, _role in espaces_pro(user)]
         hors_structure = (Q(nom_client__in=noms_structure)
                           if noms_structure else Q())
@@ -4084,10 +4084,10 @@ def parametres(request):
 @exploitant_requis
 def param_rubrique(request, rubrique):
     """Rubriques indépendantes du menu Paramètres : « Mon profil »
-    (compte individuel), « Ma ferme » (vitrine publique) et
+    (compte individuel), « Mon espace » (vitrine publique) et
     « Messagerie » (propriétaire seulement — SMTP d'envoi des e-mails
     et passerelle SMS). Chaque page s'enregistre séparément."""
-    if rubrique not in ("profil", "ferme", "messagerie"):
+    if rubrique not in ("profil", "espace", "messagerie"):
         return redirect("portal:param_rubrique", rubrique="profil")
     exploitant = exploitant_actif(request)
     vitrine, _cree = ParametresVitrine.objects.get_or_create(
@@ -4101,19 +4101,19 @@ def param_rubrique(request, rubrique):
     if request.method == "POST":
         section = request.POST.get("section", "")
 
-        if section == "ferme" and rubrique == "ferme":
-            form_ferme = ProfilExploitantForm(request.POST, request.FILES,
+        if section == "espace" and rubrique == "espace":
+            form_espace = ProfilExploitantForm(request.POST, request.FILES,
                                              instance=exploitant)
-            if form_ferme.is_valid():
-                form_ferme.save()
+            if form_espace.is_valid():
+                form_espace.save()
                 reseaux = dict(vitrine.reseaux or {})
-                url = form_ferme.cleaned_data.get("logo_externe", "").strip()
+                url = form_espace.cleaned_data.get("logo_externe", "").strip()
                 if url:
                     reseaux["logo_url"] = url
                 else:
                     reseaux.pop("logo_url", None)
                 for cle in ("site_web", "facebook", "instagram"):
-                    valeur = form_ferme.cleaned_data.get(cle, "").strip()
+                    valeur = form_espace.cleaned_data.get(cle, "").strip()
                     if valeur:
                         reseaux[cle] = valeur
                     else:
@@ -4132,7 +4132,7 @@ def param_rubrique(request, rubrique):
                 else:
                     messages.success(request,
                                      "Votre fiche a été mise à jour.")
-                return redirect("portal:param_rubrique", rubrique="ferme")
+                return redirect("portal:param_rubrique", rubrique="espace")
 
         elif section == "profil" and rubrique == "profil":
             resultat = _enregistrer_infos_perso(
@@ -4176,11 +4176,11 @@ def param_rubrique(request, rubrique):
                 try:
                     django.core.mail.EmailMessage(
                         "[Test] Votre messagerie — "
-                        + exploitant.nom_ferme,
+                        + exploitant.nom_espace,
                         "Ceci est un e-mail de test envoyé depuis la page "
                         "Messagerie. Si vous le lisez, votre configuration "
                         "SMTP fonctionne : newsletters et annonces "
-                        "partiront au nom de votre ferme.",
+                        "partiront au nom de votre espace.",
                         expediteur, [destinataire],
                         connection=connexion).send()
                     messages.success(request, "✉️ E-mail de test envoyé à "
@@ -4195,7 +4195,7 @@ def param_rubrique(request, rubrique):
         elif section == "test_sms" and rubrique == "messagerie":
             ok, info = envoyer_sms(
                 exploitant,
-                "Test SMS " + exploitant.nom_ferme
+                "Test SMS " + exploitant.nom_espace
                 + " : votre passerelle SMS fonctionne.")
             if ok:
                 messages.success(request, "📱 SMS de test envoyé (" + info
@@ -4229,9 +4229,9 @@ def param_rubrique(request, rubrique):
             "form_motdepasse": form_motdepasse,
         })
 
-    if rubrique == "ferme":
+    if rubrique == "espace":
         reseaux = dict(vitrine.reseaux or {})
-        form_ferme = ProfilExploitantForm(
+        form_espace = ProfilExploitantForm(
             instance=exploitant,
             initial={"logo_externe": reseaux.get("logo_url", ""),
                      "site_web": reseaux.get("site_web", ""),
@@ -4239,7 +4239,7 @@ def param_rubrique(request, rubrique):
                      "instagram": reseaux.get("instagram", "")})
         return render(request, "portal/pro/param_ferme.html", {
             "exploitant": exploitant,
-            "form_ferme": form_ferme,
+            "form_espace": form_espace,
             "vitrine": vitrine,
             "rythmes": ParametresVitrine.Rythme.choices,
             "rythme_actuel": vitrine.rythme_publication,
@@ -4337,7 +4337,7 @@ def pub_rubrique(request, rubrique):
                 for email in destinataires:
                     try:
                         message = django.core.mail.EmailMessage(
-                            f"[{exploitant.nom_ferme}] {publication.objet}",
+                            f"[{exploitant.nom_espace}] {publication.objet}",
                             publication.corps, expediteur, [email],
                             connection=connexion)
                         message.send()
