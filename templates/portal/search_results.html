@@ -16,7 +16,7 @@
 {% endif %}
 <div class="entete-chercher">
   <div class="titre-recherche">
-    <h1 title="{% if visu == "restauration" %}🍽️ Mode restaurants, traiteurs &amp; foodtrucks{% elif visu == "marches" %}🎪 Mode marchés &amp; boutiques de producteurs — identifiés à partir des points et créneaux déclarés{% elif visu == "tout" %}🌍 Mode All-in-1 : producteurs, restauration, marchés &amp; boutiques réunis sur la même carte{% else %}🥬 Mode fermes &amp; producteurs locaux{% endif %}">{% if visu == "restauration" %}🔍🍽️ Trouver un Restaurant, Traiteur ou Foodtruck autour de moi !{% elif visu == "marches" %}🔍🎪 Trouver mes Producteurs en Boutique ou sur les Marchés locaux !{% elif visu == "tout" %}🌍 Tout l'univers du local : producteurs, restauration, marchés &amp; boutiques réunis !{% else %}🔍🥬 Trouver mon Producteur local !{% endif %}</h1>
+    <h1 title="{% if visu == "restauration" %}🍽️ Mode restaurants, traiteurs &amp; foodtrucks{% elif visu == "marches" %}🎪 Mode marchés &amp; boutiques de producteurs — identifiés à partir des points et créneaux déclarés{% elif visu == "tout" %}🌍 Mode producteurs, restauration, marchés &amp; boutiques réunis sur la même carte{% else %}🥬 Mode fermes &amp; producteurs locaux{% endif %}">{% if visu == "restauration" %}🔍🍽️ Trouver un Restaurant, Traiteur ou Foodtruck autour de moi !{% elif visu == "marches" %}🔍🎪 Trouver mes Producteurs en Boutique ou sur les Marchés locaux !{% elif visu == "tout" %}🔍🌍 Tout l'univers du local : producteurs, restauration, marchés &amp; boutiques réunis !{% else %}🔍🥬 Trouver mon Producteur local !{% endif %}</h1>
     <button type="button" id="bascule-demo" class="bascule-demo{% if demo %} actif{% endif %}" title="{% if demo %}Démo{% else %}Réel{% endif %}" aria-pressed="{% if demo %}true{% else %}false{% endif %}" aria-label="Bascule Démo / Réel : afficher ou masquer les comptes de démonstration">
       <span class="bascule-piste"><span class="bascule-curseur"></span></span>
       <span class="bascule-icone">{% if demo %}🎃{% else %}🧡{% endif %}</span>
@@ -24,7 +24,7 @@
   </div>
   <div class="stats-portail">
     <span class="stats-item">
-      <button type="button" class="badge badge-activite" data-stats="producteurs">{% if visu == "marches" or visu == "tout" %}🤝 {{ nb_pros }} professionnel{{ nb_pros|pluralize }} nous font confiance{% else %}🤝 Communauté de {{ nb_pros }} utilisateur{{ nb_pros|pluralize }} pro{% endif %}</button>
+      <button type="button" class="badge badge-activite" data-stats="producteurs">🤝 Communauté de {{ nb_pros }} utilisateur{{ nb_pros|pluralize }} pro</button>
       <div class="stats-pop" data-serie="producteurs">
         <strong>📈 Historique des professionnels inscrits</strong>
         <div class="stats-options">
@@ -52,9 +52,9 @@
       </div>
     </span>
     <span class="stats-item">
-      {% if visu == "marches" %}<button type="button" class="badge badge-marche" data-stats="producteurs">{% with nb_mb=nb_marches|add:nb_boutiques %}🎪 Avec {{ nb_mb }} marché{{ nb_mb|pluralize }} &amp; boutique{{ nb_mb|pluralize }} producteur{{ nb_mb|pluralize }}{% endwith %}</button>
+      {% if visu == "marches" %}<button type="button" class="badge badge-marche" data-stats="producteurs">{% with nb_mb=nb_marches|add:nb_boutiques %}🎪🏪 Avec {{ nb_mb }} marché{{ nb_mb|pluralize }} &amp; boutique{{ nb_mb|pluralize }} producteur{{ nb_mb|pluralize }}{% endwith %}</button>
       {% elif visu == "restauration" %}<button type="button" class="badge badge-activite" data-stats="producteurs">{% with nb_resto=nb_traiteurs|add:nb_restaurants|add:nb_foodtrucks %}🍽️🚚 Dont {{ nb_resto }} pro en restauration{% endwith %}</button>
-      {% elif visu == "tout" %}<button type="button" class="badge badge-ab" data-stats="producteurs">🥬 {{ nb_producteurs_locaux }} producteur{{ nb_producteurs_locaux|pluralize }} · 🥗 {{ nb_traiteurs }} traiteur{{ nb_traiteurs|pluralize }} · 🍽️ {{ nb_restaurants }} restaurant{{ nb_restaurants|pluralize }} &amp; 🚚 {{ nb_foodtrucks }} foodtruck{{ nb_foodtrucks|pluralize }} · 🎪 {{ nb_marches }} marché{{ nb_marches|pluralize }} &amp; 🏪 {{ nb_boutiques }} boutique{{ nb_boutiques|pluralize }}</button>
+      {% elif visu == "tout" %}<button type="button" class="badge badge-ab" data-stats="producteurs">{% with nb_resto=nb_traiteurs|add:nb_restaurants|add:nb_foodtrucks nb_mb=nb_marches|add:nb_boutiques %}🥬 {{ nb_producteurs_locaux }} producteur{{ nb_producteurs_locaux|pluralize }} · 🍽️🚚 {{ nb_resto }} pro restauration · 🎪🏪 {{ nb_mb }} marché{{ nb_mb|pluralize }} &amp; boutique{{ nb_mb|pluralize }}{% endwith %}</button>
       {% else %}<button type="button" class="badge badge-ab" data-stats="producteurs">🥬 Dont {{ nb_producteurs_locaux }} {% if nb_producteurs_locaux > 1 %}producteurs locaux{% else %}producteur local{% endif %}</button>{% endif %}
       <div class="stats-pop" data-serie="producteurs">
         <strong>📈 Historique des professionnels inscrits</strong>
