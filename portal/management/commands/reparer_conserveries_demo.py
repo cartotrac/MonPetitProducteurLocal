@@ -1,6 +1,6 @@
 """Répare les conserveries de démo : catalogue 100 % conserverie.
 
-Les fermes de démonstration « Conserverie du Sor » et « Conserves de la
+Les espaces de démonstration « Conserverie du Sor » et « Conserves de la
 Villaine » ont été créées avant que le catalogue Conserverie soit
 chargé : leur catalogue et leur production de la semaine ont donc été
 piochés dans d'autres activités (fruits, ruche…). Cette commande :
@@ -121,7 +121,7 @@ class Command(BaseCommand):
                 defaults={"publiee": True})
 
             self.stdout.write(self.style.SUCCESS(
-                f"🥫 {exploitant.nom_ferme} : {supprimes} produit(s) "
+                f"🥫 {exploitant.nom_espace} : {supprimes} produit(s) "
                 f"hors conserverie retiré(s) ({nb_lc} ligne(s) de "
                 f"commande, {nb_lp} ligne(s) de panier), {len(produits)} "
                 "produits conserverie, production de la semaine "

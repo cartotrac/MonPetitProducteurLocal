@@ -382,11 +382,11 @@ exploitants.forEach(function (e) {
       (e.est_favori ? " actif" : "") + '" title="' +
       (e.est_favori ? "Retirer des favoris" : "Ajouter aux favoris") +
       '" aria-label="' + (e.est_favori ? "Retirer " : "Ajouter ") +
-      esc(e.nom_ferme) + (e.est_favori ? " des favoris" : " aux favoris") +
+      esc(e.nom_espace) + (e.est_favori ? " des favoris" : " aux favoris") +
       '">' + (e.est_favori ? "⭐" : "☆") + "</button></form> ";
   }
   var marker = L.marker([e.latitude, e.longitude], { icon: icone }).bindPopup(
-    "<strong>" + esc(e.nom_ferme) + "</strong>" +
+    "<strong>" + esc(e.nom_espace) + "</strong>" +
     (libelle ? '<br><span class="muted">' + esc(libelle) + "</span>" : "") +
     badgeDemo +
     "<br>" + esc(e.ville || "") +

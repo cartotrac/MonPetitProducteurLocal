@@ -5,7 +5,7 @@
 {% block content %}
 <h1>🚜 Créer mon espace pro</h1>
 <p class="muted">Deux blocs : <strong>👤 Mon profil</strong> (votre compte
-   individuel) et <strong>Ma ferme</strong> (votre exploitation — le titre
+   individuel) et <strong>Mon espace pro</strong> (votre exploitation — le titre
    suit l'activité choisie). Tout le reste (SIRET, mode de production,
    logo, description, points de livraison…) se complète ensuite depuis
    la page ⚙️ Paramètres.</p>
@@ -19,7 +19,7 @@
     <div class="google-bloc">
       <a class="btn btn-lg btn-google" href="{% url 'portal:google_entree_pro' %}"><svg class="g-logo" width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C1.08 15.71 0 19.74 0 24s1.08 8.29 2.56 11.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continuer avec Google</a>
       <p class="muted">Votre e-mail, prénom, nom et photo Google seront
-         repris : il ne restera que « Ma ferme » à renseigner.</p>
+         repris : il ne restera que le nom de votre espace à renseigner.</p>
       <div class="ou-separateur"><span>ou créez tout avec un e-mail</span></div>
     </div>
   {% endif %}
@@ -81,9 +81,9 @@
   <section class="form-bloc">
     <h2 id="titre-ferme">🚜 Ma ferme</h2>
     <div class="form-duo form-duo-ferme">
-      <div class="form-champ">{{ form.nom_ferme.label_tag }} {{ form.nom_ferme }}
-        {{ form.nom_ferme.errors }}
-        <span class="helptext">{{ form.nom_ferme.help_text }}</span></div>
+      <div class="form-champ">{{ form.nom_espace.label_tag }} {{ form.nom_espace }}
+        {{ form.nom_espace.errors }}
+        <span class="helptext">{{ form.nom_espace.help_text }}</span></div>
       <div class="form-champ form-champ-demo">
         <label class="case-demo" for="id_est_demo">{{ form.est_demo }} {{ form.est_demo.label }}</label>
         <span class="helptext">{{ form.est_demo.help_text }}</span>

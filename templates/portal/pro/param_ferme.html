@@ -14,46 +14,46 @@
 
 <form method="post" enctype="multipart/form-data" class="form">
   {% csrf_token %}
-  <input type="hidden" name="section" value="ferme">
-  {% if form_ferme.non_field_errors %}
+  <input type="hidden" name="section" value="espace">
+  {% if form_espace.non_field_errors %}
     <div class="flash warning">⚠️ Merci de corriger les champs indiqués ci-dessous.</div>
   {% endif %}
 
   <section class="form-bloc">
-    <h2 id="titre-ferme">🚜 Ma ferme</h2>
+    <h2 id="titre-ferme">{{ exploitant.titre_fiche }}</h2>
     <div class="form-duo form-duo-ferme">
-      <div class="form-champ">{{ form_ferme.nom_ferme.label_tag }} {{ form_ferme.nom_ferme }}
-        {{ form_ferme.nom_ferme.errors }}</div>
+      <div class="form-champ">{{ form_espace.nom_espace.label_tag }} {{ form_espace.nom_espace }}
+        {{ form_espace.nom_espace.errors }}</div>
       <div class="form-champ form-champ-demo">
-        <label class="case-demo" for="id_est_demo">{{ form_ferme.est_demo }} {{ form_ferme.est_demo.label }}</label>
-        <span class="helptext">{{ form_ferme.est_demo.help_text }}</span>
-        {{ form_ferme.est_demo.errors }}
+        <label class="case-demo" for="id_est_demo">{{ form_espace.est_demo }} {{ form_espace.est_demo.label }}</label>
+        <span class="helptext">{{ form_espace.est_demo.help_text }}</span>
+        {{ form_espace.est_demo.errors }}
       </div>
     </div>
     <div class="form-duo">
-      <div class="form-champ">{{ form_ferme.activite.label_tag }} {{ form_ferme.activite }}
-        {{ form_ferme.activite.errors }}</div>
-      <div class="form-champ" id="ligne-specialite">{{ form_ferme.specialite.label_tag }} {{ form_ferme.specialite }}
-        {{ form_ferme.specialite.errors }}
+      <div class="form-champ">{{ form_espace.activite.label_tag }} {{ form_espace.activite }}
+        {{ form_espace.activite.errors }}</div>
+      <div class="form-champ" id="ligne-specialite">{{ form_espace.specialite.label_tag }} {{ form_espace.specialite }}
+        {{ form_espace.specialite.errors }}
         <span class="helptext">Uniquement pour un foodtruck : pizza, burger…</span></div>
     </div>
     <div class="form-duo">
-      <div class="form-champ">{{ form_ferme.siret.label_tag }} {{ form_ferme.siret }}
-        {{ form_ferme.siret.errors }}
-        <span class="helptext">{{ form_ferme.siret.help_text }}</span></div>
-      <div class="form-champ">{{ form_ferme.mode_production.label_tag }} {{ form_ferme.mode_production }}
-        {{ form_ferme.mode_production.errors }}</div>
+      <div class="form-champ">{{ form_espace.siret.label_tag }} {{ form_espace.siret }}
+        {{ form_espace.siret.errors }}
+        <span class="helptext">{{ form_espace.siret.help_text }}</span></div>
+      <div class="form-champ">{{ form_espace.mode_production.label_tag }} {{ form_espace.mode_production }}
+        {{ form_espace.mode_production.errors }}</div>
     </div>
     <div class="form-duo">
-      <div class="form-champ">{{ form_ferme.logo.label_tag }} {{ form_ferme.logo }}
-        {{ form_ferme.logo.errors }}
+      <div class="form-champ">{{ form_espace.logo.label_tag }} {{ form_espace.logo }}
+        {{ form_espace.logo.errors }}
         <span class="helptext">Le fichier prime sur le lien externe s'il est renseigné.</span></div>
-      <div class="form-champ">{{ form_ferme.logo_externe.label_tag }} {{ form_ferme.logo_externe }}
-        {{ form_ferme.logo_externe.errors }}
+      <div class="form-champ">{{ form_espace.logo_externe.label_tag }} {{ form_espace.logo_externe }}
+        {{ form_espace.logo_externe.errors }}
         <span class="helptext">Rien n'est hébergé sur le portail.</span></div>
     </div>
-    <div class="form-champ">{{ form_ferme.description.label_tag }} {{ form_ferme.description }}
-      {{ form_ferme.description.errors }}
+    <div class="form-champ">{{ form_espace.description.label_tag }} {{ form_espace.description }}
+      {{ form_espace.description.errors }}
       <span class="helptext">Quelques lignes pour votre vitrine publique.</span></div>
 
     <div id="carte-ferme" data-pick-map data-lat-input="id_latitude"
@@ -70,37 +70,37 @@
       <button type="button" class="btn btn-outline btn-sm" id="btn-geoloc-moi">🌍 Me géolocaliser</button>
     </div>
 
-    <div class="form-champ">{{ form_ferme.adresse.label_tag }} {{ form_ferme.adresse }}
-      {{ form_ferme.adresse.errors }}</div>
+    <div class="form-champ">{{ form_espace.adresse.label_tag }} {{ form_espace.adresse }}
+      {{ form_espace.adresse.errors }}</div>
     <div class="form-duo">
-      <div class="form-champ">{{ form_ferme.ville.label_tag }} {{ form_ferme.ville }}
-        {{ form_ferme.ville.errors }}</div>
-      <div class="form-champ">{{ form_ferme.code_postal.label_tag }} {{ form_ferme.code_postal }}
-        {{ form_ferme.code_postal.errors }}</div>
+      <div class="form-champ">{{ form_espace.ville.label_tag }} {{ form_espace.ville }}
+        {{ form_espace.ville.errors }}</div>
+      <div class="form-champ">{{ form_espace.code_postal.label_tag }} {{ form_espace.code_postal }}
+        {{ form_espace.code_postal.errors }}</div>
     </div>
     <div class="form-trio">
-      <div class="form-champ">{{ form_ferme.departement.label_tag }} {{ form_ferme.departement }}
-        {{ form_ferme.departement.errors }}</div>
-      <div class="form-champ">{{ form_ferme.latitude.label_tag }} {{ form_ferme.latitude }}
-        {{ form_ferme.latitude.errors }}
+      <div class="form-champ">{{ form_espace.departement.label_tag }} {{ form_espace.departement }}
+        {{ form_espace.departement.errors }}</div>
+      <div class="form-champ">{{ form_espace.latitude.label_tag }} {{ form_espace.latitude }}
+        {{ form_espace.latitude.errors }}
         <span class="helptext">Position sur la carte (optionnel)</span></div>
-      <div class="form-champ">{{ form_ferme.longitude.label_tag }} {{ form_ferme.longitude }}
-        {{ form_ferme.longitude.errors }}
+      <div class="form-champ">{{ form_espace.longitude.label_tag }} {{ form_espace.longitude }}
+        {{ form_espace.longitude.errors }}
         <span class="helptext">Position sur la carte (optionnel)</span></div>
     </div>
     <div class="form-duo">
-      <div class="form-champ">{{ form_ferme.telephone.label_tag }} {{ form_ferme.telephone }}
-        {{ form_ferme.telephone.errors }}</div>
-      <div class="form-champ">{{ form_ferme.mode_fonctionnement.label_tag }} {{ form_ferme.mode_fonctionnement }}
-        {{ form_ferme.mode_fonctionnement.errors }}</div>
+      <div class="form-champ">{{ form_espace.telephone.label_tag }} {{ form_espace.telephone }}
+        {{ form_espace.telephone.errors }}</div>
+      <div class="form-champ">{{ form_espace.mode_fonctionnement.label_tag }} {{ form_espace.mode_fonctionnement }}
+        {{ form_espace.mode_fonctionnement.errors }}</div>
     </div>
     <div class="form-trio">
-      <div class="form-champ">{{ form_ferme.site_web.label_tag }} {{ form_ferme.site_web }}
-        {{ form_ferme.site_web.errors }}</div>
-      <div class="form-champ">{{ form_ferme.facebook.label_tag }} {{ form_ferme.facebook }}
-        {{ form_ferme.facebook.errors }}</div>
-      <div class="form-champ">{{ form_ferme.instagram.label_tag }} {{ form_ferme.instagram }}
-        {{ form_ferme.instagram.errors }}</div>
+      <div class="form-champ">{{ form_espace.site_web.label_tag }} {{ form_espace.site_web }}
+        {{ form_espace.site_web.errors }}</div>
+      <div class="form-champ">{{ form_espace.facebook.label_tag }} {{ form_espace.facebook }}
+        {{ form_espace.facebook.errors }}</div>
+      <div class="form-champ">{{ form_espace.instagram.label_tag }} {{ form_espace.instagram }}
+        {{ form_espace.instagram.errors }}</div>
     </div>
     <div class="form-row">
       <label for="id_rythme_publication">🗓️ Rythme de publication de la vitrine</label>

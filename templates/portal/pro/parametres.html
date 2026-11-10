@@ -10,7 +10,7 @@
 
 <nav class="quick-actions" aria-label="Sections des paramètres">
   <a class="btn btn-outline btn-sm" href="#profil">👤 Mon profil</a>
-  <a class="btn btn-outline btn-sm" href="#ferme">🚜 Ma ferme</a>
+  <a class="btn btn-outline btn-sm" href="#espace">{{ exploitant.titre_fiche }}</a>
   {% if est_proprietaire %}
     <a class="btn btn-outline btn-sm" href="#messagerie">✉️ Messagerie</a>
   {% endif %}
@@ -33,8 +33,8 @@
   </div>
 </section>
 
-<section class="harvest-bloc" id="ferme">
-  <h2>🚜 Ma ferme</h2>
+<section class="harvest-bloc" id="espace">
+  <h2>{{ exploitant.titre_fiche }}</h2>
   <div class="card">
   <p class="muted">Ces informations sont affichées sur votre vitrine
      publique : activité, SIRET, logo (fichier ou lien externe), réseaux
@@ -42,12 +42,12 @@
      le laissez vide.</p>
   <form method="post" enctype="multipart/form-data" class="form">
     {% csrf_token %}
-    <input type="hidden" name="section" value="ferme">
+    <input type="hidden" name="section" value="espace">
     <div id="carte-ferme" data-pick-map data-lat-input="id_latitude"
          data-lon-input="id_longitude" style="height: 300px; border-radius: 8px; margin-bottom: 0.4rem;"></div>
-    <p class="muted">👆 Cliquez sur la carte pour positionner la ferme :
+    <p class="muted">👆 Cliquez sur la carte pour positionner l'espace :
        latitude/longitude sont renseignées automatiquement.</p>
-    {{ form_ferme.as_p }}
+    {{ form_espace.as_p }}
     <div class="save-bar">
       <button class="btn" type="submit">💾 Enregistrer ma fiche</button>
     </div>
@@ -60,7 +60,7 @@
   <h2>✉️ Messagerie (e-mails & SMS)</h2>
   <p class="muted">Serveur SMTP d'envoi de vos publications (newsletters,
      annonces, notifications de panier) : renseignez-le ici pour que vos
-     e-mails partent au nom de votre ferme, sans dépendre de la
+     e-mails partent au nom de votre espace, sans dépendre de la
      configuration du serveur. Champs vides = paramètre retiré.</p>
   <div class="card">
   <form method="post" class="form">

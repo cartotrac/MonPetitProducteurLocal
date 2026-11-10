@@ -72,7 +72,7 @@
             <a class="nav-gestion-titre{% if '/parametres/' in request.path or '/equipe/' in request.path %} nav-actif{% endif %}" href="{% url 'portal:param_rubrique' 'profil' %}">Paramètres ▾</a>
             <div class="nav-gestion-menu">
               <a href="{% url 'portal:param_rubrique' 'profil' %}">👤 Mon profil</a>
-              <a href="{% url 'portal:param_rubrique' 'ferme' %}">{{ exploitant_courant.titre_fiche }}</a>
+              <a href="{% url 'portal:param_rubrique' 'espace' %}">{{ exploitant_courant.titre_fiche }}</a>
               {% if est_proprietaire %}<a href="{% url 'portal:equipe_manage' %}">👥 Mon équipe</a>{% endif %}
               {% if est_proprietaire %}<a href="{% url 'portal:param_rubrique' 'messagerie' %}">✉️ Messagerie</a>{% endif %}
             </div>
@@ -87,7 +87,7 @@
         </form>
       {% else %}
         <a href="{% url 'portal:register_client' %}" class="nav-compte" title="Créez votre compte Localien, c'est gratuit : commandez vos paniers, gardez vos producteurs favoris et suivez vos commandes — plus de saisie d'identifiants à chaque visite" aria-label="Devenir Localien : créer un compte client gratuit">Devenir Localien</a>
-        <a class="btn btn-outline" href="{% url 'portal:register_producer' %}" title="Créez votre espace producteur : ferme, boutique, traiteur ou foodtruck — vos récoltes, productions ou créations à la vente en circuit court !" aria-label="Créer mon espace pro">Créer mon espace pro</a>
+        <a class="btn btn-outline" href="{% url 'portal:register_producer' %}" title="Créez votre espace producteur : exploitation, boutique, traiteur ou foodtruck — vos récoltes, productions ou créations à la vente en circuit court !" aria-label="Créer mon espace pro">Créer mon espace pro</a>
         <a class="btn btn-session btn-session-verte" href="{% url 'login' %}" title="Se connecter"><span class="pastille-session pastille-rouge" aria-hidden="true"></span></a>
       {% endif %}
     </div>
@@ -143,7 +143,7 @@
           <a href="{% url 'portal:pub_rubrique' 'newsletter' %}">Newsletter</a>
           <a href="{% url 'portal:pub_rubrique' 'annonces' %}">Annonces</a>
           <a href="{% url 'portal:param_rubrique' 'profil' %}">Mon profil</a>
-          <a href="{% url 'portal:param_rubrique' 'ferme' %}">{{ exploitant_courant.titre_fiche }}</a>
+          <a href="{% url 'portal:param_rubrique' 'espace' %}">{{ exploitant_courant.titre_fiche }}</a>
           {% if est_proprietaire %}<a href="{% url 'portal:equipe_manage' %}">Mon équipe</a>{% endif %}
         {% else %}
           <a href="{% url 'portal:my_orders' %}">Mes commandes</a>
@@ -332,7 +332,7 @@
   <p>🎯 <strong>Vos retours sont précieux</strong> : chaque remarque d'usage —
      ce qui manque, ce qui coince, ce qui vous ferait gagner du temps —
      nous aide à construire un outil qui réponde au mieux aux besoins
-     de votre métier. Partagez-les via la page contact de votre ferme
+     de votre métier. Partagez-les via la page contact de votre espace
      ou directement à l'admin de l'instance.</p>
   <form method="dialog" class="dialog-demo-actions">
     <button class="btn" type="submit">C'est noté !</button>

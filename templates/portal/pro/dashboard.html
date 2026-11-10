@@ -2,7 +2,7 @@
 {% block title %}Dashboard — MonPetitProducteurLocal{% endblock %}
 {% block retour_dashboard %}{% endblock %}
 {% block content %}
-<h1>Bienvenue {{ exploitant.nom_ferme }} 👋</h1>
+<h1>Bienvenue {{ exploitant.nom_espace }} 👋</h1>
 
 {% if meteo %}
 <div class="meteo-hero card">
@@ -183,7 +183,7 @@
        <a href="{% url 'portal:points_manage' %}">gérer les points et créneaux</a></p>
   {% else %}
     <p class="etat-vide"><span class="etat-vide-emoji">📍</span>
-       Aucun point de livraison : créez-en un (marché, ferme, dépôt) pour
+       Aucun point de livraison : créez-en un (marché, exploitation, dépôt) pour
        que les clients choisissent où récupérer leurs paniers.
        <a class="btn" href="{% url 'portal:points_manage' %}">➕ En ajouter</a></p>
   {% endif %}
