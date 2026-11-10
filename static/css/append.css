@@ -1901,6 +1901,18 @@ html.dark .filtre-groupe-titre {
   color: #aab599; border-top-color: #55624a;
 }
 
+/* ===== Filtres dynamiques : champ texte actif qui n'affiche aucune
+       entité — entouré de rouge (bordure + halo), clair comme sombre. ===== */
+.search-bar input.filtre-vide {
+  border-color: #c62828;
+  box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.18);
+}
+html.dark .search-bar input.filtre-vide {
+  border-color: #ef9a9a;
+  box-shadow: 0 0 0 3px rgba(239, 154, 154, 0.22);
+}
+
+
 
 
 

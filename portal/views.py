@@ -592,6 +592,7 @@ def producer_search(request):
         "demo": demo,
         "home_carte": home_carte,
         "marches": marches,
+        "resultats_vides": not carte_data,
         "nb_pros": nb_pros,
         "nb_producteurs_locaux": nb_producteurs_locaux,
         "nb_foodtrucks": nb_foodtrucks,

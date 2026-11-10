@@ -208,12 +208,15 @@
         <label class="filtre-multi-choix"><input type="checkbox" name="activite" value="{{ code }}"{% if code in activite_choisie %} checked{% endif %}> {{ libelle }}</label>
         {% endif %}
       {% endfor %}
+      {% if visu == "tout" %}<div class="filtre-groupe-titre">🎪 Marchés &amp; Boutiques</div>
+      <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="MARCHE"{% if 'MARCHE' in type_marche_choisi %} checked{% endif %}> 🎪 Marchés</label>
+      <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="BOUTIQUE"{% if 'BOUTIQUE' in type_marche_choisi %} checked{% endif %}> 🏪 Boutiques de producteurs</label>{% endif %}
       <p class="muted">Plusieurs choix possibles — tout décocher = toutes les activités.</p>
     </div>
   </details>
   {% endif %}
-  <input type="text" name="q" placeholder="{% if visu == 'marches' %}Marché, boutique…{% elif visu == 'restauration' %}Plat, carte, nom…{% elif visu == 'tout' %}Produit, ferme, plat, marché…{% else %}Produit, ferme…{% endif %}" value="{{ q }}">
-  <input type="text" name="dept" placeholder="Département, région ou code postal…" title="Zoome la carte sur un département (nom ou numéro), une région ou un code postal — les vignettes suivent l'emprise" value="{{ dept }}" size="14">
+  <input type="text" name="q" placeholder="{% if visu == 'marches' %}Marché, boutique…{% elif visu == 'restauration' %}Plat, carte, nom…{% elif visu == 'tout' %}Produit, ferme, plat, marché…{% else %}Produit, ferme…{% endif %}"{% if q and resultats_vides %} class="filtre-vide"{% endif %} value="{{ q }}">
+  <input type="text" name="dept" placeholder="Département, région ou code postal…" title="Zoome la carte sur un département (nom ou numéro), une région ou un code postal — les vignettes suivent l'emprise"{% if dept and resultats_vides %} class="filtre-vide"{% endif %} value="{{ dept }}" size="14">
   {% if not visu %}
   <details class="filtre-multi">
     <summary>🌱 Modes de production{% if mode_choisi %} ({{ mode_choisi|length }}){% endif %} ▾</summary>
@@ -229,7 +232,6 @@
   </details>
   {% endif %}
   {% if filtre_actif %}<a class="btn btn-sm btn-retirer-filtre" href="{% url 'portal:producer_search' %}?visu={{ visu }}{% if not demo %}&demo=0{% endif %}" title="Retirer tous les filtres actifs">✕ Retirer les filtres</a>{% endif %}
-  <button class="btn{% if filtre_actif %} btn-filtre-actif{% endif %}" type="submit">Filtrer</button>
 </form>
 
 {% if visu == "marches" %}
@@ -547,13 +549,35 @@
     }
   });
   /* « ✕ Tout décocher » : première ligne de chaque menu — décoche
-     toutes les cases du menu sans recharger (le bouton « Filtrer »
-     reste le geste final, comme pour un décochage manuel). */
+     toutes les cases du menu PUIS soumet le formulaire : les filtres
+     sont dynamiques, il n'y a plus de bouton « Filtrer ». */
   barre.querySelectorAll(".filtre-tout-decocher").forEach(function (bouton) {
     bouton.addEventListener("click", function () {
       bouton.closest(".filtre-multi-menu")
         .querySelectorAll("input[type=checkbox]")
         .forEach(function (caseFiltre) { caseFiltre.checked = false; });
+      barre.submit();
+    });
+  });
+})();
+</script>
+<script>
+/* Filtres dynamiques : plus de bouton « Filtrer » — cocher ou
+   décocher une case soumet le formulaire immédiatement ; les champs
+   texte (recherche libre, zone) se soumettent à la sortie du champ
+   dès que la valeur saisie a changé. Un champ texte actif qui
+   n'affiche AUCUNE entité est entouré de rouge (filtre-vide). */
+(function () {
+  var form = document.querySelector(".search-bar");
+  if (!form) { return; }
+  form.querySelectorAll("input[type=checkbox]").forEach(function (caseFiltre) {
+    caseFiltre.addEventListener("change", function () { form.submit(); });
+  });
+  ["q", "dept"].forEach(function (nom) {
+    var champ = form.querySelector('input[name="' + nom + '"]');
+    if (!champ) { return; }
+    champ.addEventListener("blur", function () {
+      if (champ.value.trim() !== champ.defaultValue) { form.submit(); }
     });
   });
 })();
