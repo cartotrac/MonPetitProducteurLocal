@@ -39,6 +39,9 @@ urlpatterns = [
          name="register_producer"),
     path("inscription/client/", views.register_client,
          name="register_client"),
+    path("verification/renvoyer/",
+         views.renvoyer_verification_courriel,
+         name="renvoyer_verification"),
 
     # Espace pro
     path("espace-pro/", views.dashboard, name="dashboard"),

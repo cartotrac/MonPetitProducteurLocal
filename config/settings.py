@@ -155,9 +155,15 @@ SITE_ID = 1
 # vérifié par Google, la photo de profil Google préremplit
 # ProfilClient.photo_url via l'adaptateur). Les inscriptions maison
 # (e-mail + mot de passe) restent gérées par les vues du portail.
-ACCOUNT_EMAIL_REQUIRED = True
+# allauth 65 : ACCOUNT_EMAIL_REQUIRED / ACCOUNT_USERNAME_REQUIRED sont
+# dépréciés (warnings account.W001) au profit d'ACCOUNT_SIGNUP_FIELDS.
+# Les inscriptions du portail passent par ses vues maison : ces réglages
+# ne gouvernent que le flux Google (e-mail vérifié par Google d'office).
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+# Connexion allauth (URLs non écrasées par notre /comptes/login/ maison) :
+# par e-mail uniquement, cohérent avec l'identifiant des comptes.
+ACCOUNT_LOGIN_METHODS = {"username": False, "email": True}
 ACCOUNT_EMAIL_VERIFICATION = "none"
-ACCOUNT_USERNAME_REQUIRED = False
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_EMAIL_REQUIRED = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = "none"

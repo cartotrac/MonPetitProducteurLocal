@@ -14,6 +14,10 @@ def _aide_mot_de_passe(form):
         "Au moins 8 caractères. Évitez les mots de passe trop courants.")
     form.fields["password2"].help_text = (
         "Retapez le mot de passe pour vérifier.")
+    # Gestionnaires de mots de passe du navigateur : à l'inscription,
+    # ne jamais proposer le mot de passe existant du compte.
+    form.fields["password1"].widget.attrs["autocomplete"] = "new-password"
+    form.fields["password2"].widget.attrs["autocomplete"] = "new-password"
 
 
 class InscriptionExploitantForm(UserCreationForm):
@@ -67,11 +71,22 @@ class InscriptionExploitantForm(UserCreationForm):
         label="Photo de profil externe (drive, cloud, réseau — rien "
               "n'est hébergé sur le portail)", required=False)
 
+    # Honeypot anti-bots : champ invisible, jamais rempli par un
+    # humain — un robot qui le renseigne fait échouer le formulaire.
+    pieux = forms.CharField(
+        label="", required=False,
+        widget=forms.HiddenInput(
+            attrs={"tabindex": -1, "autocomplete": "off"}))
+    accepte_conditions = forms.BooleanField(
+        label="J'accepte les conditions d'utilisation et la politique "
+              "de confidentialité",
+        required=True)
+
     field_order = ["nom_ferme", "est_demo", "activite", "specialite",
                    "adresse", "ville", "code_postal", "departement",
                    "latitude", "longitude", "first_name", "last_name",
-                   "email", "telephone", "photo_externe", "password1",
-                   "password2"]
+                   "email", "telephone", "photo_externe", "pieux",
+                   "accepte_conditions", "password1", "password2"]
 
     class Meta:
         model = User
@@ -93,6 +108,9 @@ class InscriptionExploitantForm(UserCreationForm):
 
     def clean(self):
         donnees = super().clean()
+        if donnees.get("pieux"):
+            # Honeypot rempli : robot — erreur volontairement générique.
+            raise forms.ValidationError("Formulaire invalide.")
         if (donnees.get("activite") == Exploitant.Activite.FOODTRUCK
                 and not donnees.get("specialite")):
             self.add_error(
@@ -107,6 +125,13 @@ class InscriptionExploitantForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         _aide_mot_de_passe(self)
+        # Autofocus sur le 1er champ + remplissage automatique du
+        # navigateur (identité) pour un parcours sans friction.
+        self.fields["nom_ferme"].widget.attrs["autofocus"] = "autofocus"
+        self.fields["first_name"].widget.attrs["autocomplete"] = "given-name"
+        self.fields["last_name"].widget.attrs["autocomplete"] = "family-name"
+        self.fields["email"].widget.attrs["autocomplete"] = "email"
+        self.fields["telephone"].widget.attrs["autocomplete"] = "tel"
         # Symboles d'activité dans le choix (même visuel que les
         # vignettes et pages publiques) et emojis de spécialité.
         self.fields["activite"].choices = [
@@ -195,12 +220,27 @@ class InscriptionFermeSeuleForm(forms.Form):
         widget=forms.NumberInput(attrs={"step": "any"}),
         help_text="Position sur la carte (optionnel)")
 
+    # Honeypot anti-bots + consentement CGU (cf. InscriptionClientForm) :
+    # le compte Google crée ici son espace pro sans retaper son identité,
+    # mais les conditions d'utilisation s'appliquent aussi à lui.
+    pieux = forms.CharField(
+        label="", required=False,
+        widget=forms.HiddenInput(
+            attrs={"tabindex": -1, "autocomplete": "off"}))
+    accepte_conditions = forms.BooleanField(
+        label="J'accepte les conditions d'utilisation et la politique "
+              "de confidentialité",
+        required=True)
+
     field_order = ["nom_ferme", "est_demo", "activite", "specialite",
                    "adresse", "ville", "code_postal", "departement",
-                   "latitude", "longitude"]
+                   "latitude", "longitude", "pieux", "accepte_conditions"]
 
     def clean(self):
         donnees = super().clean()
+        if donnees.get("pieux"):
+            # Honeypot rempli : robot — erreur volontairement générique.
+            raise forms.ValidationError("Formulaire invalide.")
         if (donnees.get("activite") == Exploitant.Activite.FOODTRUCK
                 and not donnees.get("specialite")):
             self.add_error(
@@ -260,8 +300,20 @@ class InscriptionClientForm(UserCreationForm):
         label="Photo de profil externe (drive, cloud, réseau — rien "
               "n'est hébergé sur le portail)", required=False)
 
+    # Honeypot anti-bots : champ invisible, jamais rempli par un
+    # humain — un robot qui le renseigne fait échouer le formulaire.
+    pieux = forms.CharField(
+        label="", required=False,
+        widget=forms.HiddenInput(
+            attrs={"tabindex": -1, "autocomplete": "off"}))
+    accepte_conditions = forms.BooleanField(
+        label="J'accepte les conditions d'utilisation et la politique "
+              "de confidentialité",
+        required=True)
+
     field_order = ["first_name", "last_name", "email", "telephone",
-                   "photo_externe", "password1", "password2"]
+                   "photo_externe", "pieux", "accepte_conditions",
+                   "password1", "password2"]
 
     class Meta:
         model = User
@@ -280,9 +332,23 @@ class InscriptionClientForm(UserCreationForm):
                 "mot de passe via « Mot de passe oublié ? ».")
         return email
 
+    def clean(self):
+        donnees = super().clean()
+        if donnees.get("pieux"):
+            # Honeypot rempli : robot — erreur volontairement générique.
+            raise forms.ValidationError("Formulaire invalide.")
+        return donnees
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         _aide_mot_de_passe(self)
+        # Autofocus sur le 1er champ + remplissage automatique du
+        # navigateur (identité) pour un parcours sans friction.
+        self.fields["first_name"].widget.attrs["autofocus"] = "autofocus"
+        self.fields["first_name"].widget.attrs["autocomplete"] = "given-name"
+        self.fields["last_name"].widget.attrs["autocomplete"] = "family-name"
+        self.fields["email"].widget.attrs["autocomplete"] = "email"
+        self.fields["telephone"].widget.attrs["autocomplete"] = "tel"
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -306,6 +372,11 @@ class ConnexionForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["username"].label = "Nom d'utilisateur ou e-mail"
+        # Autofocus + gestionnaires de mots de passe du navigateur :
+        # le bon mot de passe est proposé au bon endroit.
+        self.fields["username"].widget.attrs["autofocus"] = "autofocus"
+        self.fields["username"].widget.attrs["autocomplete"] = "username"
+        self.fields["password"].widget.attrs["autocomplete"] = "current-password"
 
     def clean_username(self):
         username = self.cleaned_data.get("username")

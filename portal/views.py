@@ -24,6 +24,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
+from allauth.account.utils import send_email_confirmation
+
 from .forms import (AnnonceForm, BulletinForm, InscriptionClientForm,
                     InscriptionExploitantForm, InscriptionFermeSeuleForm,
                     MessagerieForm, ProduitForm, ProfilExploitantForm,
@@ -1010,6 +1012,7 @@ def register_exploitant(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
+            _envoyer_verification_courriel(request, user)
             messages.success(
                 request, "Bienvenue ! Votre espace producteur est prêt. "
                 "Complétez votre fiche (SIRET, logo, description, points de "
@@ -1022,6 +1025,20 @@ def register_exploitant(request):
                   {"form": form})
 
 
+def _envoyer_verification_courriel(request, user):
+    """Mode doux : envoie l'e-mail de vérification de l'adresse du
+    compte si un serveur SMTP est configuré (sans EMAIL_HOST, le backend
+    console ne réalise aucun envoi réel : le compte reste utilisable,
+    le bandeau n'apparaît pas — jamais bloquant)."""
+    if getattr(settings, "EMAIL_HOST", ""):
+        try:
+            send_email_confirmation(request, user, signup=True)
+            return True
+        except Exception:
+            pass
+    return False
+
+
 def register_client(request):
     if request.user.is_authenticated:
         # Déjà connecté (ex : retour via Google) : pas de second compte.
@@ -1031,12 +1048,40 @@ def register_client(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
+            if _envoyer_verification_courriel(request, user):
+                messages.info(
+                    request, "📬 Un e-mail de vérification vous attend : "
+                    "un clic sur le lien confirme votre adresse (utile "
+                    "pour la récupération de mot de passe et pour la "
+                    "connexion Google).")
             messages.success(request, "Compte client créé. À vous de commander !")
             return redirect("portal:apres_connexion")
     else:
         form = InscriptionClientForm()
     return render(request, "portal/registration/register_client.html",
                   {"form": form})
+
+
+@login_required
+def renvoyer_verification_courriel(request):
+    """Bandeau « Vérifiez votre e-mail » : renvoie l'e-mail de
+    vérification à la demande (mode doux, non bloquant)."""
+    if request.method == "POST" and getattr(settings, "EMAIL_HOST", ""):
+        try:
+            send_email_confirmation(request, request.user, signup=False)
+            messages.success(
+                request, "📬 E-mail de vérification renvoyé : regardez "
+                "votre boîte de réception (et vos spams).")
+        except Exception:
+            messages.error(
+                request, "Envoi impossible pour le moment : réessayez "
+                "plus tard.")
+    suivant = request.POST.get("suivant") or ""
+    # Redirection interne uniquement : jamais de renvoi vers un site
+    # externe, même si la valeur vient du client.
+    if suivant.startswith("/") and not suivant.startswith("//"):
+        return redirect(suivant)
+    return redirect("portal:home")
 
 
 def est_exploitant(user):

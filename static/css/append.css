@@ -1924,3 +1924,12 @@ html.dark .search-bar input.filtre-vide {
        multiples du mode All-in-1 : une pastille colorée par famille
        de métier sous le graphe du second badge. ===== */
 .stats-legende{display:flex;flex-wrap:wrap;gap:.35rem .9rem;margin-top:.4rem;font-size:.73rem;color:#6b7280}
+
+
+/* ── Parcours d'entrée : case CGU, bandeau « Vérifiez votre e-mail » ── */
+.champ-conditions{display:flex;align-items:flex-start;gap:.55rem;margin:1.1rem 0;font-size:.95rem}
+.champ-conditions label{font-weight:400;margin:0}
+.champ-conditions ul{list-style:none;margin:.3rem 0 0;padding:0;color:#b3261e}
+.bandeau-verification{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap}
+.bandeau-verification form{display:inline;margin:0}
+.bandeau-verification .btn{padding:.25rem .7rem;font-size:.9rem}

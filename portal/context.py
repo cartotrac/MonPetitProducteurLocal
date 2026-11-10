@@ -55,6 +55,19 @@ def instance_contexte(request):
                 defaults={"derniere_visite": timezone.now()})
     except Exception:
         pass  # comptage d'audience : jamais bloquant pour l'affichage
+    # Bandeau « Vérifiez votre e-mail » (mode doux, non bloquant) :
+    # affiché pour un compte connecté dont l'adresse n'est pas encore
+    # confirmée — seulement si un SMTP est configuré. Les comptes créés
+    # via Google sont vérifiés d'office : pas de bandeau pour eux.
+    courriel_a_verifier = False
+    if (getattr(settings, "EMAIL_HOST", "")
+            and request.user.is_authenticated):
+        try:
+            from allauth.account.models import EmailAddress
+            courriel_a_verifier = not EmailAddress.objects.filter(
+                user=request.user, verified=True).exists()
+        except Exception:
+            pass  # bandeau indicatif : jamais bloquant pour l'affichage
     return {
         "instance_admin_nom": admin.get("nom", ""),
         "instance_admin_url": admin.get("url", ""),
@@ -62,4 +75,5 @@ def instance_contexte(request):
         # « Continuer avec Google » : bouton affiché seulement si un
         # client OAuth est configuré (GOOGLE_CLIENT_ID dans .env).
         "google_connexion": bool(getattr(settings, "GOOGLE_CLIENT_ID", "")),
+        "courriel_a_verifier": courriel_a_verifier,
     }

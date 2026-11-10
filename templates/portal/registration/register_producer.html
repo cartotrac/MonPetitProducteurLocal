@@ -11,6 +11,7 @@
    la page ⚙️ Paramètres.</p>
 <form method="post" class="form">
   {% csrf_token %}
+  {{ form.pieux }}
   {% if form.non_field_errors %}
     <div class="flash warning">⚠️ Merci de corriger les champs indiqués ci-dessous.</div>
   {% endif %}
@@ -134,6 +135,13 @@
     </div>
   </section>
 
+  <div class="form-champ champ-conditions">
+    {{ form.accepte_conditions }}
+    <label for="{{ form.accepte_conditions.id_for_label }}">J'accepte les
+      <a href="{% url 'portal:conditions_utilisation' %}">conditions d'utilisation</a> et la
+      <a href="{% url 'portal:politique_confidentialite' %}">politique de confidentialité</a>.</label>
+    {{ form.accepte_conditions.errors }}
+  </div>
   <div class="save-bar">
     <button class="btn btn-lg" type="submit">Créer mon espace pro</button>
   </div>

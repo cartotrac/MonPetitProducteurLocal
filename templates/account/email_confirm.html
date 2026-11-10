@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Vérification de l'e-mail — MonPetitProducteurLocal{% endblock %}
+{% block content %}
+<h1>📬 Vérification de l'e-mail</h1>
+{% if success %}
+  <div class="flash success">✅ Votre adresse e-mail est vérifiée : votre
+  compte est sécurisé (récupération de mot de passe, connexion Google).</div>
+{% elif can_confirm %}
+  <div class="flash warning">⚠️ Ce lien de vérification n'est pas valide
+  ou a déjà été utilisé : demandez un nouvel e-mail depuis le bandeau de
+  votre compte.</div>
+{% else %}
+  <div class="flash warning">⚠️ Lien de vérification inconnu : demandez un
+  nouvel e-mail depuis le bandeau de votre compte.</div>
+{% endif %}
+<p><a class="btn" href="{% url 'portal:home' %}">Retour à l'accueil</a></p>
+{% endblock %}

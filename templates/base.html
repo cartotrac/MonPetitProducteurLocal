@@ -98,6 +98,17 @@
   {% for message in messages %}
     <div class="flash {{ message.tags }}">{{ message }}</div>
   {% endfor %}
+  {% if courriel_a_verifier %}
+    <div class="flash warning bandeau-verification">
+      📬 <strong>Vérifiez votre e-mail</strong> pour sécuriser votre compte
+      (récupération de mot de passe, connexion Google).
+      <form method="post" class="inline" action="{% url 'portal:renvoyer_verification' %}">
+        {% csrf_token %}
+        <input type="hidden" name="suivant" value="{{ request.path }}">
+        <button class="btn" type="submit">Renvoyer l'e-mail de vérification</button>
+      </form>
+    </div>
+  {% endif %}
   {% if mode_pro %}
     {% block retour_dashboard %}{% endblock %}
   {% endif %}

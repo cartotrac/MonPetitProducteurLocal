@@ -1,0 +1,16 @@
+Bonjour,
+
+Un compte vient d'être créé sur MonPetitProducteurLocal avec cette
+adresse e-mail. Pour confirmer qu'elle vous appartient, ouvrez le lien
+ci-dessous :
+
+{{ activate_url }}
+
+En vérifiant votre adresse, vous sécurisez votre compte : la récupération
+de mot de passe et la connexion « Continuer avec Google » fonctionneront
+sans friction.
+
+Si vous n'êtes pas à l'origine de cette demande, ignorez simplement ce
+message.
+
+— L'équipe MonPetitProducteurLocal
