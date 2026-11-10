@@ -1859,6 +1859,33 @@ html.dark .stats-mini { color: #aab599; }
 html.dark .stats-chart svg.stats-svg polyline { stroke: #aed581; }
 html.dark .stats-chart svg.stats-svg circle { fill: #aed581; }
 
+/* ===== Fenêtres de stats : options compactes SANS libellés (les
+       valeurs des listes suffisent) et pourcentage d'évolution —
+       vert à la hausse, rouge à la baisse — à côté de l'effectif. ===== */
+.stats-options select { margin: 0; }
+.stats-pct { font-size: 0.8rem; font-weight: 700; }
+.stats-pct.hausse { color: #2e7d32; }
+.stats-pct.baisse { color: #c62828; }
+.stats-pct.stable { color: #66705c; }
+html.dark .stats-pct.hausse { color: #9ccc65; }
+html.dark .stats-pct.baisse { color: #ef9a9a; }
+html.dark .stats-pct.stable { color: #aab599; }
+
+/* ===== Légende All-in-1 : titres des groupes thématiques. ===== */
+.map-legend .legend-titre {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.04em; color: #55624a;
+  margin: 0.35rem 0 0.1rem; border-top: 1px solid #c9d6bd;
+  padding-top: 0.25rem;
+}
+.map-legend .legend-titre:first-child {
+  margin-top: 0; border-top: 0; padding-top: 0;
+}
+html.dark .map-legend .legend-titre {
+  color: #aab599; border-top-color: #55624a;
+}
+
+
 
 
 

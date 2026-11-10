@@ -16,38 +16,36 @@
 {% endif %}
 <div class="entete-chercher">
   <div class="titre-recherche">
-    <h1>{% if visu == "restauration" %}🍽️ Trouver un Restaurant, un Traiteur ou un Foodtruck autour de moi !{% elif visu == "marches" %}🎪 Retrouver mes producteurs locaux au Marché ou en Boutique{% elif visu == "tout" %}🌍 Tout l'univers du local : producteurs, restauration &amp; foodtrucks réunis !{% else %}🔍 Trouver mon producteur local !{% endif %}</h1>
+    <h1>{% if visu == "restauration" %}🍽️ Trouver un Restaurant, un Traiteur ou un Foodtruck autour de moi !{% elif visu == "marches" %}🎪 Retrouver mes producteurs locaux au Marché ou en Boutique{% elif visu == "tout" %}🌍 Tout l'univers du local : producteurs, restauration, marchés &amp; boutiques réunis !{% else %}🔍 Trouver mon producteur local !{% endif %}</h1>
     <button type="button" id="bascule-demo" class="bascule-demo{% if demo %} actif{% endif %}" title="{% if demo %}Démo{% else %}Réel{% endif %}" aria-pressed="{% if demo %}true{% else %}false{% endif %}" aria-label="Bascule Démo / Réel : afficher ou masquer les comptes de démonstration">
       <span class="bascule-piste"><span class="bascule-curseur"></span></span>
       <span class="bascule-icone">{% if demo %}🎃{% else %}🧡{% endif %}</span>
     </button>
   </div>
-  <span class="mode-chip {% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% else %}producteurs{% endif %}">{% if visu == "restauration" %}🍽️ Mode restauration : restaurants, traiteurs &amp; emplacements de foodtrucks{% elif visu == "marches" %}🎪 Mode marchés : marchés &amp; boutiques de producteurs — identifiés d'après leurs points et créneaux déclarés{% elif visu == "tout" %}🌍 Mode All-in-1 : producteurs, restauration &amp; foodtrucks réunis sur la même carte{% else %}🥬 Mode producteurs : fermes &amp; productions locales{% endif %}</span>
+  <span class="mode-chip {% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% else %}producteurs{% endif %}">{% if visu == "restauration" %}🍽️ Mode restauration : restaurants, traiteurs &amp; emplacements de foodtrucks{% elif visu == "marches" %}🎪 Mode marchés : marchés &amp; boutiques de producteurs — identifiés d'après leurs points et créneaux déclarés{% elif visu == "tout" %}🌍 Mode All-in-1 : producteurs, restauration, marchés &amp; boutiques réunis sur la même carte{% else %}🥬 Mode producteurs : fermes &amp; productions locales{% endif %}</span>
   <div class="stats-portail">
     <span class="stats-item">
       <button type="button" class="badge badge-activite" data-stats="producteurs">🤝 {{ nb_pros }} professionnel{{ nb_pros|pluralize }} nous font confiance</button>
       <div class="stats-pop" data-serie="producteurs">
         <strong>📈 Historique des professionnels inscrits</strong>
         <div class="stats-options">
-          <label>Période
-            <select class="stats-opt" data-opt="periode">
-              <option value="7">7 jours</option>
-              <option value="30" selected>30 jours</option>
-              <option value="90">90 jours</option>
-            </select></label>
-          <label>Affichage
-            <select class="stats-opt" data-opt="affichage">
-              <option value="barres" selected>Barres</option>
-              <option value="courbe">Courbe</option>
-            </select></label>
-          <label>Valeurs
-            <select class="stats-opt" data-opt="valeurs">
-              <option value="jour" selected>Par jour</option>
-              <option value="cumul">Cumulé</option>
-            </select></label>
+          <select class="stats-opt" data-opt="periode" title="Période affichée">
+            <option value="7">7 jours</option>
+            <option value="30" selected>30 jours</option>
+            <option value="90">90 jours</option>
+          </select>
+          <select class="stats-opt" data-opt="affichage" title="Barres ou courbe">
+            <option value="barres">Barres</option>
+            <option value="courbe" selected>Courbe</option>
+          </select>
+          <select class="stats-opt" data-opt="valeurs" title="Valeurs du jour ou cumulées">
+            <option value="jour" selected>Par jour</option>
+            <option value="cumul">Cumulé</option>
+          </select>
         </div>
         <div class="stats-lecture">
           <span class="stats-tendance" data-role="tendance"></span>
+          <span class="stats-pct" data-role="pct"></span>
           <span class="stats-mini" data-role="mini"></span>
         </div>
         <div class="stats-chart" data-role="chart"></div>
@@ -57,30 +55,28 @@
     <span class="stats-item">
       {% if visu == "marches" %}<button type="button" class="badge badge-marche" data-stats="producteurs">🎪 {{ nb_marches }} marché{{ nb_marches|pluralize }} &amp; 🏪 {{ nb_boutiques }} boutique{{ nb_boutiques|pluralize }} de producteur{{ nb_boutiques|pluralize }}</button>
       {% elif visu == "restauration" %}<button type="button" class="badge badge-activite" data-stats="producteurs">🥗 {{ nb_traiteurs }} traiteur{{ nb_traiteurs|pluralize }} · 🍽️ {{ nb_restaurants }} restaurant{{ nb_restaurants|pluralize }} &amp; 🚚 {{ nb_foodtrucks }} foodtruck{{ nb_foodtrucks|pluralize }}</button>
-      {% elif visu == "tout" %}<button type="button" class="badge badge-ab" data-stats="producteurs">🥬 {{ nb_producteurs_locaux }} producteur{{ nb_producteurs_locaux|pluralize }} · 🥗 {{ nb_traiteurs }} traiteur{{ nb_traiteurs|pluralize }} · 🍽️ {{ nb_restaurants }} restaurant{{ nb_restaurants|pluralize }} &amp; 🚚 {{ nb_foodtrucks }} foodtruck{{ nb_foodtrucks|pluralize }}</button>
+      {% elif visu == "tout" %}<button type="button" class="badge badge-ab" data-stats="producteurs">🥬 {{ nb_producteurs_locaux }} producteur{{ nb_producteurs_locaux|pluralize }} · 🥗 {{ nb_traiteurs }} traiteur{{ nb_traiteurs|pluralize }} · 🍽️ {{ nb_restaurants }} restaurant{{ nb_restaurants|pluralize }} &amp; 🚚 {{ nb_foodtrucks }} foodtruck{{ nb_foodtrucks|pluralize }} · 🎪 {{ nb_marches }} marché{{ nb_marches|pluralize }} &amp; 🏪 {{ nb_boutiques }} boutique{{ nb_boutiques|pluralize }}</button>
       {% else %}<button type="button" class="badge badge-ab" data-stats="producteurs">🥬 {{ nb_producteurs_locaux }} {% if nb_producteurs_locaux > 1 %}producteurs locaux{% else %}producteur local{% endif %}</button>{% endif %}
       <div class="stats-pop" data-serie="producteurs">
         <strong>📈 Historique des professionnels inscrits</strong>
         <div class="stats-options">
-          <label>Période
-            <select class="stats-opt" data-opt="periode">
-              <option value="7">7 jours</option>
-              <option value="30" selected>30 jours</option>
-              <option value="90">90 jours</option>
-            </select></label>
-          <label>Affichage
-            <select class="stats-opt" data-opt="affichage">
-              <option value="barres" selected>Barres</option>
-              <option value="courbe">Courbe</option>
-            </select></label>
-          <label>Valeurs
-            <select class="stats-opt" data-opt="valeurs">
-              <option value="jour" selected>Par jour</option>
-              <option value="cumul">Cumulé</option>
-            </select></label>
+          <select class="stats-opt" data-opt="periode" title="Période affichée">
+            <option value="7">7 jours</option>
+            <option value="30" selected>30 jours</option>
+            <option value="90">90 jours</option>
+          </select>
+          <select class="stats-opt" data-opt="affichage" title="Barres ou courbe">
+            <option value="barres">Barres</option>
+            <option value="courbe" selected>Courbe</option>
+          </select>
+          <select class="stats-opt" data-opt="valeurs" title="Valeurs du jour ou cumulées">
+            <option value="jour" selected>Par jour</option>
+            <option value="cumul">Cumulé</option>
+          </select>
         </div>
         <div class="stats-lecture">
           <span class="stats-tendance" data-role="tendance"></span>
+          <span class="stats-pct" data-role="pct"></span>
           <span class="stats-mini" data-role="mini"></span>
         </div>
         <div class="stats-chart" data-role="chart"></div>
@@ -92,25 +88,23 @@
       <div class="stats-pop" data-serie="clients">
         <strong>📈 Historique des clients inscrits</strong>
         <div class="stats-options">
-          <label>Période
-            <select class="stats-opt" data-opt="periode">
-              <option value="7">7 jours</option>
-              <option value="30" selected>30 jours</option>
-              <option value="90">90 jours</option>
-            </select></label>
-          <label>Affichage
-            <select class="stats-opt" data-opt="affichage">
-              <option value="barres" selected>Barres</option>
-              <option value="courbe">Courbe</option>
-            </select></label>
-          <label>Valeurs
-            <select class="stats-opt" data-opt="valeurs">
-              <option value="jour" selected>Par jour</option>
-              <option value="cumul">Cumulé</option>
-            </select></label>
+          <select class="stats-opt" data-opt="periode" title="Période affichée">
+            <option value="7">7 jours</option>
+            <option value="30" selected>30 jours</option>
+            <option value="90">90 jours</option>
+          </select>
+          <select class="stats-opt" data-opt="affichage" title="Barres ou courbe">
+            <option value="barres">Barres</option>
+            <option value="courbe" selected>Courbe</option>
+          </select>
+          <select class="stats-opt" data-opt="valeurs" title="Valeurs du jour ou cumulées">
+            <option value="jour" selected>Par jour</option>
+            <option value="cumul">Cumulé</option>
+          </select>
         </div>
         <div class="stats-lecture">
           <span class="stats-tendance" data-role="tendance"></span>
+          <span class="stats-pct" data-role="pct"></span>
           <span class="stats-mini" data-role="mini"></span>
         </div>
         <div class="stats-chart" data-role="chart"></div>
@@ -122,25 +116,23 @@
       <div class="stats-pop" data-serie="visiteurs">
         <strong>📈 Historique des visites</strong>
         <div class="stats-options">
-          <label>Période
-            <select class="stats-opt" data-opt="periode">
-              <option value="7">7 jours</option>
-              <option value="30" selected>30 jours</option>
-              <option value="90">90 jours</option>
-            </select></label>
-          <label>Affichage
-            <select class="stats-opt" data-opt="affichage">
-              <option value="barres" selected>Barres</option>
-              <option value="courbe">Courbe</option>
-            </select></label>
-          <label>Valeurs
-            <select class="stats-opt" data-opt="valeurs">
-              <option value="jour" selected>Par jour</option>
-              <option value="cumul">Cumulé</option>
-            </select></label>
+          <select class="stats-opt" data-opt="periode" title="Période affichée">
+            <option value="7">7 jours</option>
+            <option value="30" selected>30 jours</option>
+            <option value="90">90 jours</option>
+          </select>
+          <select class="stats-opt" data-opt="affichage" title="Barres ou courbe">
+            <option value="barres">Barres</option>
+            <option value="courbe" selected>Courbe</option>
+          </select>
+          <select class="stats-opt" data-opt="valeurs" title="Valeurs du jour ou cumulées">
+            <option value="jour" selected>Par jour</option>
+            <option value="cumul">Cumulé</option>
+          </select>
         </div>
         <div class="stats-lecture">
           <span class="stats-tendance" data-role="tendance"></span>
+          <span class="stats-pct" data-role="pct"></span>
           <span class="stats-mini" data-role="mini"></span>
         </div>
         <div class="stats-chart" data-role="chart"></div>
@@ -159,10 +151,10 @@
     <button type="button" data-visu="" class="mode-bouton producteurs{% if not visu %} actif{% endif %}" title="Fermes et productions locales : maraîchers, éleveurs, fromageries…">🥬 Producteurs</button>
     <button type="button" data-visu="restauration" class="mode-bouton restauration{% if visu == "restauration" %} actif{% endif %}" title="Repas : restaurants, traiteurs et emplacements de foodtrucks">🍽️ Restauration &amp; Foodtrucks</button>
     <button type="button" data-visu="marches" class="mode-bouton marches{% if visu == "marches" %} actif{% endif %}" title="Marchés et boutiques où retrouver les producteurs locaux">🎪 Marchés &amp; Boutiques</button>
-    <button type="button" data-visu="tout" class="mode-bouton tout{% if visu == "tout" %} actif{% endif %}" title="Tout afficher : producteurs, restauration &amp; foodtrucks réunis sur la même carte">🌍 All-in-1</button>
+    <button type="button" data-visu="tout" class="mode-bouton tout{% if visu == "tout" %} actif{% endif %}" title="Tout afficher : producteurs, restauration, marchés &amp; boutiques sur la même carte">🌍 All-in-1</button>
   </div>
   <div class="map-canvas-wrap{% if visu == "restauration" %} visu-restauration{% elif visu == "marches" %} visu-marches{% endif %}">
-    <h2 class="map-titre">🗺️ {% if visu == "restauration" %}Restaurants, traiteurs &amp; foodtrucks trouvés{% elif visu == "marches" %}Marchés &amp; boutiques identifiés{% elif visu == "tout" %}Tous les professionnels du local trouvés{% else %}Producteurs trouvés{% endif %}{% if carte_data %} ({{ carte_data|length }}){% endif %}</h2>
+    <h2 class="map-titre">🗺️ {% if visu == "restauration" %}Restaurants, traiteurs &amp; foodtrucks trouvés{% elif visu == "marches" %}Marchés &amp; boutiques identifiés{% elif visu == "tout" %}Tous les professionnels, marchés &amp; boutiques trouvés{% else %}Producteurs trouvés{% endif %}{% if carte_data %} ({{ carte_data|length }}){% endif %}</h2>
     {% if carte_data %}
       <div id="carte-recherche" class="map-canvas" data-mode="{% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% elif visu == "tout" %}tout{% else %}producteurs{% endif %}" data-zone="{{ dept }}" data-csrf="{{ csrf_token }}"></div>
       {{ carte_data|json_script:"donnees-carte" }}
@@ -212,7 +204,7 @@
   {% endif %}
   <input type="text" name="q" placeholder="{% if visu == 'marches' %}Marché, boutique…{% elif visu == 'restauration' %}Plat, carte, nom…{% elif visu == 'tout' %}Produit, ferme, plat, marché…{% else %}Produit, ferme…{% endif %}" value="{{ q }}">
   <input type="text" name="dept" placeholder="Département, région ou code postal…" title="Zoome la carte sur un département (nom ou numéro), une région ou un code postal — les vignettes suivent l'emprise" value="{{ dept }}" size="14">
-  {% if not visu or visu == "tout" %}
+  {% if not visu %}
   <details class="filtre-multi">
     <summary>🌱 Modes de production{% if mode_choisi %} ({{ mode_choisi|length }}){% endif %} ▾</summary>
     <div class="filtre-multi-menu">
@@ -439,6 +431,24 @@
       tendance.textContent = (delta > 0 ? "↗ +" + delta
                                : delta < 0 ? "↘ " + delta
                                : "→ stable") + " sur " + periode + " jours";
+    }
+    var pctSpan = pop.querySelector('[data-role="pct"]');
+    if (pctSpan && journalier.length) {
+      var premier = journalier[0].valeur || 0;
+      var dernier = journalier[journalier.length - 1].valeur || 0;
+      if (premier > 0) {
+        var pourcent = 100 * (dernier - premier) / premier;
+        pctSpan.className = "stats-pct " +
+          (pourcent > 0 ? "hausse" : pourcent < 0 ? "baisse" : "stable");
+        pctSpan.textContent = (pourcent > 0 ? "+" : "") +
+          pourcent.toFixed(1).replace(".", ",") + " %";
+      } else if (dernier > 0) {
+        pctSpan.className = "stats-pct hausse";
+        pctSpan.textContent = "+100 %";
+      } else {
+        pctSpan.className = "stats-pct stable";
+        pctSpan.textContent = "";
+      }
     }
     var mini = pop.querySelector('[data-role="mini"]');
     if (mini && journalier.length) {

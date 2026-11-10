@@ -366,12 +366,12 @@ def producer_search(request):
         exploitants = exploitants.exclude(
             activite__in=activites_restauration)
     exploitants = list(exploitants.order_by("nom_ferme"))
-    # Marchés & boutiques identifiés (mode marches) : entités
-    # virtuelles recalculées à la demande ; les filtres texte et
-    # département s'y appliquent aussi (nom, ville, adresse, CP).
+    # Marchés & boutiques identifiés (modes marches et All-in-1) :
+    # entités virtuelles recalculées à la demande ; les filtres texte
+    # et département s'y appliquent aussi (nom, ville, adresse, CP).
     marches = []
     type_marche_choisi = []
-    if visu_marches:
+    if visu_marches or visu == "tout":
         marches = identifier_marches(inclure_demo=demo)
         if q:
             marches = [m for m in marches if q.lower() in (
@@ -456,26 +456,30 @@ def producer_search(request):
     # Données carto : uniquement les résultats filtrés avec
     # coordonnées — en mode marches, les entités affichées sont les
     # marchés et boutiques identifiés (même bloc json_script, la clé
-    # est_marche les distingue côté JS).
+    # est_marche les distingue côté JS). En mode All-in-1, les
+    # marchés et boutiques identifiés s'AJOUTENT aux professionnels.
+    marches_carte = ([{
+        "est_marche": True,
+        "nom": m["nom"],
+        "type": m["type"],
+        "symbole": m["symbole"],
+        "ville": m["ville"],
+        "latitude": m["latitude"],
+        "longitude": m["longitude"],
+        "url": m["url"],
+        "nb_producteurs": m["nb_producteurs"],
+        "horaires_txt": m["horaires_txt"][:4],
+    } for m in marches]
+        if (visu_marches or visu == "tout") else [])
     if visu_marches:
-        carte_data = [{
-            "est_marche": True,
-            "nom": m["nom"],
-            "type": m["type"],
-            "symbole": m["symbole"],
-            "ville": m["ville"],
-            "latitude": m["latitude"],
-            "longitude": m["longitude"],
-            "url": m["url"],
-            "nb_producteurs": m["nb_producteurs"],
-            "horaires_txt": m["horaires_txt"][:4],
-        } for m in marches]
+        carte_data = marches_carte
     else:
         # Position dynamique des foodtrucks : emplacement du créneau
         # en cours ou du prochain arrêt s'ils sont définis, adresse
         # déclarée sinon — la carte retranscrit leur emplacement au
-        # moment de la recherche (cas nomades).
-        carte_data = []
+        # moment de la recherche (cas nomades). En mode All-in-1, la
+        # carte commence par les marchés et boutiques identifiés.
+        carte_data = list(marches_carte)
         for e in exploitants:
             lat, lon, libelle_position = e.latitude, e.longitude, ""
             if e.activite == Exploitant.Activite.FOODTRUCK:

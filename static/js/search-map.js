@@ -232,12 +232,37 @@ legend.onAdd = function () {
      porte le dénombrement des entités VISIBLES dans l'emprise. */
   var symboles = document.createElement("div");
   symboles.className = "legend-symbole";
+  function ligneLegend(cle, libelle) {
+    return '<span data-activite="' + cle + '">' + libelle +
+           ' <em class="legend-nb"></em></span>';
+  }
   if (modeCarte === "marches") {
     /* Mode marchés : deux symboles seulement — les marchés et les
        boutiques de producteurs détectés, dénombrés dans l'emprise. */
     symboles.innerHTML =
-      '<span data-activite="MARCHE">🎪 Marchés <em class="legend-nb"></em></span>' +
-      '<span data-activite="BOUTIQUE">🏪 Boutiques <em class="legend-nb"></em></span>';
+      ligneLegend("MARCHE", "🎪 Marchés") +
+      ligneLegend("BOUTIQUE", "🏪 Boutiques");
+  } else if (modeCarte === "tout") {
+    /* Mode All-in-1 : légende en trois groupes thématiques —
+       producteurs, restauration, puis marchés & boutiques (tous
+       dénombrés dans l'emprise, comme les autres modes). */
+    var groupesLegend = [
+      { titre: "🥬 Producteurs",
+        cles: activitesDuMode().filter(function (cle) {
+          return ACTIVITES_RESTAURATION.indexOf(cle) < 0; }) },
+      { titre: "🍽️ Restauration",
+        cles: activitesDuMode().filter(function (cle) {
+          return ACTIVITES_RESTAURATION.indexOf(cle) >= 0; }) },
+      { titre: "🎪 Marchés & Boutiques",
+        fixes: [ligneLegend("MARCHE", "🎪 Marchés"),
+                ligneLegend("BOUTIQUE", "🏪 Boutiques")] }
+    ];
+    symboles.innerHTML = groupesLegend.map(function (grp) {
+      return '<div class="legend-titre">' + grp.titre + "</div>" +
+        (grp.fixes ? grp.fixes.join("")
+         : grp.cles.map(function (cle) {
+             return ligneLegend(cle, ACTIVITES[cle]); }).join(""));
+    }).join("");
   } else {
     symboles.innerHTML = activitesDuMode().map(function (cle) {
       return '<span data-activite="' + cle + '">' + ACTIVITES[cle] +
