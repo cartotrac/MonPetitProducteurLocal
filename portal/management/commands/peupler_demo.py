@@ -1399,13 +1399,13 @@ FERMES = [
         "Miel toutes fleurs, châtaignier et pollen frais ; vente au "
         "rucher mardi et vendredi soirs."),
     _ferme_spec(
-        "demo.microbrasseur", "Brasserie de la Vère", A.MICROBRASSEUR,
+        "demo.microbrasseur", "Brasserie de la Vère", A.MICRO_BRASSEUR,
         M.AB, "81170", "Route du Causse, lieu-dit La Serre",
         "Cordes-sur-Ciel", 43.920, 1.939, "05 63 00 00 54",
         "Blondes, ambrées et blanches bio de la vallée de la Vère, "
         "brassées à Cordes-sur-Ciel avec l'orge de Gaillac.",
         Decimal("4.20"),
-        [{"activite": A.MICROBRASSEUR, "limite": 15}],
+        [{"activite": A.MICRO_BRASSEUR, "limite": 15}],
         [("Boutique de la Brasserie", "Route du Causse",
           "Cordes-sur-Ciel", "81170", 43.919, 1.937),
          ("Marché de Cordes", "Place de la Halle",
@@ -1681,7 +1681,7 @@ FERMES = [
         Decimal("2.90"),
         [{"activite": A.ARBORICULTEUR, "categorie": "Fruits",
           "limite": 15},
-         {"activite": A.MICROBRASSEUR, "limite": 2}],
+         {"activite": A.MICRO_BRASSEUR, "limite": 2}],
         [("Marché de Castres", "Place Jean-Jaurès",
           "Castres", "81100", 43.606, 2.241)],
         [(4, "16:00", "19:00", 0), (6, "08:00", "12:00", 0)],
@@ -1895,12 +1895,12 @@ FERMES = [
         "Rouge ; boutique et marché de Réalmont."),
     _ferme_spec(
         "demo.castres.microbrasseur", "Brasserie de l'Agout",
-        A.MICROBRASSEUR, M.AB, "81100", "Rue de l'Ancienne Gare",
+        A.MICRO_BRASSEUR, M.AB, "81100", "Rue de l'Ancienne Gare",
         "Castres", 43.610, 2.225, "05 63 00 00 83",
         "Bières artisanales brassées à Castres ; blondes, "
         "ambrées et IPAs, dégustation à la brasserie.",
         Decimal("4.50"),
-        [{"activite": A.MICROBRASSEUR, "limite": 14}],
+        [{"activite": A.MICRO_BRASSEUR, "limite": 14}],
         [("Boutique de la Gare", "Rue de l'Ancienne Gare",
           "Castres", "81100", 43.610, 2.225)],
         [(2, "16:00", "19:00", 0), (5, "16:00", "19:00", 0)],
@@ -1909,13 +1909,13 @@ FERMES = [
         "Bières artisanales de Castres ; dégustation et vente à "
         "la brasserie, mardi et vendredi soirs."),
     _ferme_spec(
-        "demo.albi.microbrasseur", "Brasserie du Vigan", A.MICROBRASSEUR,
+        "demo.albi.microbrasseur", "Brasserie du Vigan", A.MICRO_BRASSEUR,
         M.AB, "81000", "Rue de la Verrerie",
         "Albi", 43.927, 2.155, "05 63 00 00 84",
         "Blanches et blondes bio de la cité épiscopale ; bière "
         "au miel de l'Albigeois et cuvées de saison.",
         Decimal("4.60"),
-        [{"activite": A.MICROBRASSEUR, "limite": 13},
+        [{"activite": A.MICRO_BRASSEUR, "limite": 13},
          {"activite": A.APICULTEUR, "limite": 2}],
         [("Boutique du Vigan", "Rue de la Verrerie",
           "Albi", "81000", 43.927, 2.155),
