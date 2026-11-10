@@ -55,7 +55,7 @@
               <a href="{% url 'portal:ventes' %}">🧾 Ventes</a>
               <a href="{% url 'portal:points_manage' %}">📍 Modalités</a>
               {% if exploitant_courant and exploitant_courant.a_carte_boutique %}
-              <a href="{% url 'portal:cartes_manage' %}">🧾 Ma carte / boutique</a>
+              <a href="{% url 'portal:cartes_manage' %}">🧾 {{ exploitant_courant.titre_carte_boutique }}</a>
               {% endif %}
               <a href="{% url 'portal:mes_producteurs' %}">⭐ Mes favoris</a>
             </div>

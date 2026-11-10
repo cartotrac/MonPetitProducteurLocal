@@ -368,18 +368,21 @@ class Exploitant(models.Model):
     def a_carte_boutique(self):
         return self.activite in (self.Activite.FOODTRUCK,
                                  self.Activite.TRAITEUR,
+                                 self.Activite.RESTAURANT,
                                  self.Activite.FROMAGER,
                                  self.Activite.APICULTEUR,
                                  self.Activite.MICRO_BRASSEUR,
-                                 self.Activite.CONSERVERIE)
+                                 self.Activite.CONSERVERIE,
+                                 self.Activite.ELEVEUR)
 
     @property
     def titre_carte_boutique(self):
-        """« Ma carte » (foodtruck), « Mes menus » (traiteur), « Ma
-        boutique » (fromager, apiculteur, conserverie, brasseur) —
+        """« Ma carte » (foodtruck, restaurant), « Mes menus » (traiteur), « Ma
+        boutique » (fromager, apiculteur, conserverie, brasseur, éleveur) —
         « Notre » dès que l'équipe s'étoffe."""
         nous = self.membres.exists()
-        if self.activite == self.Activite.FOODTRUCK:
+        if self.activite in (self.Activite.FOODTRUCK,
+                             self.Activite.RESTAURANT):
             return "Notre carte" if nous else "Ma carte"
         if self.activite == self.Activite.TRAITEUR:
             return "Nos menus" if nous else "Mes menus"
@@ -517,6 +520,10 @@ class ProduitStandard(models.Model):
                                help_text='Ex : ["printemps", "été"]')
     emoji = models.CharField("Emoji", max_length=8, blank=True)
     svg = models.TextField("SVG inline", blank=True)
+    prix_indicatif = models.DecimalField(
+        "Prix indicatif (€)", max_digits=6, decimal_places=2,
+        null=True, blank=True,
+        help_text="Prix unitaire réaliste suggéré par défaut lors de la copie.")
 
     class Meta:
         verbose_name = "Produit standard"

@@ -2231,12 +2231,16 @@ class Command(BaseCommand):
                 rang = (Produit.objects
                         .filter(exploitant=exploitant, categorie=cat)
                         .count())
+                prix_produit = (
+                    std.prix_indicatif if getattr(std, "prix_indicatif", None) is not None
+                    else (spec["prix_base"] + Decimal(rang) * Decimal("0.50"))
+                )
                 produit = Produit.objects.create(
                     exploitant=exploitant, nom=std.nom, categorie=cat,
                     unite_vente=std.unite_vente,
                     attributs={"saisons": std.saisons},
                     origine_standard=std,
-                    prix=spec["prix_base"] + Decimal(rang) * Decimal("0.50"),
+                    prix=prix_produit,
                     actif=True)
                 produits.append(produit)
 

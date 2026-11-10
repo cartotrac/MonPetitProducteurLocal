@@ -42,7 +42,10 @@
 
 <div class="quick-actions">
   <a class="btn" href="{% url 'portal:harvest_new' %}">{{ exploitant.vocab.nouvelle_recolte }}</a>
-  <a class="btn btn-outline" href="{% url 'portal:harvest_list' %}">🧺 {{ exploitant.vocab.recoltes_titre }}</a>
+  <a class="btn btn-outline" href="{% url 'portal:harvest_list' %}">{{ exploitant.vocab.recoltes_emoji }} {{ exploitant.vocab.recoltes_titre }}</a>
+  {% if exploitant.a_carte_boutique %}
+    <a class="btn btn-outline" href="{% url 'portal:cartes_manage' %}">🧾 {{ exploitant.titre_carte_boutique }}</a>
+  {% endif %}
   <a class="btn" href="{% url 'portal:order_direct' %}">📝 Saisir une commande</a>
   {% if est_proprietaire %}
     <a class="btn btn-outline" href="{% url 'portal:catalogue_standard' %}">📚 Importer des produits types</a>

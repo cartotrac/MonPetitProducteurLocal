@@ -2635,9 +2635,9 @@ def cartes_manage(request):
     exploitant = exploitant_actif(request)
     if not exploitant.a_carte_boutique:
         messages.info(request, "Les cartes / boutiques concernent les "
-                      "traiteurs, foodtrucks et producteurs en mode "
+                      "traiteurs, restaurants, foodtrucks et producteurs en mode "
                       "boutique (fromager, apiculteur, conserverie, "
-                      "micro-brasseur).")
+                      "micro-brasseur, éleveur).")
         return redirect("portal:dashboard")
 
     if request.method == "POST":
@@ -3039,6 +3039,8 @@ def catalogue_copier(request):
                     prix = Decimal(brut)
                 except InvalidOperation:
                     prix = None
+            if prix is None and std.prix_indicatif is not None:
+                prix = std.prix_indicatif
             Produit.objects.create(
                 exploitant=exploitant, nom=std.nom, categorie=cat,
                 description="", unite_vente=std.unite_vente,

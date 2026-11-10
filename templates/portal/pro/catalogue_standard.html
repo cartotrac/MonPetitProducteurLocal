@@ -34,7 +34,12 @@
               {{ item.std.emoji }} {{ item.std.nom }}
               ({{ item.std.get_unite_vente_display }})
               — prix €/u : <input type="number" step="0.01" min="0"
-                            name="prix_{{ item.std.pk }}" size="6">
+                            name="prix_{{ item.std.pk }}" size="6"
+                            value="{{ item.std.prix_indicatif|stringformat:'.2f'|default:'' }}"
+                            placeholder="{% if item.std.prix_indicatif %}{{ item.std.prix_indicatif }} €{% endif %}">
+              {% if item.std.prix_indicatif %}
+                <span class="muted">(suggéré : {{ item.std.prix_indicatif }} €)</span>
+              {% endif %}
             </label>
           {% endif %}
         </li>
