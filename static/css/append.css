@@ -1919,3 +1919,8 @@ html.dark .search-bar input.filtre-vide {
 
 
 
+
+/* ===== Fenêtres de stats des badges — légende des courbes
+       multiples du mode All-in-1 : une pastille colorée par famille
+       de métier sous le graphe du second badge. ===== */
+.stats-legende{display:flex;flex-wrap:wrap;gap:.35rem .9rem;margin-top:.4rem;font-size:.73rem;color:#6b7280}

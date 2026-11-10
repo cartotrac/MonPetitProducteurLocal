@@ -303,7 +303,11 @@ def _recherche_producteurs(q, dept, modes, activites,
 def _serie_stats(champ, lignes):
     """Série prête à dessiner (barres en %) + tendance sur ~7 jours,
     pour les mini-graphes des badges de la page de recherche."""
-    valeurs = [getattr(s, champ) for s in lignes]
+    if isinstance(champ, (list, tuple)):
+        valeurs = [sum(getattr(s, c) or 0 for c in champ)
+                   for s in lignes]
+    else:
+        valeurs = [getattr(s, champ) for s in lignes]
     if not valeurs:
         return {"points": [], "tendance": 0, "dernier": 0}
     maximum = max(valeurs, default=0) or 1
@@ -421,15 +425,74 @@ def producer_search(request):
     nb_marches = sum(1 for m in tous_marches if m["est_marche"])
     nb_boutiques = len(tous_marches) - nb_marches
     aujourdhui = timezone.localdate()
+    # Photo quotidienne enrichie : les fenêtres de stats des badges
+    # suivent la bascule 🎃 Démo / 🧡 Réel ET le mode de
+    # visualisation — chaque dénombrement est donc enregistré en
+    # deux variantes, avec et sans les comptes de démonstration.
+    tous_visibles = Exploitant.objects.filter(visible=True)
+    reels = tous_visibles.exclude(est_demo=True)
+    marches_tous = identifier_marches(inclure_demo=True)
+    nb_marches_tous = sum(1 for m in marches_tous if m["est_marche"])
+    nb_boutiques_tous = len(marches_tous) - nb_marches_tous
+    marches_reels = identifier_marches(inclure_demo=False)
+    nb_marches_reels = sum(1 for m in marches_reels
+                           if m["est_marche"])
+    nb_boutiques_reels = len(marches_reels) - nb_marches_reels
+    photo = {
+        "nb_producteurs": nb_producteurs,
+        "nb_clients": nb_clients,
+        "nb_visiteurs": nb_visiteurs,
+        "nb_pros_reels": reels.count(),
+        "nb_locaux": tous_visibles.exclude(
+            activite__in=activites_restauration).count(),
+        "nb_locaux_reels": reels.exclude(
+            activite__in=activites_restauration).count(),
+        "nb_restauration": tous_visibles.filter(
+            activite__in=activites_restauration).count(),
+        "nb_restauration_reels": reels.filter(
+            activite__in=activites_restauration).count(),
+        "nb_marches": nb_marches_tous,
+        "nb_boutiques": nb_boutiques_tous,
+        "nb_marches_reels": nb_marches_reels,
+        "nb_boutiques_reels": nb_boutiques_reels,
+    }
     StatistiqueQuotidienne.objects.update_or_create(
-        date=aujourdhui,
-        defaults={"nb_producteurs": nb_producteurs,
-                  "nb_clients": nb_clients,
-                  "nb_visiteurs": nb_visiteurs})
+        date=aujourdhui, defaults=photo)
+    # Compléter une seule fois les lignes antérieures au
+    # déploiement de ces champs (tous à zéro = jamais enrichies) :
+    # on y reporte la photo du jour pour un historique continu,
+    # les jours suivants s'enrichissent naturellement.
+    StatistiqueQuotidienne.objects.exclude(date=aujourdhui).filter(
+        nb_pros_reels=0, nb_locaux=0, nb_restauration=0,
+        nb_marches=0).update(
+            nb_pros_reels=photo["nb_pros_reels"],
+            nb_locaux=photo["nb_locaux"],
+            nb_locaux_reels=photo["nb_locaux_reels"],
+            nb_restauration=photo["nb_restauration"],
+            nb_restauration_reels=photo["nb_restauration_reels"],
+            nb_marches=photo["nb_marches"],
+            nb_boutiques=photo["nb_boutiques"],
+            nb_marches_reels=photo["nb_marches_reels"],
+            nb_boutiques_reels=photo["nb_boutiques_reels"])
     lignes_stats = list(StatistiqueQuotidienne.objects.filter(
         date__gte=aujourdhui - datetime.timedelta(days=89))
         .order_by("date"))
-    graphs = {"producteurs": _serie_stats("nb_producteurs", lignes_stats),
+    # Champs des séries selon la bascule Démo / Réel : les colonnes
+    # « _reels » excluent les comptes de démonstration ; le second
+    # badge reçoit la série de SON mode (locaux, restauration ou
+    # marchés+boutiques).
+    champ_pros = "nb_producteurs" if demo else "nb_pros_reels"
+    champ_locaux = "nb_locaux" if demo else "nb_locaux_reels"
+    champ_resto = ("nb_restauration" if demo
+                   else "nb_restauration_reels")
+    champ_marches = "nb_marches" if demo else "nb_marches_reels"
+    champ_boutiques = ("nb_boutiques" if demo
+                       else "nb_boutiques_reels")
+    graphs = {"producteurs": _serie_stats(champ_pros, lignes_stats),
+              "locaux": _serie_stats(champ_locaux, lignes_stats),
+              "restauration": _serie_stats(champ_resto, lignes_stats),
+              "marches": _serie_stats([champ_marches, champ_boutiques],
+                                      lignes_stats),
               "clients": _serie_stats("nb_clients", lignes_stats),
               "visiteurs": _serie_stats("nb_visiteurs", lignes_stats)}
     # Horaires de retrait / boutique : créneaux récurrents par ferme,
@@ -613,6 +676,9 @@ def producer_search(request):
         "graph_producteurs": graphs["producteurs"],
         "graph_clients": graphs["clients"],
         "graph_visiteurs": graphs["visiteurs"],
+        "graph_locaux": graphs["locaux"],
+        "graph_restauration": graphs["restauration"],
+        "graph_marches": graphs["marches"],
         "q": q, "dept": dept,
         "mode_choisi": mode_choisi, "activite_choisie": activite_choisie,
         "type_marche_choisi": type_marche_choisi,

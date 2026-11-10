@@ -1397,6 +1397,19 @@ class StatistiqueQuotidienne(models.Model):
     nb_producteurs = models.PositiveIntegerField("Producteurs", default=0)
     nb_clients = models.PositiveIntegerField("Clients", default=0)
     nb_visiteurs = models.PositiveIntegerField("Visiteurs", default=0)
+    # Variantes de la photo quotidienne : la fenêtre de stats de
+    # chaque badge suit la bascule 🎃 Démo / 🧡 Réel (colonnes
+    # « _reels » = sans les comptes de démonstration) et le mode de
+    # visualisation (producteurs locaux, restauration, marchés).
+    nb_pros_reels = models.PositiveIntegerField("Pros réels", default=0)
+    nb_locaux = models.PositiveIntegerField("Producteurs locaux", default=0)
+    nb_locaux_reels = models.PositiveIntegerField("Producteurs locaux réels", default=0)
+    nb_restauration = models.PositiveIntegerField("Pros restauration", default=0)
+    nb_restauration_reels = models.PositiveIntegerField("Pros restauration réels", default=0)
+    nb_marches = models.PositiveIntegerField("Marchés", default=0)
+    nb_boutiques = models.PositiveIntegerField("Boutiques", default=0)
+    nb_marches_reels = models.PositiveIntegerField("Marchés réels", default=0)
+    nb_boutiques_reels = models.PositiveIntegerField("Boutiques réelles", default=0)
 
     class Meta:
         verbose_name = "Statistique quotidienne"
