@@ -203,6 +203,8 @@ var ACTIVITES_RESTAURATION = ["FOODTRUCK", "TRAITEUR", "RESTAURANT"];
    en mode restauration (la légende suit la bascule). */
 function activitesDuMode() {
   return Object.keys(ACTIVITES).filter(function (cle) {
+    /* Mode All-in-1 : toutes les activités à la légende. */
+    if (modeCarte === "tout") { return true; }
     return modeCarte === "restauration"
       ? ACTIVITES_RESTAURATION.indexOf(cle) >= 0
       : ACTIVITES_RESTAURATION.indexOf(cle) < 0;
@@ -395,14 +397,17 @@ var modeCtrl = L.control({ position: "topright" });
 modeCtrl.onAdd = function () {
   var div = L.DomUtil.create("div", "leaflet-bar mode-carte");
   var cible = modeCarte === "producteurs" ? "restauration"
-            : modeCarte === "restauration" ? "marches" : "producteurs";
+            : modeCarte === "restauration" ? "marches"
+            : modeCarte === "marches" ? "tout" : "producteurs";
   var btn = document.createElement("a");
   btn.href = "#";
   btn.textContent = cible === "restauration" ? "🍽️"
-                  : cible === "marches" ? "🎪" : "🥬";
+                  : cible === "marches" ? "🎪"
+                  : cible === "tout" ? "🌍" : "🥬";
   btn.title = cible === "restauration"
     ? "Basculer : restauration & foodtrucks"
     : cible === "marches" ? "Basculer : marchés & boutiques"
+    : cible === "tout" ? "Basculer : All-in-1 — tout afficher"
     : "Basculer : producteurs";
   btn.setAttribute("aria-label", btn.title);
   L.DomEvent.disableClickPropagation(div);
@@ -418,7 +423,8 @@ modeCtrl.onAdd = function () {
       form.appendChild(cache);
     }
     cache.value = cible === "restauration" ? "restauration"
-               : cible === "marches" ? "marches" : "";
+               : cible === "marches" ? "marches"
+               : cible === "tout" ? "tout" : "";
     form.submit();
   });
   div.appendChild(btn);

@@ -312,6 +312,7 @@ def _serie_stats(champ, lignes):
         points.append({
             "hauteur": round(100 * valeur / maximum),
             "valeur": valeur,
+            "jour": ligne.date.strftime("%d/%m"),
             "titre": f"{ligne.date.strftime('%d/%m')} : {valeur}",
         })
     reference = valeurs[0] if len(valeurs) < 8 else valeurs[-8]
@@ -361,7 +362,7 @@ def producer_search(request):
     if visu == "restauration":
         exploitants = exploitants.filter(
             activite__in=activites_restauration)
-    elif not visu_marches:
+    elif not visu_marches and visu != "tout":
         exploitants = exploitants.exclude(
             activite__in=activites_restauration)
     exploitants = list(exploitants.order_by("nom_ferme"))
@@ -419,7 +420,7 @@ def producer_search(request):
                   "nb_clients": nb_clients,
                   "nb_visiteurs": nb_visiteurs})
     lignes_stats = list(StatistiqueQuotidienne.objects.filter(
-        date__gte=aujourdhui - datetime.timedelta(days=29))
+        date__gte=aujourdhui - datetime.timedelta(days=89))
         .order_by("date"))
     graphs = {"producteurs": _serie_stats("nb_producteurs", lignes_stats),
               "clients": _serie_stats("nb_clients", lignes_stats),
@@ -506,10 +507,15 @@ def producer_search(request):
     # Liste de choix d'activités adaptée au mode : seuls les deux
     # foodtruck / traiteur en mode restauration, tous les autres en
     # mode producteurs.
-    activite_cases = [
-        c for c in Exploitant.Activite.choices
-        if (c[0] in activites_restauration)
-        == (visu == "restauration")]
+    if visu == "tout":
+        # Mode All-in-1 : le filtre d'activités propose TOUTES les
+        # activités — producteurs, restauration et foodtrucks.
+        activite_cases = list(Exploitant.Activite.choices)
+    else:
+        activite_cases = [
+            c for c in Exploitant.Activite.choices
+            if (c[0] in activites_restauration)
+            == (visu == "restauration")]
     # Le bouton « Filtrer » passe en rouge (et un « ✕ Retirer »
     # apparaît) dès qu'un filtre — texte, zone spatiale ou cases
     # cochées — est actif.

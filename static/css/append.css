@@ -1783,6 +1783,83 @@ html.dark .search-bar .filtre-multi-menu .muted {
   .search-bar .filtre-multi-menu { animation: none; }
 }
 
+/* ===== Menus de filtres : contenu aligné à GAUCHE, cases à cocher
+       alignées entre elles (grille : case en colonne fixe, libellé
+       juste après) et ligne « ✕ Tout décocher » en tête. ===== */
+.filtre-multi-menu { text-align: left; direction: ltr; }
+.filtre-multi-menu .filtre-multi-choix {
+  display: grid; grid-template-columns: auto 1fr;
+  align-items: center; column-gap: 0.4rem;
+  justify-items: start; text-align: left;
+  padding: 0.22rem 0.3rem;
+}
+.filtre-multi-menu .filtre-multi-choix input[type="checkbox"] {
+  margin: 0; grid-column: 1; justify-self: start;
+}
+.filtre-tout-decocher {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  background: none; border: 0; border-bottom: 1px solid #e0e8da;
+  color: #2e7d32; font-size: 0.8rem; font-weight: 600;
+  padding: 0.15rem 0.1rem 0.35rem; margin: 0 0 0.25rem;
+}
+.filtre-tout-decocher:hover { text-decoration: underline; }
+html.dark .filtre-tout-decocher {
+  color: #aed581; border-bottom-color: #55624a;
+}
+
+/* ===== Bouton mode sombre flottant (hors bandeau) : fond SOMBRE en
+       mode clair, fond CLAIR en mode sombre — lisible sur la page. ===== */
+.btn-darkmode-flottant {
+  background: rgba(38, 48, 31, 0.92) !important;
+  color: #e6e4da !important;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+html.dark .btn-darkmode-flottant {
+  background: rgba(233, 244, 228, 0.95) !important;
+  color: #1b2a12 !important;
+}
+
+/* ===== Bouton de mode All-in-1 ===== */
+.mode-bouton.tout { border-color: #6a1b9a; color: #6a1b9a; }
+.mode-bouton.tout.actif { background: #6a1b9a; color: #fff; }
+html.dark .mode-bouton.tout { border-color: #ce93d8; color: #ce93d8; }
+html.dark .mode-bouton.tout.actif { background: #6a1b9a; color: #fff; }
+
+/* ===== Fenêtres de stats : options (période / affichage / valeurs),
+       ligne de lecture (tendance + min/max/dernier), courbe SVG. ===== */
+.stats-options {
+  display: flex; flex-wrap: wrap; gap: 0.35rem 0.9rem;
+  margin: 0.45rem 0 0.35rem;
+}
+.stats-options label {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  font-size: 0.78rem; font-weight: 600;
+}
+.stats-options select {
+  font-size: 0.78rem; padding: 0.15rem 0.35rem;
+  border: 1px solid #c9d6bd; border-radius: 6px;
+  background: #fff; color: #1b3a12;
+}
+html.dark .stats-options select {
+  background: #26301f; color: #e6e4da; border-color: #55624a;
+}
+.stats-lecture {
+  display: flex; flex-wrap: wrap; gap: 0.25rem 0.9rem;
+  align-items: baseline; margin-bottom: 0.25rem;
+}
+.stats-mini { font-size: 0.75rem; color: #66705c; }
+html.dark .stats-mini { color: #aab599; }
+.stats-chart svg.stats-svg { width: 100%; height: 100%; display: block; }
+.stats-chart svg.stats-svg polyline {
+  fill: none; stroke: #2e7d32; stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+.stats-chart svg.stats-svg circle { fill: #2e7d32; }
+html.dark .stats-chart svg.stats-svg polyline { stroke: #aed581; }
+html.dark .stats-chart svg.stats-svg circle { fill: #aed581; }
+
+
 
 
 

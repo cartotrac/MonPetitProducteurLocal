@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}{% load l10n %}
-{% block title %}{% if visu == "restauration" %}Restauration & Foodtrucks{% elif visu == "marches" %}Marchés & Boutiques{% else %}Recherche{% endif %} — MonPetitProducteurLocal{% endblock %}
+{% block title %}{% if visu == "restauration" %}Restauration & Foodtrucks{% elif visu == "marches" %}Marchés & Boutiques{% elif visu == "tout" %}All-in-1{% else %}Recherche{% endif %} — MonPetitProducteurLocal{% endblock %}
 {% block extrahead %}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 {% endblock %}
@@ -16,54 +16,142 @@
 {% endif %}
 <div class="entete-chercher">
   <div class="titre-recherche">
-    <h1>{% if visu == "restauration" %}🍽️ Trouver un Restaurant, un Traiteur ou un Foodtruck autour de moi !{% elif visu == "marches" %}🎪 Retrouver mes producteurs locaux au Marché ou en Boutique{% else %}🔍 Trouver mon producteur local !{% endif %}</h1>
+    <h1>{% if visu == "restauration" %}🍽️ Trouver un Restaurant, un Traiteur ou un Foodtruck autour de moi !{% elif visu == "marches" %}🎪 Retrouver mes producteurs locaux au Marché ou en Boutique{% elif visu == "tout" %}🌍 Tout l'univers du local : producteurs, restauration &amp; foodtrucks réunis !{% else %}🔍 Trouver mon producteur local !{% endif %}</h1>
     <button type="button" id="bascule-demo" class="bascule-demo{% if demo %} actif{% endif %}" title="{% if demo %}Démo{% else %}Réel{% endif %}" aria-pressed="{% if demo %}true{% else %}false{% endif %}" aria-label="Bascule Démo / Réel : afficher ou masquer les comptes de démonstration">
       <span class="bascule-piste"><span class="bascule-curseur"></span></span>
       <span class="bascule-icone">{% if demo %}🎃{% else %}🧡{% endif %}</span>
     </button>
   </div>
-  <span class="mode-chip {% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% else %}producteurs{% endif %}">{% if visu == "restauration" %}🍽️ Mode restauration : restaurants, traiteurs &amp; emplacements de foodtrucks{% elif visu == "marches" %}🎪 Mode marchés : marchés &amp; boutiques de producteurs — identifiés d'après leurs points et créneaux déclarés{% else %}🥬 Mode producteurs : fermes &amp; productions locales{% endif %}</span>
+  <span class="mode-chip {% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% else %}producteurs{% endif %}">{% if visu == "restauration" %}🍽️ Mode restauration : restaurants, traiteurs &amp; emplacements de foodtrucks{% elif visu == "marches" %}🎪 Mode marchés : marchés &amp; boutiques de producteurs — identifiés d'après leurs points et créneaux déclarés{% elif visu == "tout" %}🌍 Mode All-in-1 : producteurs, restauration &amp; foodtrucks réunis sur la même carte{% else %}🥬 Mode producteurs : fermes &amp; productions locales{% endif %}</span>
   <div class="stats-portail">
     <span class="stats-item">
       <button type="button" class="badge badge-activite" data-stats="producteurs">🤝 {{ nb_pros }} professionnel{{ nb_pros|pluralize }} nous font confiance</button>
-      <div class="stats-pop">
-        <strong>📈 Historique (30 jours)</strong>
-        {% if graph_producteurs.tendance > 0 %}<span class="stats-tendance hausse">↗ +{{ graph_producteurs.tendance }} sur 7 jours</span>
-        {% elif graph_producteurs.tendance < 0 %}<span class="stats-tendance baisse">↘ {{ graph_producteurs.tendance }} sur 7 jours</span>
-        {% else %}<span class="stats-tendance stable">→ stable</span>{% endif %}
-        <div class="stats-chart">{% for pt in graph_producteurs.points %}<span class="stats-bar" style="height:{{ pt.hauteur }}%" title="{{ pt.titre }}"></span>{% endfor %}</div>
+      <div class="stats-pop" data-serie="producteurs">
+        <strong>📈 Historique des professionnels inscrits</strong>
+        <div class="stats-options">
+          <label>Période
+            <select class="stats-opt" data-opt="periode">
+              <option value="7">7 jours</option>
+              <option value="30" selected>30 jours</option>
+              <option value="90">90 jours</option>
+            </select></label>
+          <label>Affichage
+            <select class="stats-opt" data-opt="affichage">
+              <option value="barres" selected>Barres</option>
+              <option value="courbe">Courbe</option>
+            </select></label>
+          <label>Valeurs
+            <select class="stats-opt" data-opt="valeurs">
+              <option value="jour" selected>Par jour</option>
+              <option value="cumul">Cumulé</option>
+            </select></label>
+        </div>
+        <div class="stats-lecture">
+          <span class="stats-tendance" data-role="tendance"></span>
+          <span class="stats-mini" data-role="mini"></span>
+        </div>
+        <div class="stats-chart" data-role="chart"></div>
         <p class="muted">Cliquez à nouveau ou ailleurs pour fermer.</p>
       </div>
     </span>
     <span class="stats-item">
-      {% if visu == "marches" %}<span class="badge badge-marche">🎪 {{ nb_marches }} marché{{ nb_marches|pluralize }} &amp; 🏪 {{ nb_boutiques }} boutique{{ nb_boutiques|pluralize }} de producteur{{ nb_boutiques|pluralize }}</span>
-      {% elif visu == "restauration" %}<span class="badge badge-activite">🥗 {{ nb_traiteurs }} traiteur{{ nb_traiteurs|pluralize }} · 🍽️ {{ nb_restaurants }} restaurant{{ nb_restaurants|pluralize }} &amp; 🚚 {{ nb_foodtrucks }} foodtruck{{ nb_foodtrucks|pluralize }}</span>
-      {% else %}<span class="badge badge-ab">🥬 {{ nb_producteurs_locaux }} {% if nb_producteurs_locaux > 1 %}producteurs locaux{% else %}producteur local{% endif %}</span>{% endif %}
+      {% if visu == "marches" %}<button type="button" class="badge badge-marche" data-stats="producteurs">🎪 {{ nb_marches }} marché{{ nb_marches|pluralize }} &amp; 🏪 {{ nb_boutiques }} boutique{{ nb_boutiques|pluralize }} de producteur{{ nb_boutiques|pluralize }}</button>
+      {% elif visu == "restauration" %}<button type="button" class="badge badge-activite" data-stats="producteurs">🥗 {{ nb_traiteurs }} traiteur{{ nb_traiteurs|pluralize }} · 🍽️ {{ nb_restaurants }} restaurant{{ nb_restaurants|pluralize }} &amp; 🚚 {{ nb_foodtrucks }} foodtruck{{ nb_foodtrucks|pluralize }}</button>
+      {% elif visu == "tout" %}<button type="button" class="badge badge-ab" data-stats="producteurs">🥬 {{ nb_producteurs_locaux }} producteur{{ nb_producteurs_locaux|pluralize }} · 🥗 {{ nb_traiteurs }} traiteur{{ nb_traiteurs|pluralize }} · 🍽️ {{ nb_restaurants }} restaurant{{ nb_restaurants|pluralize }} &amp; 🚚 {{ nb_foodtrucks }} foodtruck{{ nb_foodtrucks|pluralize }}</button>
+      {% else %}<button type="button" class="badge badge-ab" data-stats="producteurs">🥬 {{ nb_producteurs_locaux }} {% if nb_producteurs_locaux > 1 %}producteurs locaux{% else %}producteur local{% endif %}</button>{% endif %}
+      <div class="stats-pop" data-serie="producteurs">
+        <strong>📈 Historique des professionnels inscrits</strong>
+        <div class="stats-options">
+          <label>Période
+            <select class="stats-opt" data-opt="periode">
+              <option value="7">7 jours</option>
+              <option value="30" selected>30 jours</option>
+              <option value="90">90 jours</option>
+            </select></label>
+          <label>Affichage
+            <select class="stats-opt" data-opt="affichage">
+              <option value="barres" selected>Barres</option>
+              <option value="courbe">Courbe</option>
+            </select></label>
+          <label>Valeurs
+            <select class="stats-opt" data-opt="valeurs">
+              <option value="jour" selected>Par jour</option>
+              <option value="cumul">Cumulé</option>
+            </select></label>
+        </div>
+        <div class="stats-lecture">
+          <span class="stats-tendance" data-role="tendance"></span>
+          <span class="stats-mini" data-role="mini"></span>
+        </div>
+        <div class="stats-chart" data-role="chart"></div>
+        <p class="muted">Cliquez à nouveau ou ailleurs pour fermer.</p>
+      </div>
     </span>
     <span class="stats-item">
       <button type="button" class="badge badge-ab" data-stats="clients">👥 {{ nb_clients }} client{{ nb_clients|pluralize }} inscrit{{ nb_clients|pluralize }}</button>
-      <div class="stats-pop">
-        <strong>📈 Historique (30 jours)</strong>
-        {% if graph_clients.tendance > 0 %}<span class="stats-tendance hausse">↗ +{{ graph_clients.tendance }} sur 7 jours</span>
-        {% elif graph_clients.tendance < 0 %}<span class="stats-tendance baisse">↘ {{ graph_clients.tendance }} sur 7 jours</span>
-        {% else %}<span class="stats-tendance stable">→ stable</span>{% endif %}
-        <div class="stats-chart">{% for pt in graph_clients.points %}<span class="stats-bar" style="height:{{ pt.hauteur }}%" title="{{ pt.titre }}"></span>{% endfor %}</div>
+      <div class="stats-pop" data-serie="clients">
+        <strong>📈 Historique des clients inscrits</strong>
+        <div class="stats-options">
+          <label>Période
+            <select class="stats-opt" data-opt="periode">
+              <option value="7">7 jours</option>
+              <option value="30" selected>30 jours</option>
+              <option value="90">90 jours</option>
+            </select></label>
+          <label>Affichage
+            <select class="stats-opt" data-opt="affichage">
+              <option value="barres" selected>Barres</option>
+              <option value="courbe">Courbe</option>
+            </select></label>
+          <label>Valeurs
+            <select class="stats-opt" data-opt="valeurs">
+              <option value="jour" selected>Par jour</option>
+              <option value="cumul">Cumulé</option>
+            </select></label>
+        </div>
+        <div class="stats-lecture">
+          <span class="stats-tendance" data-role="tendance"></span>
+          <span class="stats-mini" data-role="mini"></span>
+        </div>
+        <div class="stats-chart" data-role="chart"></div>
         <p class="muted">Cliquez à nouveau ou ailleurs pour fermer.</p>
       </div>
     </span>
     <span class="stats-item">
       <button type="button" class="badge badge-demo" data-stats="visiteurs">👀 {{ nb_visiteurs }} visiteur{{ nb_visiteurs|pluralize }}</button>
-      <div class="stats-pop">
-        <strong>📈 Historique (30 jours)</strong>
-        {% if graph_visiteurs.tendance > 0 %}<span class="stats-tendance hausse">↗ +{{ graph_visiteurs.tendance }} sur 7 jours</span>
-        {% elif graph_visiteurs.tendance < 0 %}<span class="stats-tendance baisse">↘ {{ graph_visiteurs.tendance }} sur 7 jours</span>
-        {% else %}<span class="stats-tendance stable">→ stable</span>{% endif %}
-        <div class="stats-chart">{% for pt in graph_visiteurs.points %}<span class="stats-bar" style="height:{{ pt.hauteur }}%" title="{{ pt.titre }}"></span>{% endfor %}</div>
+      <div class="stats-pop" data-serie="visiteurs">
+        <strong>📈 Historique des visites</strong>
+        <div class="stats-options">
+          <label>Période
+            <select class="stats-opt" data-opt="periode">
+              <option value="7">7 jours</option>
+              <option value="30" selected>30 jours</option>
+              <option value="90">90 jours</option>
+            </select></label>
+          <label>Affichage
+            <select class="stats-opt" data-opt="affichage">
+              <option value="barres" selected>Barres</option>
+              <option value="courbe">Courbe</option>
+            </select></label>
+          <label>Valeurs
+            <select class="stats-opt" data-opt="valeurs">
+              <option value="jour" selected>Par jour</option>
+              <option value="cumul">Cumulé</option>
+            </select></label>
+        </div>
+        <div class="stats-lecture">
+          <span class="stats-tendance" data-role="tendance"></span>
+          <span class="stats-mini" data-role="mini"></span>
+        </div>
+        <div class="stats-chart" data-role="chart"></div>
         <p class="muted">Cliquez à nouveau ou ailleurs pour fermer.</p>
       </div>
     </span>
   </div>
 </div>
+{{ graph_producteurs|json_script:"stats-serie-producteurs" }}
+{{ graph_clients|json_script:"stats-serie-clients" }}
+{{ graph_visiteurs|json_script:"stats-serie-visiteurs" }}
 
 
 <section class="map-section">
@@ -71,11 +159,12 @@
     <button type="button" data-visu="" class="mode-bouton producteurs{% if not visu %} actif{% endif %}" title="Fermes et productions locales : maraîchers, éleveurs, fromageries…">🥬 Producteurs</button>
     <button type="button" data-visu="restauration" class="mode-bouton restauration{% if visu == "restauration" %} actif{% endif %}" title="Repas : restaurants, traiteurs et emplacements de foodtrucks">🍽️ Restauration &amp; Foodtrucks</button>
     <button type="button" data-visu="marches" class="mode-bouton marches{% if visu == "marches" %} actif{% endif %}" title="Marchés et boutiques où retrouver les producteurs locaux">🎪 Marchés &amp; Boutiques</button>
+    <button type="button" data-visu="tout" class="mode-bouton tout{% if visu == "tout" %} actif{% endif %}" title="Tout afficher : producteurs, restauration &amp; foodtrucks réunis sur la même carte">🌍 All-in-1</button>
   </div>
   <div class="map-canvas-wrap{% if visu == "restauration" %} visu-restauration{% elif visu == "marches" %} visu-marches{% endif %}">
-    <h2 class="map-titre">🗺️ {% if visu == "restauration" %}Restaurants, traiteurs &amp; foodtrucks trouvés{% elif visu == "marches" %}Marchés &amp; boutiques identifiés{% else %}Producteurs trouvés{% endif %}{% if carte_data %} ({{ carte_data|length }}){% endif %}</h2>
+    <h2 class="map-titre">🗺️ {% if visu == "restauration" %}Restaurants, traiteurs &amp; foodtrucks trouvés{% elif visu == "marches" %}Marchés &amp; boutiques identifiés{% elif visu == "tout" %}Tous les professionnels du local trouvés{% else %}Producteurs trouvés{% endif %}{% if carte_data %} ({{ carte_data|length }}){% endif %}</h2>
     {% if carte_data %}
-      <div id="carte-recherche" class="map-canvas" data-mode="{% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% else %}producteurs{% endif %}" data-zone="{{ dept }}" data-csrf="{{ csrf_token }}"></div>
+      <div id="carte-recherche" class="map-canvas" data-mode="{% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% elif visu == "tout" %}tout{% else %}producteurs{% endif %}" data-zone="{{ dept }}" data-csrf="{{ csrf_token }}"></div>
       {{ carte_data|json_script:"donnees-carte" }}
       {{ home_carte|json_script:"home-carte" }}
     {% else %}
@@ -102,6 +191,7 @@
   <details class="filtre-multi">
     <summary>Activités 🎪 &amp; 🏪{% if type_marche_choisi %} ({{ type_marche_choisi|length }}){% endif %} ▾</summary>
     <div class="filtre-multi-menu">
+      <button type="button" class="filtre-tout-decocher">✕ Tout décocher</button>
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="MARCHE"{% if 'MARCHE' in type_marche_choisi %} checked{% endif %}> 🎪 Marchés</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="BOUTIQUE"{% if 'BOUTIQUE' in type_marche_choisi %} checked{% endif %}> 🏪 Boutiques de producteurs</label>
       <p class="muted">Tout décocher = marchés et boutiques.</p>
@@ -112,6 +202,7 @@
   <details class="filtre-multi">
     <summary>{% if visu == "restauration" %}🍽️{% else %}🥬{% endif %} Activités{% if activite_choisie %} ({{ activite_choisie|length }}){% endif %} ▾</summary>
     <div class="filtre-multi-menu">
+      <button type="button" class="filtre-tout-decocher">✕ Tout décocher</button>
       {% for code, libelle in activites %}
         <label class="filtre-multi-choix"><input type="checkbox" name="activite" value="{{ code }}"{% if code in activite_choisie %} checked{% endif %}> {{ libelle }}</label>
       {% endfor %}
@@ -119,12 +210,13 @@
     </div>
   </details>
   {% endif %}
-  <input type="text" name="q" placeholder="{% if visu == 'marches' %}Marché, boutique…{% elif visu == 'restauration' %}Plat, carte, nom…{% else %}Produit, ferme…{% endif %}" value="{{ q }}">
+  <input type="text" name="q" placeholder="{% if visu == 'marches' %}Marché, boutique…{% elif visu == 'restauration' %}Plat, carte, nom…{% elif visu == 'tout' %}Produit, ferme, plat, marché…{% else %}Produit, ferme…{% endif %}" value="{{ q }}">
   <input type="text" name="dept" placeholder="Département, région ou code postal…" title="Zoome la carte sur un département (nom ou numéro), une région ou un code postal — les vignettes suivent l'emprise" value="{{ dept }}" size="14">
-  {% if not visu %}
+  {% if not visu or visu == "tout" %}
   <details class="filtre-multi">
     <summary>🌱 Modes de production{% if mode_choisi %} ({{ mode_choisi|length }}){% endif %} ▾</summary>
     <div class="filtre-multi-menu">
+      <button type="button" class="filtre-tout-decocher">✕ Tout décocher</button>
       <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="AB"{% if 'AB' in mode_choisi %} checked{% endif %}> Bio (AB)</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="PERMA"{% if 'PERMA' in mode_choisi %} checked{% endif %}> Permaculture</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="PAYSAN"{% if 'PAYSAN' in mode_choisi %} checked{% endif %}> Agriculture paysanne</label>
@@ -276,9 +368,86 @@
 })();
 </script>
 <script>
-/* Badges de dénombrement : clic -> mini-graphe historique + tendance */
+/* Badges de dénombrement : clic -> fenêtre de stats paramétrable —
+   période (7/30/90 jours), barres ou courbe, valeurs par jour ou
+   cumulées. Les séries complètes (90 jours) viennent des blocs
+   json_script « stats-serie-* ». */
 (function () {
   var ouvert = null;
+  var SERIES = {};
+  ["producteurs", "clients", "visiteurs"].forEach(function (cle) {
+    var bloc = document.getElementById("stats-serie-" + cle);
+    if (bloc) {
+      try { SERIES[cle] = JSON.parse(bloc.textContent).points || []; }
+      catch (e) { SERIES[cle] = []; }
+    }
+  });
+  function fenetre(pop, periode, cumul) {
+    var points = (SERIES[pop.getAttribute("data-serie")] || [])
+      .slice(-periode);
+    if (cumul === "cumul") {
+      var total = 0;
+      points = points.map(function (p) {
+        total += p.valeur || 0;
+        return { jour: p.jour, valeur: total };
+      });
+    }
+    return points;
+  }
+  function rendre(pop) {
+    var opts = {};
+    pop.querySelectorAll("select.stats-opt").forEach(function (sel) {
+      opts[sel.getAttribute("data-opt")] = sel.value;
+    });
+    var periode = parseInt(opts.periode, 10) || 30;
+    var points = fenetre(pop, periode, opts.valeurs);
+    var journalier = fenetre(pop, periode, "jour");
+    var chart = pop.querySelector('[data-role="chart"]');
+    if (chart) {
+      var max = 1;
+      points.forEach(function (p) { max = Math.max(max, p.valeur || 0); });
+      if (opts.affichage === "courbe") {
+        var pas = points.length > 1 ? 100 / (points.length - 1) : 0;
+        var ligne = points.map(function (p, i) {
+          return (i * pas).toFixed(2) + "," +
+                 (40 - 36 * (p.valeur || 0) / max).toFixed(2);
+        }).join(" ");
+        var perles = points.map(function (p, i) {
+          return '<circle cx="' + (i * pas).toFixed(2) + '" cy="' +
+                 (40 - 36 * (p.valeur || 0) / max).toFixed(2) +
+                 '" r="1.6"><title>' + p.jour + " : " + (p.valeur || 0) +
+                 "</title></circle>";
+        }).join("");
+        chart.innerHTML = '<svg class="stats-svg" viewBox="0 0 100 40" ' +
+          'preserveAspectRatio="none"><polyline points="' + ligne +
+          '"/>' + perles + "</svg>";
+      } else {
+        chart.innerHTML = points.map(function (p) {
+          return '<span class="stats-bar" style="height:' +
+                 Math.round(100 * (p.valeur || 0) / max) +
+                 '%" title="' + p.jour + " : " + (p.valeur || 0) +
+                 '"></span>';
+        }).join("");
+      }
+    }
+    var tendance = pop.querySelector('[data-role="tendance"]');
+    if (tendance && journalier.length) {
+      var delta = (journalier[journalier.length - 1].valeur || 0)
+                - (journalier[0].valeur || 0);
+      tendance.className = "stats-tendance " +
+        (delta > 0 ? "hausse" : delta < 0 ? "baisse" : "stable");
+      tendance.textContent = (delta > 0 ? "↗ +" + delta
+                               : delta < 0 ? "↘ " + delta
+                               : "→ stable") + " sur " + periode + " jours";
+    }
+    var mini = pop.querySelector('[data-role="mini"]');
+    if (mini && journalier.length) {
+      var valeurs = journalier.map(function (p) { return p.valeur || 0; });
+      mini.textContent = "Min " + Math.min.apply(null, valeurs) +
+        " · Max " + Math.max.apply(null, valeurs) +
+        " · Dernier " + valeurs[valeurs.length - 1];
+    }
+  }
   document.querySelectorAll("[data-stats]").forEach(function (btn) {
     btn.addEventListener("click", function (evt) {
       evt.stopPropagation();
@@ -289,7 +458,14 @@
         p.classList.remove("ouvert");
       });
       pop.classList.add("ouvert");
+      rendre(pop);
       ouvert = pop;
+    });
+  });
+  document.querySelectorAll(".stats-pop select.stats-opt").forEach(function (sel) {
+    sel.addEventListener("change", function () {
+      var pop = sel.closest(".stats-pop");
+      if (pop && pop.classList.contains("ouvert")) { rendre(pop); }
     });
   });
   document.addEventListener("click", function () {
@@ -349,6 +525,16 @@
     if (evt.key === "Escape") {
       menus.forEach(function (menu) { menu.open = false; });
     }
+  });
+  /* « ✕ Tout décocher » : première ligne de chaque menu — décoche
+     toutes les cases du menu sans recharger (le bouton « Filtrer »
+     reste le geste final, comme pour un décochage manuel). */
+  barre.querySelectorAll(".filtre-tout-decocher").forEach(function (bouton) {
+    bouton.addEventListener("click", function () {
+      bouton.closest(".filtre-multi-menu")
+        .querySelectorAll("input[type=checkbox]")
+        .forEach(function (caseFiltre) { caseFiltre.checked = false; });
+    });
   });
 })();
 </script>
