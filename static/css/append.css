@@ -1709,4 +1709,11 @@ body > a.nav-chercher.nav-chercher-flottant:hover {
     top: 186px !important; right: 7px !important;
   }
 }
+html.dark body > a.nav-chercher.nav-chercher-flottant {
+  background: rgba(38, 48, 31, 0.92) !important; color: #e6e4da !important;
+}
+html.dark body > a.nav-chercher.nav-chercher-flottant:hover {
+  background: #33402a !important;
+}
+
 
