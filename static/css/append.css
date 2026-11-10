@@ -1933,3 +1933,15 @@ html.dark .search-bar input.filtre-vide {
 .bandeau-verification{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap}
 .bandeau-verification form{display:inline;margin:0}
 .bandeau-verification .btn{padding:.25rem .7rem;font-size:.9rem}
+
+/* ===== Largeurs intermédiaires (821–1120 px) : la colonne flottante
+       droite (session, bascule d'espace, mode sombre, Trouver, flèches
+       de scroll, aide) chevauchait le contenu — le conteneur centré va
+       jusqu'à 16 px du bord tant que la marge à droite reste
+       inférieure à la largeur de la colonne (~60 px), soit jusqu'à
+       ~1120 px de fenêtre. En dessous de 820 px, le bloc mobile
+       « laisse respirer » applique déjà ce padding : on l'étend à
+       toute la plage où le chevauchement se produit. ===== */
+@media (min-width: 821px) and (max-width: 1120px) {
+  main.container { padding-right: 3.6rem; }
+}
