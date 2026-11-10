@@ -1885,6 +1885,23 @@ html.dark .map-legend .legend-titre {
   color: #aab599; border-top-color: #55624a;
 }
 
+/* ===== Filtre Activités en mode All-in-1 : titres des groupes
+       thématiques (producteurs / restauration), même style que les
+       titres de la légende de la carte. ===== */
+.filtre-groupe-titre {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.04em; color: #55624a;
+  margin: 0.3rem 0 0.1rem; border-top: 1px solid #e0e8da;
+  padding-top: 0.25rem;
+}
+.filtre-multi-menu .filtre-groupe-titre:first-of-type {
+  margin-top: 0; border-top: 0; padding-top: 0;
+}
+html.dark .filtre-groupe-titre {
+  color: #aab599; border-top-color: #55624a;
+}
+
+
 
 
 

@@ -390,9 +390,36 @@ function majEmprise() {
     var nb = comptes[cle] || 0;
     if (legendSpans[cle]) {
       legendSpans[cle].textContent = "(" + nb + ")";
-      legendSpans[cle].parentNode.style.opacity = nb ? 1 : 0.45;
+      var ligne = legendSpans[cle].parentNode;
+      if (modeCarte === "tout") {
+        /* Mode All-in-1 : une entite sans marqueur dans l'emprise
+           DISPARAIT de la legende (au lieu d'etre grisee). */
+        ligne.style.display = nb ? "" : "none";
+        ligne.style.opacity = 1;
+      } else {
+        ligne.style.display = "";
+        ligne.style.opacity = nb ? 1 : 0.45;
+      }
     }
   });
+  if (modeCarte === "tout") {
+    /* Mode All-in-1 : un groupe thematique entierement vide
+       (aucune ligne visible) disparait a son tour. */
+    Array.prototype.forEach.call(
+      document.querySelectorAll(".map-legend .legend-titre"),
+      function (titre) {
+        var visible = false;
+        var elt = titre.nextElementSibling;
+        while (elt && !elt.classList.contains("legend-titre")) {
+          if (elt.tagName === "SPAN" && elt.style.display !== "none") {
+            visible = true;
+            break;
+          }
+          elt = elt.nextElementSibling;
+        }
+        titre.style.display = visible ? "" : "none";
+      });
+  }
   var cartes = document.querySelectorAll(
     ".vignette-producteur[data-lat]");
   cartes.forEach(function (card) {

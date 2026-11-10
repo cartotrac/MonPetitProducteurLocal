@@ -195,8 +195,18 @@
     <summary>{% if visu == "restauration" %}🍽️{% else %}🥬{% endif %} Activités{% if activite_choisie %} ({{ activite_choisie|length }}){% endif %} ▾</summary>
     <div class="filtre-multi-menu">
       <button type="button" class="filtre-tout-decocher">✕ Tout décocher</button>
+      {# Mode All-in-1 : activités regroupées par catégorie thématique. #}
+      {% if visu == "tout" %}<div class="filtre-groupe-titre">🥬 Producteurs</div>{% endif %}
       {% for code, libelle in activites %}
+        {% if code != "FOODTRUCK" and code != "TRAITEUR" and code != "RESTAURANT" or visu != "tout" %}
         <label class="filtre-multi-choix"><input type="checkbox" name="activite" value="{{ code }}"{% if code in activite_choisie %} checked{% endif %}> {{ libelle }}</label>
+        {% endif %}
+      {% endfor %}
+      {% if visu == "tout" %}<div class="filtre-groupe-titre">🍽️ Restauration</div>{% endif %}
+      {% for code, libelle in activites %}
+        {% if code == "FOODTRUCK" or code == "TRAITEUR" or code == "RESTAURANT" or visu != "tout" %}
+        <label class="filtre-multi-choix"><input type="checkbox" name="activite" value="{{ code }}"{% if code in activite_choisie %} checked{% endif %}> {{ libelle }}</label>
+        {% endif %}
       {% endfor %}
       <p class="muted">Plusieurs choix possibles — tout décocher = toutes les activités.</p>
     </div>
