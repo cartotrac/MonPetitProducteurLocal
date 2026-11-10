@@ -43,7 +43,7 @@
             aria-controls="nav-principal" aria-expanded="false"
             aria-label="Ouvrir le menu">☰</button>
     <div class="nav-links" id="nav-principal">
-      <a href="{% url 'portal:producer_search' %}" class="nav-chercher {% if request.path == '/recherche/' %}nav-actif{% endif %}" title="Trouver mes producteurs locaux" aria-label="Trouver mes producteurs locaux"><span class="nav-chercher-icone"><span class="nav-chercher-colis">🧺</span><span class="nav-chercher-loupe">🔍</span></span><span class="nav-chercher-texte">Trouver</span></a>
+      <a href="{% url 'portal:producer_search' %}" class="nav-chercher {% if request.path == '/recherche/' %}nav-actif{% endif %}" title="Trouver mes producteurs locaux" aria-label="Trouver mes producteurs locaux"><span class="nav-chercher-icone"><span class="nav-chercher-colis">🧺</span><span class="nav-chercher-loupe">🔍</span></span></a>
       {% if user.is_authenticated %}
         {% if mode_pro %}
           <a href="{% url 'portal:dashboard' %}" class="{% if request.path == '/espace-pro/' %}nav-actif{% endif %}">Dashboard</a>
@@ -83,12 +83,12 @@
           <a href="{% url 'portal:profil_client' %}" class="{% if request.path == '/profil/' %}nav-actif{% endif %}">Mon profil</a>
         {% endif %}
         <form class="inline" method="post" action="{% url 'logout' %}">
-          {% csrf_token %}<button class="btn btn-session btn-session-rouge" type="submit" title="Se déconnecter" aria-label="Se déconnecter"><span class="pastille-session pastille-verte" aria-hidden="true"></span>Logout</button>
+          {% csrf_token %}<button class="btn btn-session btn-session-rouge" type="submit" title="Se déconnecter" aria-label="Se déconnecter"><span class="pastille-session pastille-verte" aria-hidden="true"></span></button>
         </form>
       {% else %}
         <a href="{% url 'portal:register_client' %}" class="nav-compte" title="Créez votre compte Localien, c'est gratuit : commandez vos paniers, gardez vos producteurs favoris et suivez vos commandes — plus de saisie d'identifiants à chaque visite" aria-label="Devenir Localien : créer un compte client gratuit">Devenir Localien</a>
         <a class="btn btn-outline" href="{% url 'portal:register_producer' %}" title="Créez votre espace producteur : ferme, boutique, traiteur ou foodtruck — vos récoltes, productions ou créations à la vente en circuit court !" aria-label="Créer mon espace pro">Créer mon espace pro</a>
-        <a class="btn btn-session btn-session-verte" href="{% url 'login' %}" title="Se connecter"><span class="pastille-session pastille-rouge" aria-hidden="true"></span>Login</a>
+        <a class="btn btn-session btn-session-verte" href="{% url 'login' %}" title="Se connecter"><span class="pastille-session pastille-rouge" aria-hidden="true"></span></a>
       {% endif %}
     </div>
   </nav>

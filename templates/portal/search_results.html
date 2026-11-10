@@ -87,11 +87,13 @@
   </div>
 </section>
 
-{# ---- Filtres : SOUS LA CARTE, dans l'ordre souhaité —
-   1) le filtre d'activité (marchés/boutiques en mode marchés, renommé
-      « Activités » avec les symboles 🎪 & 🏪) ; 2) les deux filtres à
+{% comment %}
+   Filtres : SOUS LA CARTE, dans l'ordre souhaité — 1) le filtre
+   d'activité (marchés/boutiques en mode marchés, renommé
+   « Activités » avec les symboles 🎪 &amp; 🏪) ; 2) les deux filtres à
    saisir (recherche libre puis département/région/CP) ; 3) le filtre
-   mode de production à droite (mode producteurs). ---- #}
+   mode de production à droite (mode producteurs).
+{% endcomment %}
 <form class="search-bar" method="get" action="{% url 'portal:producer_search' %}">
   <input type="hidden" name="visu" value="{{ visu }}">
   <input type="hidden" name="demo" value="{% if demo %}1{% else %}0{% endif %}">
