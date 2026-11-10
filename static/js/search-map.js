@@ -214,11 +214,37 @@ function activitesDuMode() {
 /* Spécialités foodtruck : libellés pour le popup du marqueur
    (le symbole du camion est complété par l'emoji de spécialité). */
 var SPECIALITES = {
-  "SANDWICHS": "Sandwichs & Plats",
-  "PIZZA": "Pizza",
-  "BURGER": "Burger",
+  "SANDWICHS": "Sandwichs & plats",
+  "PIZZA": "Pizza au feu de bois",
+  "BURGER": "Burger gourmet",
   "TRAITEUR": "Traiteur",
-  "ROTISSEUR": "Rôtisseur"
+  "ROTISSEUR": "Rôtisseur",
+  "TACOS": "Tacos & mexicain",
+  "KEBAB": "Kebab & grec",
+  "GALETTE": "Crêpes & galettes",
+  "POISSON": "Fish & chips — friture",
+  "ASIATIQUE": "Wok, buns & bao",
+  "GLACIER": "Glaces & desserts",
+  "BUFFET": "Buffets & réceptions",
+  "COCKTAIL": "Pièces cocktail & verrines",
+  "FETES": "Repas de fête & banquets",
+  "MARITIME": "Traiteur maritime",
+  "CHARCUTIER": "Charcutier-traiteur",
+  "MARCHE": "Cuisine du marché",
+  "BISTRO": "Bistronomie",
+  "GASTRO": "Gastronomique",
+  "GRILL": "Grillades & viandes",
+  "MER": "Poissons & fruits de mer",
+  "PIZZERIA": "Pizzeria",
+  "TERROIR": "Cuisine de terroir",
+  "VEGETAL": "Végétal & végétarien",
+  "BOVINE": "Viande bovine",
+  "VOLAILLE": "Volailles & œufs",
+  "PORCINE": "Porc & charcuterie",
+  "OVINE": "Agneau & mouton",
+  "LAPIN": "Lapins",
+  "AQUACULTURE": "Pisciculture & aquaculture",
+  "ESCARGOT": "Héliciculture — escargots"
 };
 
 /* --------------------------------------------------------------- legende */
@@ -317,8 +343,7 @@ exploitants.forEach(function (e) {
   var symbole = e.symbole
     || (activite || "🌾 Autre").split(" ")[0];
   var libelle = activite;
-  if (e.activite === "FOODTRUCK" && e.specialite
-      && SPECIALITES[e.specialite]) {
+  if (e.specialite && SPECIALITES[e.specialite]) {
     libelle += " — " + SPECIALITES[e.specialite];
   }
   var badgeDemo = e.est_demo

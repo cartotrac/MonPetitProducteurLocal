@@ -47,17 +47,82 @@ class Exploitant(models.Model):
         AUTRE = "AUTRE", "Autre production locale"
 
     class Specialite(models.TextChoices):
-        """Type précis au sein d'une activité. Réservé pour l'instant
-        aux foodtrucks ; servira plus tard à préciser d'autres
-        catégories de producteurs."""
-        SANDWICHS = "SANDWICHS", "Sandwichs & Plats"
-        PIZZA = "PIZZA", "Pizza"
-        BURGER = "BURGER", "Burger"
+        """Type précis au sein d'une activité — LISTE CONDITIONNELLE :
+        chaque métier propose ses propres spécialités (table de
+        correspondance ci-dessous) ; le champ n'est éditable que pour
+        ces métiers, sinon valeur vide (null)."""
+        # 🚚 Foodtrucks
+        SANDWICHS = "SANDWICHS", "Sandwichs & plats"
+        PIZZA = "PIZZA", "Pizza au feu de bois"
+        BURGER = "BURGER", "Burger gourmet"
         TRAITEUR = "TRAITEUR", "Traiteur"
         ROTISSEUR = "ROTISSEUR", "Rôtisseur"
+        TACOS = "TACOS", "Tacos & mexicain"
+        KEBAB = "KEBAB", "Kebab & grec"
+        GALETTE = "GALETTE", "Crêpes & galettes"
+        POISSON = "POISSON", "Fish & chips — friture"
+        ASIATIQUE = "ASIATIQUE", "Wok, buns & bao"
+        GLACIER = "GLACIER", "Glaces & desserts"
+        # 🥗 Traiteurs
+        BUFFET = "BUFFET", "Buffets & réceptions"
+        COCKTAIL = "COCKTAIL", "Pièces cocktail & verrines"
+        FETES = "FETES", "Repas de fête & banquets"
+        MARITIME = "MARITIME", "Traiteur maritime"
+        CHARCUTIER = "CHARCUTIER", "Charcutier-traiteur"
+        # 🍽️ Restaurants
+        MARCHE = "MARCHE", "Cuisine du marché"
+        BISTRO = "BISTRO", "Bistronomie"
+        GASTRO = "GASTRO", "Gastronomique"
+        GRILL = "GRILL", "Grillades & viandes"
+        MER = "MER", "Poissons & fruits de mer"
+        PIZZERIA = "PIZZERIA", "Pizzeria"
+        TERROIR = "TERROIR", "Cuisine de terroir"
+        VEGETAL = "VEGETAL", "Végétal & végétarien"
+        # 🐄 Éleveurs
+        BOVINE = "BOVINE", "Viande bovine"
+        VOLAILLE = "VOLAILLE", "Volailles & œufs"
+        PORCINE = "PORCINE", "Porc & charcuterie"
+        OVINE = "OVINE", "Agneau & mouton"
+        LAPIN = "LAPIN", "Lapins"
+        AQUACULTURE = "AQUACULTURE", "Pisciculture & aquaculture"
+        ESCARGOT = "ESCARGOT", "Héliciculture — escargots"
 
-    SPECIALITE_EMOJIS = {"SANDWICHS": "🥪", "PIZZA": "🍕", "BURGER": "🍔",
-                         "TRAITEUR": "🍽️", "ROTISSEUR": "🍗"}
+    SPECIALITE_EMOJIS = {
+        "SANDWICHS": "🥪", "PIZZA": "🍕", "BURGER": "🍔",
+        "TRAITEUR": "🍽️", "ROTISSEUR": "🍗", "TACOS": "🌮",
+        "KEBAB": "🥙", "GALETTE": "🥞", "POISSON": "🐟",
+        "ASIATIQUE": "🍜", "GLACIER": "🍦",
+        "BUFFET": "🍽️", "COCKTAIL": "🥂", "FETES": "🎉",
+        "MARITIME": "🦞", "CHARCUTIER": "🥓",
+        "MARCHE": "🥗", "BISTRO": "🍷", "GASTRO": "👨‍🍳",
+        "GRILL": "🥩", "MER": "🦞", "PIZZERIA": "🍕",
+        "TERROIR": "🏡", "VEGETAL": "🥕",
+        "BOVINE": "🐄", "VOLAILLE": "🐔", "PORCINE": "🐖",
+        "OVINE": "🐑", "LAPIN": "🐇", "AQUACULTURE": "🐟",
+        "ESCARGOT": "🐌",
+    }
+
+    # Listes conditionnelles : quelles spécialités pour quel métier —
+    # les autres activités n'ont pas de spécialité (champ vide/null).
+    SPECIALITES_PAR_ACTIVITE = {
+        Activite.FOODTRUCK: [
+            Specialite.SANDWICHS, Specialite.PIZZA, Specialite.BURGER,
+            Specialite.TRAITEUR, Specialite.ROTISSEUR, Specialite.TACOS,
+            Specialite.KEBAB, Specialite.GALETTE, Specialite.POISSON,
+            Specialite.ASIATIQUE, Specialite.GLACIER],
+        Activite.TRAITEUR: [
+            Specialite.BUFFET, Specialite.COCKTAIL, Specialite.FETES,
+            Specialite.MARITIME, Specialite.CHARCUTIER],
+        Activite.RESTAURANT: [
+            Specialite.MARCHE, Specialite.BISTRO, Specialite.GASTRO,
+            Specialite.GRILL, Specialite.MER, Specialite.PIZZERIA,
+            Specialite.TERROIR, Specialite.VEGETAL],
+        Activite.ELEVEUR: [
+            Specialite.BOVINE, Specialite.VOLAILLE, Specialite.PORCINE,
+            Specialite.OVINE, Specialite.LAPIN, Specialite.AQUACULTURE,
+            Specialite.ESCARGOT],
+    }
+    ACTIVITES_AVEC_SPECIALITE = frozenset(SPECIALITES_PAR_ACTIVITE)
 
     class ModeFonctionnement(models.TextChoices):
         RECOLTE = "RECOLTE", "Récoltes hebdomadaires (paniers)"
@@ -89,10 +154,11 @@ class Exploitant(models.Model):
     specialite = models.CharField(
         "Spécialité", max_length=12, choices=Specialite.choices,
         blank=True, default="",
-        help_text="Affine l'activité — réservé pour l'instant aux "
-                  "foodtrucks (sandwichs & plats, pizza, burger, "
-                  "traiteur, rôtisseur) ; les spécialités des "
-                  "restaurants arriveront prochainement.")
+        help_text="Affine l'activité, listes propres à chaque métier : "
+                  "foodtrucks (pizza, burger, tacos…), traiteurs "
+                  "(buffets, pièces cocktail…), restaurants (cuisine "
+                  "du marché, bistronomie…) et éleveurs (bovine, "
+                  "volailles…). Vide pour les autres activités.")
     logo = models.ImageField("Logo miniature", upload_to=logo_chemin,
                              blank=True, null=True)
     description = models.TextField("Présentation de l'exploitation", blank=True)
@@ -144,9 +210,10 @@ class Exploitant(models.Model):
     @property
     def emoji_vitrine(self):
         """Symbole complet affiché sur la carte, la légende et les
-        vignettes : camion + spécialité pour les foodtrucks, symbole
-        d'activité seul sinon."""
-        if (self.activite == self.Activite.FOODTRUCK
+        vignettes : symbole d'activité + emoji de spécialité pour les
+        métiers qui en ont une (foodtruck, traiteur, restaurant,
+        éleveur), symbole d'activité seul sinon."""
+        if (self.activite in self.ACTIVITES_AVEC_SPECIALITE
                 and self.emoji_specialite):
             return self.emoji_activite + self.emoji_specialite
         return self.emoji_activite
@@ -262,9 +329,9 @@ class Exploitant(models.Model):
         une entrée de menu."""
         emoji, libelle = self.LIBELLES_FICHE.get(
             self.activite, ("🚜", "Ma ferme"))
-        # Foodtruck : l'icône porte aussi la spécialité (🚚🍕, 🚚🍔…),
+        # Métier à spécialité : l'icône la porte aussi (🚚🍕, 🍽️🥗…),
         # comme sur la carte et les vignettes.
-        if (self.activite == self.Activite.FOODTRUCK
+        if (self.activite in self.ACTIVITES_AVEC_SPECIALITE
                 and self.specialite):
             emoji = emoji + self.emoji_specialite
         return f"{emoji} {libelle}"

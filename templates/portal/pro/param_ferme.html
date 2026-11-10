@@ -8,7 +8,7 @@
    publique : activité, SIRET, logo (fichier ou lien externe), réseaux
    sociaux, position. Le département est déduit du code postal si vous
    le laissez vide. L'agencement reprend le formulaire d'inscription :
-   nom + case démo, activité + spécialité (foodtruck uniquement),
+   nom + case démo, activité + spécialité (listes selon le métier),
    carte de position avec géocodage inverse, adresse et
    coordonnées.</p>
 
@@ -124,9 +124,11 @@
 <script src="{% static 'js/image-picker.js' %}" defer></script>
 <script>
 /* Mise en page « Ma ferme » sur le modèle de l'inscription pro :
-   1. La spécialité ne concerne que les foodtrucks : hors foodtruck
-      elle est grisée, non sélectionnable et sa valeur réinitialisée
-      (le serveur la vide aussi, côté clean()).
+   1. La spécialité suit des listes conditionnelles au métier choisi
+      (foodtruck, traiteur, restaurant, éleveur) : les options des
+      autres métiers sont masquées, la ligne est grisée pour un métier
+      sans liste et la valeur réinitialisée (le serveur la vide aussi,
+      côté clean()).
    2. Le titre du bloc suit l'activité : « Ma ferme », « Mon
       foodtruck », « Ma boutique ».
    3. Position sur la carte = géocodage inverse : un clic sur la
@@ -136,19 +138,41 @@
 (function () {
   var TITRES = { "FOODTRUCK": "🚚 Mon foodtruck",
                  "TRAITEUR": "🥗 Ma boutique" };
+  /* Listes conditionnelles : spécialités proposées par métier —
+     identiques à Exploitant.SPECIALITES_PAR_ACTIVITE côté serveur. */
+  var SPECIALITES_PAR_ACT = {
+    "FOODTRUCK": ["SANDWICHS", "PIZZA", "BURGER", "TRAITEUR",
+                  "ROTISSEUR", "TACOS", "KEBAB", "GALETTE", "POISSON",
+                  "ASIATIQUE", "GLACIER"],
+    "TRAITEUR": ["BUFFET", "COCKTAIL", "FETES", "MARITIME",
+                 "CHARCUTIER"],
+    "RESTAURANT": ["MARCHE", "BISTRO", "GASTRO", "GRILL", "MER",
+                   "PIZZERIA", "TERROIR", "VEGETAL"],
+    "ELEVEUR": ["BOVINE", "VOLAILLE", "PORCINE", "OVINE", "LAPIN",
+                "AQUACULTURE", "ESCARGOT"]
+  };
   var act = document.getElementById("id_activite");
   var spe = document.getElementById("id_specialite");
   var ligneSpe = document.getElementById("ligne-specialite");
   var titre = document.getElementById("titre-ferme");
 
   function majActivite() {
-    var foodtruck = act && act.value === "FOODTRUCK";
+    var actives = (act && SPECIALITES_PAR_ACT[act.value]) || null;
     if (spe) {
-      spe.disabled = !foodtruck;
-      spe.required = foodtruck;
-      if (!foodtruck) { spe.value = ""; }
+      spe.disabled = !actives;
+      spe.required = !!(act && act.value === "FOODTRUCK");
+      for (var i = 0; i < spe.options.length; i++) {
+        var o = spe.options[i];
+        /* Seules les spécialités du métier choisi sont proposées
+           (l'option vide reste) ; changement de métier : choix
+           réinitialisé si la valeur ne fait plus partie de la liste. */
+        o.hidden = !!actives && o.value !== "" &&
+          actives.indexOf(o.value) < 0;
+      }
+      if (!actives || (spe.value &&
+          actives.indexOf(spe.value) < 0)) { spe.value = ""; }
     }
-    if (ligneSpe) { ligneSpe.classList.toggle("champ-grise", !foodtruck); }
+    if (ligneSpe) { ligneSpe.classList.toggle("champ-grise", !actives); }
     if (titre && act) {
       titre.textContent = TITRES[act.value] || "🚜 Ma ferme";
     }

@@ -184,6 +184,54 @@ def _ferme_spec(utilisateur, ferme, activite, mode, cp, adresse, ville,
 
 A = Exploitant.Activite
 M = Exploitant.ModeProduction
+S = Exploitant.Specialite
+
+# Spécialités du jeu de démo (valeurs stockées pour les métiers qui ont
+# une liste — cf. Exploitant.SPECIALITES_PAR_ACTIVITE). Les foodtrucks
+# portent déjà la leur dans leur spécification ; ce tableau complète
+# éleveurs, traiteurs et restaurants, et rattrape le foodtruck crêpes.
+SPECIALITES_DEMO = {
+    # 🐄 Éleveurs — spécialité alignée sur la présentation de la ferme
+    "demo.aveyron.eleveur": S.BOVINE,       # Aubrac : bœuf, agneau
+    "demo.rennes.eleveur": S.BOVINE,        # veaux et bœufs de la Vilaine
+    "demo.corse.eleveur": S.OVINE,          # Bergerie de Restonica
+    "demo.martinique.eleveur": S.VOLAILLE,
+    "demo.eleveur.lavaur": S.VOLAILLE,      # veaux et volailles de l'Agout
+    "demo.savoie.eleveur": S.BOVINE,
+    "demo.eleveur": S.BOVINE,               # bœuf et agneau des coteaux
+    "demo.castres.eleveur": S.OVINE,        # agneau du Sidobre
+    "demo.lacaune.eleveur": S.PORCINE,     # porc noir gascon
+    "demo.mazamet.eleveur": S.BOVINE,       # bœuf et veau des Monts
+    "demo.realmont.eleveur": S.BOVINE,      # veau et œufs du Dadou
+    # 🥗 Traiteurs
+    "demo.traiteur.gaillac": S.BUFFET,
+    "demo.traiteur.lavaur": S.COCKTAIL,
+    "demo.traiteur.montauban": S.FETES,
+    "demo.traiteur.brest": S.MARITIME,
+    "demo.traiteur.rennes": S.BUFFET,
+    "demo.traiteur.castres": S.BUFFET,      # Le Buffet Castrais
+    "demo.nice.traiteur": S.MARITIME,
+    "demo.traiteur": S.FETES,               # Traiteur des Bastides
+    "demo.albi.traiteur": S.CHARCUTIER,
+    "demo.castres.traiteur": S.COCKTAIL,
+    # 🍽️ Restaurants
+    "demo.albi.restaurant": S.TERROIR,      # La Table albigeoise
+    "demo.annecy.restaurant": S.MER,        # Comptoir du Lac
+    "demo.restaurant": S.MARCHE,            # Le Pont Vieux
+    "demo.castres.restaurant": S.BISTRO,    # Quai des Laitières
+    "demo.graulhet.restaurant": S.GRILL,    # La Table du Pastel
+    # 🚚 Foodtruck (cas omis de sa spécification)
+    "demo.foodtruck.crepes.gaillac": S.GALETTE,
+}
+
+# Produits adaptés à la spécialité : le catalogue ÉLEVEUR du jeu de
+# démo suit la spécialité de l'élevage (viandes / volaille + œufs).
+CATEGORIES_SPECIALITE_ELEVEUR = {
+    S.BOVINE: ["Viandes", "Œufs"],
+    S.OVINE: ["Viandes"],
+    S.PORCINE: ["Viandes"],
+    S.VOLAILLE: ["Volaille", "Œufs"],
+}
 
 
 def _type_deduit(nom):
@@ -2184,6 +2232,9 @@ class Command(BaseCommand):
                 f"Compte {spec['utilisateur']} déjà présent : ferme "
                 "conservée, commandes de démo régénérées."))
             return exploitant, produits, points
+        specialite_ferme = (spec.get("specialite")
+                            or SPECIALITES_DEMO.get(spec["utilisateur"], "")
+                            or "")
         user = User.objects.create_user(
             username=spec["utilisateur"], password=MOT_DE_PASSE_DEMO,
             first_name="Famille", last_name=spec["ferme"],
@@ -2191,7 +2242,7 @@ class Command(BaseCommand):
         exploitant = Exploitant.objects.create(
             user=user, nom_ferme=spec["ferme"], activite=spec["activite"],
             mode_production=spec["mode"],
-            specialite=spec.get("specialite") or "",
+            specialite=specialite_ferme,
             siret=_siret_valide(spec["siret_prefixe"]),
             description=spec["description"], adresse=spec["adresse"],
             ville=spec["ville"], code_postal=spec["cp"],
@@ -2209,6 +2260,12 @@ class Command(BaseCommand):
                 activite=source["activite"])
             if source.get("categorie"):
                 qs = qs.filter(categorie=source["categorie"])
+            elif (source["activite"] == A.ELEVEUR and specialite_ferme
+                  in CATEGORIES_SPECIALITE_ELEVEUR):
+                # Éleveur : le catalogue suit la spécialité (viandes
+                # ou volaille + œufs) — produits adaptés au métier.
+                qs = qs.filter(categorie__in=(
+                    CATEGORIES_SPECIALITE_ELEVEUR[specialite_ferme]))
             for std in qs[:source["limite"]]:
                 if Produit.objects.filter(
                         exploitant=exploitant,

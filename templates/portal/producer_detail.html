@@ -7,7 +7,7 @@
   {% if exploitant.logo %}<img class="producer-logo" src="{{ exploitant.logo.url }}" alt="Logo">{% elif vitrine.reseaux.logo_url %}<img class="producer-logo" src="{{ vitrine.reseaux.logo_url }}" alt="Logo">{% else %}<div class="producer-logo placeholder">🌱</div>{% endif %}
   <div>
     <h1>{{ exploitant.nom_ferme }}</h1>
-    <span class="badge badge-activite">{{ exploitant.emoji_vitrine }} {{ exploitant.get_activite_display }}{% if exploitant.activite == 'FOODTRUCK' and exploitant.specialite %} — {{ exploitant.get_specialite_display }}{% endif %}</span>
+    <span class="badge badge-activite">{{ exploitant.emoji_vitrine }} {{ exploitant.get_activite_display }}{% if exploitant.specialite %} — {{ exploitant.get_specialite_display }}{% endif %}</span>
     {% if exploitant.est_demo %}<span class="badge badge-demo">🧪 Démo</span>{% endif %}
     {% if exploitant.mode_production == 'AB' %}<span class="badge badge-ab">Certifié AB</span>
     {% elif exploitant.mode_production == 'PERMA' %}<span class="badge badge-perma">Permaculture</span>

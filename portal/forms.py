@@ -43,11 +43,13 @@ class InscriptionExploitantForm(UserCreationForm):
         help_text="Le symbole de votre métier apparaît sur votre fiche "
                   "publique et les vignettes de recherche.")
     specialite = forms.ChoiceField(
-        label="Spécialité (si foodtruck)", required=False,
+        label="Spécialité (selon le métier)", required=False,
         choices=[("", "— Précisez la spécialité —")]
         + list(Exploitant.Specialite.choices),
-        help_text="Exigée pour un foodtruck : pizza, burger… "
-                  "elle s'affiche sur les pages publiques.")
+        help_text="Liste propre à chaque métier — foodtruck, traiteur, "
+                  "restaurant, éleveur — exigée pour un foodtruck, "
+                  "optionnelle pour les trois autres : elle s'affiche "
+                  "sur les pages publiques. Autre métier : laisser vide.")
     adresse = forms.CharField(label="Adresse", max_length=255, required=False)
     ville = forms.CharField(label="Ville", max_length=100, required=False)
     code_postal = forms.CharField(
@@ -111,14 +113,19 @@ class InscriptionExploitantForm(UserCreationForm):
         if donnees.get("pieux"):
             # Honeypot rempli : robot — erreur volontairement générique.
             raise forms.ValidationError("Formulaire invalide.")
-        if (donnees.get("activite") == Exploitant.Activite.FOODTRUCK
-                and not donnees.get("specialite")):
+        activite = donnees.get("activite")
+        specialite = donnees.get("specialite")
+        if activite == Exploitant.Activite.FOODTRUCK and not specialite:
             self.add_error(
                 "specialite",
                 "Précisez la spécialité de votre foodtruck (pizza, "
-                "burger…) : elle apparaît sur les pages publiques et "
-                "les vignettes.")
-        elif donnees.get("activite") != Exploitant.Activite.FOODTRUCK:
+                "burger, tacos…) : elle apparaît sur les pages "
+                "publiques et les vignettes.")
+        elif specialite not in Exploitant.SPECIALITES_PAR_ACTIVITE.get(
+                activite, []):
+            # Métier sans liste, ou spécialité hors liste du métier
+            # choisi : valeur null en base — la spécialité n'existe
+            # que pour foodtruck, traiteur, restaurant et éleveur.
             donnees["specialite"] = ""
         return donnees
 
@@ -197,11 +204,13 @@ class InscriptionFermeSeuleForm(forms.Form):
         help_text="Le symbole de votre métier apparaît sur votre fiche "
                   "publique et les vignettes de recherche.")
     specialite = forms.ChoiceField(
-        label="Spécialité (si foodtruck)", required=False,
+        label="Spécialité (selon le métier)", required=False,
         choices=[("", "— Précisez la spécialité —")]
         + list(Exploitant.Specialite.choices),
-        help_text="Exigée pour un foodtruck : pizza, burger… "
-                  "elle s'affiche sur les pages publiques.")
+        help_text="Liste propre à chaque métier — foodtruck, traiteur, "
+                  "restaurant, éleveur — exigée pour un foodtruck, "
+                  "optionnelle pour les trois autres : elle s'affiche "
+                  "sur les pages publiques. Autre métier : laisser vide.")
     adresse = forms.CharField(label="Adresse", max_length=255, required=False)
     ville = forms.CharField(label="Ville", max_length=100, required=False)
     code_postal = forms.CharField(
@@ -241,14 +250,19 @@ class InscriptionFermeSeuleForm(forms.Form):
         if donnees.get("pieux"):
             # Honeypot rempli : robot — erreur volontairement générique.
             raise forms.ValidationError("Formulaire invalide.")
-        if (donnees.get("activite") == Exploitant.Activite.FOODTRUCK
-                and not donnees.get("specialite")):
+        activite = donnees.get("activite")
+        specialite = donnees.get("specialite")
+        if activite == Exploitant.Activite.FOODTRUCK and not specialite:
             self.add_error(
                 "specialite",
                 "Précisez la spécialité de votre foodtruck (pizza, "
-                "burger…) : elle apparaît sur les pages publiques et "
-                "les vignettes.")
-        elif donnees.get("activite") != Exploitant.Activite.FOODTRUCK:
+                "burger, tacos…) : elle apparaît sur les pages "
+                "publiques et les vignettes.")
+        elif specialite not in Exploitant.SPECIALITES_PAR_ACTIVITE.get(
+                activite, []):
+            # Métier sans liste, ou spécialité hors liste du métier
+            # choisi : valeur null en base — la spécialité n'existe
+            # que pour foodtruck, traiteur, restaurant et éleveur.
             donnees["specialite"] = ""
         return donnees
 
@@ -460,9 +474,9 @@ class ProfilExploitantForm(forms.ModelForm):
                   "departement", "telephone", "latitude", "longitude",
                   "est_demo", "mode_fonctionnement"]
         labels = {"nom_ferme": "Nom de l'exploitation",
-                  "specialite": "Spécialité (foodtruck : sandwichs & "
-                                "plats, pizza, burger, traiteur, "
-                                "rôtisseur)",
+                  "specialite": "Spécialité (listes selon le métier : "
+                                "foodtruck, traiteur, restaurant, "
+                                "éleveur)",
                   "activite": "Activité",
                   "siret": "SIRET (14 chiffres)",
                   "mode_production": "Mode de production",
@@ -479,11 +493,14 @@ class ProfilExploitantForm(forms.ModelForm):
             "sur le portail.")}
 
     def clean_specialite(self):
-        """La spécialité n'a de sens que pour les foodtrucks : on la
-        vide silencieusement pour toute autre activité."""
+        """La spécialité n'existe que pour les métiers qui ont leur
+        liste (foodtruck, traiteur, restaurant, éleveur) : hors liste
+        du métier choisi — y compris après un changement d'activité
+        en cours de route — on la vide silencieusement (null)."""
         specialite = self.cleaned_data.get("specialite")
         activite = self.cleaned_data.get("activite")
-        if specialite and activite != Exploitant.Activite.FOODTRUCK:
+        if specialite not in Exploitant.SPECIALITES_PAR_ACTIVITE.get(
+                activite, []):
             return ""
         return specialite
 

@@ -284,7 +284,7 @@
         <img class="card-logo" src="{{ exploitant.logo.url }}" alt="Logo {{ exploitant.nom_ferme }}">
       {% endif %}
       <div class="vignette-titre">
-        <span class="badge badge-activite vignette-badge-activite" title="{{ exploitant.get_activite_display }}{% if exploitant.activite == 'FOODTRUCK' and exploitant.specialite %} — {{ exploitant.get_specialite_display }}{% endif %}" aria-label="{{ exploitant.get_activite_display }}">{{ exploitant.emoji_vitrine }}</span>
+        <span class="badge badge-activite vignette-badge-activite" title="{{ exploitant.get_activite_display }}{% if exploitant.specialite %} — {{ exploitant.get_specialite_display }}{% endif %}" aria-label="{{ exploitant.get_activite_display }}">{{ exploitant.emoji_vitrine }}</span>
         <h2><a href="{% url 'portal:producer_detail' exploitant.slug %}">{{ exploitant.nom_ferme }}</a></h2>
         {% if exploitant.mode_production == 'AB' %}<span class="badge badge-ab">Bio (AB)</span>
         {% elif exploitant.mode_production == 'PERMA' %}<span class="badge badge-perma">Permaculture</span>
