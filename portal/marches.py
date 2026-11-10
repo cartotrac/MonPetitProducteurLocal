@@ -144,7 +144,7 @@ def _fabrique_marche(type_point, cluster, creneaux_par_point):
                       for t in cren_txt]
         liste_producteurs.append({
             "exploitant": e,
-            "nom_ferme": e.nom_ferme,
+            "nom_espace": e.nom_espace,
             "slug": e.slug,
             "url": e.get_absolute_url(),
             "activite": e.activite,
@@ -155,7 +155,7 @@ def _fabrique_marche(type_point, cluster, creneaux_par_point):
             "est_demo": e.est_demo,
             "creneaux_txt": cren_txt,
         })
-    liste_producteurs.sort(key=lambda p: p["nom_ferme"])
+    liste_producteurs.sort(key=lambda p: p["nom_espace"])
 
     empreinte = hashlib.sha1(
         "|".join(str(p.pk) for p in sorted(cluster,
@@ -198,7 +198,7 @@ def identifier_marches(inclure_demo=True):
               .select_related("exploitant")
               .order_by("ville", "nom"))
     if not inclure_demo:
-        # Mode « Réel » de la recherche : les fermes fictives de
+        # Mode « Réel » de la recherche : les espaces fictifs de
         # démonstration (et leurs stands) n'entrent pas dans le calcul.
         points = points.exclude(exploitant__est_demo=True)
 

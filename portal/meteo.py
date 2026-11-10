@@ -112,7 +112,7 @@ def meteo_synthese(exploitant):
         "min": round(jour["temperature_2m_min"][0]),
         "vent": round(actuel.get("wind_speed_10m") or 0),
         "pluie": jour["precipitation_sum"][0] or 0,
-        "lieu": exploitant.ville or exploitant.nom_ferme,
+        "lieu": exploitant.ville or exploitant.nom_espace,
     }
     _cache[cle] = (maintenant, synthese)
     return synthese

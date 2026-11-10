@@ -72,7 +72,12 @@ SMS_PAR_DEFAUT = {
 def _contexte(panier):
     return {
         "client": panier.nom_client,
-        "ferme": panier.exploitant.nom_ferme,
+        "ferme": panier.exploitant.nom_espace,
+        # Alias de compatibilité avec les placeholders
+        # documentés de ModeleMessage : {{ espace }} et
+        # {{ panier }} (numéro).
+        "espace": panier.exploitant.nom_espace,
+        "panier": panier.numero,
         "numero": panier.numero,
         "date": panier.date_livraison.strftime("%d/%m/%Y"),
         "total": str(panier.total).replace(".", ","),
@@ -197,7 +202,7 @@ def notifier_client(request, panier, type_msg):
     connexion, expediteur = _connexion_smtp_exploitant(panier.exploitant)
     if connexion is None and not getattr(settings, "EMAIL_HOST", ""):
         messages.info(request, "ℹ️ Notification e-mail non envoyée : "
-                      "aucun serveur SMTP configuré (ni pour la ferme dans "
+                      "aucun serveur SMTP configuré (ni pour l'espace dans "
                       "Paramètres → Messagerie, ni pour le serveur : "
                       "EMAIL_HOST dans le .env puis redémarrage). La "
                       "commande, elle, est bien enregistrée — rien n'est "
@@ -206,7 +211,7 @@ def notifier_client(request, panier, type_msg):
     try:
         if connexion is not None:
             # SMTP propre à l'exploitation : les notifications partent au
-            # nom de la ferme (bouton « test_email » de la même page).
+            # nom de l'espace (bouton « test_email » de la même page).
             EmailMessage(objet, corps, expediteur, [panier.email_client],
                          connection=connexion).send()
         else:
@@ -219,5 +224,5 @@ def notifier_client(request, panier, type_msg):
         return False
     messages.success(request, "✉️ E-mail envoyé à " + panier.email_client
                      + ("" if connexion is None
-                        else " (via le serveur de la ferme)") + ".")
+                        else " (via le serveur de votre espace)") + ".")
     return True
