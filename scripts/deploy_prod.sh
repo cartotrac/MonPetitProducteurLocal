@@ -56,7 +56,7 @@ if [ -f .env ] && grep -q "^DB_ENGINE=django.db.backends.postgresql" .env; then
     exit 1
   fi
   set -a; . ./.env; set +a
-  PGPASSWORD="$DB_PASSWORD" pg_dump -h "$DB_HOST" -p "${$DB_PORT:-5432}" -U "$DB_USER" "$DB_NAME" \
+  PGPASSWORD="$DB_PASSWORD" pg_dump -h "$DB_HOST" -p "${DB_PORT:-5432}" -U "$DB_USER" "$DB_NAME" \
     | gzip > "backups/db_$HORODAGE.sql.gz"
   echo "   sauvegarde PostgreSQL : backups/db_$HORODAGE.sql.gz"
 elif [ -f db.sqlite3 ]; then
@@ -81,7 +81,7 @@ fi
 
 echo "==> 6/7 Redémarrage WSGI"
 # Toujours redémarrer : le code Python est chargé en mémoire.
-if [ -n "${$AD_API_KEY:-}" ] && [ -n "${$AD_SITE_ID:-}" ]; then
+if [ -n "${AD_API_KEY:-}" ] && [ -n "${AD_SITE_ID:-}" ]; then
   curl -s -u "$AD_API_KEY:" -X POST "https://api.alwaysdata.com/v1/site/$AD_SITE_ID/restart/"
   echo "   site AlwaysData redémarré via l'API"
 else
