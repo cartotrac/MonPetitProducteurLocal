@@ -30,11 +30,11 @@
       {% if user.is_authenticated and nb_espaces_pro %}
         {% if mode_pro %}
         <form class="inline" method="post" action="{% url 'portal:bascule_espace' %}">
-          {% csrf_token %}<button class="btn-darkmode" type="submit" name="action" value="grand-public" title="Revenir en grand public : commander au nom propre (alias)" aria-label="Revenir en grand public">🧺</button>
+          {% csrf_token %}<button class="btn-darkmode btn-espace" type="submit" name="action" value="grand-public" title="Revenir en grand public : commander au nom propre (alias)" aria-label="Revenir en grand public">🧺</button>
         </form>
         {% else %}
         <form class="inline" method="post" action="{% url 'portal:bascule_espace' %}">
-          {% csrf_token %}<button class="btn-darkmode" type="submit" name="action" value="pro" title="Accéder à mon espace pro" aria-label="Accéder à mon espace pro">{% if nb_espaces_pro == 1 %}{{ exploitant_courant.emoji_vitrine }}{% else %}🚜{% endif %}</button>
+          {% csrf_token %}<button class="btn-darkmode btn-espace" type="submit" name="action" value="pro" title="Accéder à mon espace pro" aria-label="Accéder à mon espace pro">{% if nb_espaces_pro == 1 %}{{ exploitant_courant.emoji_vitrine }}{% else %}🚜{% endif %}</button>
         </form>
         {% endif %}
       {% endif %}
@@ -197,6 +197,7 @@
   /* Bouton mode sombre : le bandeau disparu, il se fixe sous les
      boutons de scroll pour rester toujours accessible. */
   var dark = document.getElementById("btn-darkmode");
+  var espace = document.querySelector(".btn-espace");
   var trouver = document.querySelector(".nav-chercher");
   var session = document.querySelector(".session-flottante");
   var trouverParent = null, trouverSuivant = null;
@@ -205,7 +206,7 @@
     return bandeau.getBoundingClientRect().bottom < 0;
   } : null;
   if (bandeauDisparu) {
-    window.addEventListener("scroll", function () {
+    var maj = function () {
       var flottant = bandeauDisparu();
       if (dark) {
         dark.classList.toggle("btn-darkmode-flottant", flottant);
@@ -237,7 +238,26 @@
       if (session) {
         session.classList.toggle("visible", flottant);
       }
-    }, { passive: true });
+      /* Bouton de bascule d'espace (🧺 / métier pro) : même
+         comportement que dark et « Trouver » — fixé dans la
+         colonne flottante quand le bandeau a disparu. */
+      if (espace) {
+        espace.classList.toggle("btn-espace-flottant", flottant);
+      }
+      /* Flèches de scroll (désormais en bas de page) : ↑ masquée
+         quand on est revenu tout en haut (bandeau visible), ↓
+         masquée quand le pied de page est atteint. */
+      if (haut) {
+        haut.classList.toggle("nav-cache", window.scrollY <= 5);
+      }
+      if (bas) {
+        bas.classList.toggle("nav-cache",
+            window.innerHeight + window.scrollY >=
+            document.documentElement.scrollHeight - 5);
+      }
+    };
+    window.addEventListener("scroll", maj, { passive: true });
+    maj();
   }
 })();
 </script>
