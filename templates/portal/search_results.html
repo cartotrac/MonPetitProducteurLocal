@@ -319,6 +319,37 @@
   });
 })();
 </script>
+<script>
+/* Filtres déroulants (détails natifs) : accordéon — un seul menu
+   ouvert à la fois dans la barre de filtres, fermeture au clic
+   extérieur ou à la touche Échap. Deux menus ne peuvent donc plus
+   être déroulés ni se chevaucher en même temps. */
+(function () {
+  var barre = document.querySelector(".search-bar");
+  if (!barre) { return; }
+  var menus = Array.prototype.slice.call(
+    barre.querySelectorAll("details.filtre-multi"));
+  menus.forEach(function (menu) {
+    menu.addEventListener("toggle", function () {
+      if (menu.open) {
+        menus.forEach(function (autre) {
+          if (autre !== menu) { autre.open = false; }
+        });
+      }
+    });
+  });
+  document.addEventListener("click", function (evt) {
+    menus.forEach(function (menu) {
+      if (menu.open && !menu.contains(evt.target)) { menu.open = false; }
+    });
+  });
+  document.addEventListener("keydown", function (evt) {
+    if (evt.key === "Escape") {
+      menus.forEach(function (menu) { menu.open = false; });
+    }
+  });
+})();
+</script>
 {% if carte_data %}
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="{% static 'js/search-map.js' %}"></script>

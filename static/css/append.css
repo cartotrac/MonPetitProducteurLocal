@@ -1747,5 +1747,42 @@ body a.nav-chercher.nav-chercher-flottant { top: 164px !important; }
   .scroll-nav { top: auto !important; bottom: 84px !important; }
 }
 
+/* ===== Filtres de recherche (sous la carte) : menus déroulants
+       harmonisés — apparition animée, un seul ouvert (accordéon géré
+       dans search_results.html), aéré et lisible dans les deux
+       thèmes. ===== */
+.search-bar details.filtre-multi summary {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.search-bar details.filtre-multi[open] summary {
+  border-color: #2e7d32;
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
+}
+.search-bar .filtre-multi-menu {
+  z-index: 1180;
+  padding: 0.5rem 0.7rem;
+  border-radius: 10px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
+  animation: filtre-apparait 0.14s ease-out;
+}
+.search-bar .filtre-multi-choix { padding: 0.34rem 0.3rem; }
+.search-bar .filtre-multi-menu .muted {
+  padding-top: 0.3rem; border-top: 1px dashed #c9d6bd;
+}
+@keyframes filtre-apparait {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+html.dark .search-bar details.filtre-multi[open] summary {
+  box-shadow: 0 0 0 3px rgba(173, 213, 129, 0.18);
+}
+html.dark .search-bar .filtre-multi-menu .muted {
+  border-top-color: #55624a;
+}
+@media (prefers-reduced-motion: reduce) {
+  .search-bar .filtre-multi-menu { animation: none; }
+}
+
+
 
 
