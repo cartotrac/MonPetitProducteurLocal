@@ -24,8 +24,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
-from allauth.account.utils import send_email_confirmation
-
 from .forms import (AnnonceForm, BulletinForm, InscriptionClientForm,
                     InscriptionExploitantForm, InscriptionFermeSeuleForm,
                     MessagerieForm, ProduitForm, ProfilExploitantForm,
@@ -1032,7 +1030,11 @@ def _envoyer_verification_courriel(request, user):
     le bandeau n'apparaît pas — jamais bloquant)."""
     if getattr(settings, "EMAIL_HOST", ""):
         try:
-            send_email_confirmation(request, user, signup=True)
+            # API stable d'allauth (toutes versions récentes) : crée
+            # l'entrée EmailAddress et envoie le lien de confirmation.
+            from allauth.account.models import EmailAddress
+            EmailAddress.objects.add_email(
+                request, user, user.email, confirm=True, signup=True)
             return True
         except Exception:
             pass
@@ -1066,16 +1068,15 @@ def register_client(request):
 def renvoyer_verification_courriel(request):
     """Bandeau « Vérifiez votre e-mail » : renvoie l'e-mail de
     vérification à la demande (mode doux, non bloquant)."""
-    if request.method == "POST" and getattr(settings, "EMAIL_HOST", ""):
-        try:
-            send_email_confirmation(request, request.user, signup=False)
-            messages.success(
-                request, "📬 E-mail de vérification renvoyé : regardez "
-                "votre boîte de réception (et vos spams).")
-        except Exception:
-            messages.error(
-                request, "Envoi impossible pour le moment : réessayez "
-                "plus tard.")
+    if request.method == "POST" and _envoyer_verification_courriel(
+            request, request.user):
+        messages.success(
+            request, "📬 E-mail de vérification renvoyé : regardez "
+            "votre boîte de réception (et vos spams).")
+    elif request.method == "POST":
+        messages.error(
+            request, "Envoi impossible pour le moment : réessayez "
+            "plus tard.")
     suivant = request.POST.get("suivant") or ""
     # Redirection interne uniquement : jamais de renvoi vers un site
     # externe, même si la valeur vient du client.
