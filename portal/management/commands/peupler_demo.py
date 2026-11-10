@@ -1,4 +1,4 @@
-"""Peuple l'instance avec des fermes et clients de DÉMONSTRATION.
+"""Peuple l'instance avec des espaces pro et clients de DÉMONSTRATION.
 
 Crée des exploitations fictives — le Tarn, ses départements
 limitrophes (Aveyron, Aude, Hérault, Haute-Garonne, Tarn-et-Garonne),
@@ -9,9 +9,9 @@ et un historique de commandes/paniers couvrant tous les statuts : de
 quoi montrer le portail de bout en bout, y compris la recherche
 géographique, en quelques clics.
 
-Les fermes de démo sont identifiables partout (vignettes de recherche,
+Les espaces de démo sont identifiables partout (vignettes de recherche,
 carte, fiche producteur) par un badge 🧪 DÉMO et le champ
-« Exploitation de démonstration » (page Paramètres).
+« Espace de démonstration » (page Paramètres).
 
 ⚠️ Toutes les données sont FICTIVES : noms, SIRET (valides au format
 Luhn mais inventés), adresses et coordonnées ne référencent aucune
@@ -27,7 +27,7 @@ Usage :
     python manage.py peupler_demo --reset-commandes-demo
                                            # courant : efface les
                                            # commandes/paniers des
-                                           # SEULES fermes de démo et
+                                           # SEULS espaces de démo et
                                            # régénère le jeu
     python manage.py peupler_demo --reset-complet
                                            # GRAND NETTOYAGE : purge les
@@ -74,7 +74,7 @@ Comptes créés (mot de passe : demo1234!) :
                   demo.alsace.conserverie, demo.lille.microbrasseur,
                   demo.nice.traiteur, demo.orleans.foodtruck.burger,
                   demo.reims.foodtruck.rotisseur
-    Série Tarn 100 : 44 fermes de démo couvrant tous les profils
+    Série Tarn 100 : 44 espaces de démo couvrant tous les profils
                  d'activité, localisées dans le Tarn. Identifiants
                  de test simples : demo.maraicher, demo.arboriculteur,
                  demo.eleveur, demo.fromager, demo.apiculteur,
@@ -2184,12 +2184,12 @@ class Command(BaseCommand):
             "--reset-commandes", action="store_true",
             help=("Efface TOUTES les commandes et paniers de la base "
                   "(comptes réels inclus) puis régénère les commandes "
-                  "et paniers du jeu de démo pour toutes les fermes. "
+                  "et paniers du jeu de démo pour tous les espaces. "
                   "Usage ponctuel uniquement."))
         parser.add_argument(
             "--reset-commandes-demo", action="store_true",
             help=("Efface UNIQUEMENT les commandes et paniers des "
-                  "fermes de démonstration (les commandes réelles "
+                  "espaces de démonstration (les commandes réelles "
                   "sont conservées) puis régénère le jeu de démo."))
         parser.add_argument(
             "--reset-complet", action="store_true",
@@ -2240,7 +2240,7 @@ class Command(BaseCommand):
             first_name="Famille", last_name=spec["ferme"],
             email=spec["utilisateur"] + "@example.fr")
         exploitant = Exploitant.objects.create(
-            user=user, nom_ferme=spec["ferme"], activite=spec["activite"],
+            user=user, nom_espace=spec["ferme"], activite=spec["activite"],
             mode_production=spec["mode"],
             specialite=specialite_ferme,
             siret=_siret_valide(spec["siret_prefixe"]),
@@ -2341,7 +2341,7 @@ class Command(BaseCommand):
             exploitant=exploitant, objet=spec["bulletin"][0],
             corps=spec["bulletin"][1])
         self.stdout.write(self.style.SUCCESS(
-            f"🌾 {exploitant.nom_ferme} créée ({spec['ville']}, compte "
+            f"🌾 {exploitant.nom_espace} créée ({spec['ville']}, compte "
             f"{spec['utilisateur']}, mot de passe {MOT_DE_PASSE_DEMO}) : "
             f"{len(produits)} produits en "
             f"{exploitant.categories.count()} catégories, "
@@ -2494,13 +2494,13 @@ class Command(BaseCommand):
         users = (User.objects.filter(username__startswith="demo.")
                  | User.objects.filter(exploitant__est_demo=True)
                  | User.objects.filter(
-                     exploitant__nom_ferme__in=[
+                     exploitant__nom_espace__in=[
                          s["ferme"] for s in FERMES])
                  ).distinct()
         # Les lignes de commandes et paniers de démo portent des
         # clés étrangères PROTÉGÉES (produits, points) : sans cet
         # effacement préalable, la suppression du compte échoue
-        # (ProtectedError) et les fermes sont conservées avec leurs
+        # (ProtectedError) et les espaces sont conservés avec leurs
         # anciens points — les nouveaux types MARCHE/BOUTIQUE ne
         # sont alors jamais appliqués au jeu de démo.
         cibles = list(users)
@@ -2578,13 +2578,13 @@ class Command(BaseCommand):
             users = (User.objects.filter(username__startswith="demo.")
                      | User.objects.filter(exploitant__est_demo=True)
                      | User.objects.filter(
-                         exploitant__nom_ferme__in=[
+                         exploitant__nom_espace__in=[
                              s["ferme"] for s in FERMES])
                      ).distinct()
             # Les lignes de commandes et paniers de démo portent des
             # clés étrangères PROTÉGÉES (produits, points) : sans cet
             # effacement préalable, la suppression du compte échoue
-            # (ProtectedError) et les fermes sont conservées avec leurs
+            # (ProtectedError) et les espaces sont conservés avec leurs
             # anciens points — les nouveaux types MARCHE/BOUTIQUE ne
             # sont alors jamais appliqués au jeu de démo.
             cibles = list(users)
@@ -2643,7 +2643,7 @@ class Command(BaseCommand):
                 "index réalignés."))
         elif reset_demo:
             # Nettoyage courant : seules les commandes et paniers des
-            # fermes de DÉMONSTRATION sont effacés — les commandes
+            # espaces de DÉMONSTRATION sont effacés — les commandes
             # réelles des vrais comptes sont conservées.
             nb_paniers = Panier.objects.filter(
                 exploitant__est_demo=True).count()
@@ -2732,7 +2732,7 @@ class Command(BaseCommand):
         self._cartes_demo()
 
         self.stdout.write(self.style.SUCCESS(
-            f"Démonstration prête : {len(FERMES)} fermes fictives "
+            f"Démonstration prête : {len(FERMES)} espaces fictifs "
             "(Tarn et limitrophes, Bretagne, Loire, Corse, Réunion, "
             "Martinique + 10 pros régionaux diversifiés) avec "
             f"{len(CLIENTS)} clients, commandes à valider, paniers en "
