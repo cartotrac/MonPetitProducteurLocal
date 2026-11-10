@@ -9,15 +9,15 @@ Attend la variable « exploitant ».
       <input type="hidden" name="next" value="{{ request.get_full_path }}">
       <button type="submit" class="btn-favori-vignette{% if exploitant.slug in favoris_slugs %} actif{% endif %}"
               title="{% if exploitant.slug in favoris_slugs %}Retirer des favoris{% else %}Ajouter aux favoris{% endif %}"
-              aria-label="{% if exploitant.slug in favoris_slugs %}Retirer {{ exploitant.nom_ferme }} des favoris{% else %}Ajouter {{ exploitant.nom_ferme }} aux favoris{% endif %}">{% if exploitant.slug in favoris_slugs %}⭐{% else %}☆{% endif %}</button>
+              aria-label="{% if exploitant.slug in favoris_slugs %}Retirer {{ exploitant.nom_espace }} des favoris{% else %}Ajouter {{ exploitant.nom_espace }} aux favoris{% endif %}">{% if exploitant.slug in favoris_slugs %}⭐{% else %}☆{% endif %}</button>
     </form>
   {% endif %}
   {% if exploitant.logo %}
-    <img class="card-logo" src="{{ exploitant.logo.url }}" alt="Logo {{ exploitant.nom_ferme }}">
+    <img class="card-logo" src="{{ exploitant.logo.url }}" alt="Logo {{ exploitant.nom_espace }}">
   {% endif %}
   <div class="vignette-titre">
     <span class="badge badge-activite vignette-badge-activite" title="{{ exploitant.get_activite_display }}{% if exploitant.activite == 'FOODTRUCK' and exploitant.specialite %} — {{ exploitant.get_specialite_display }}{% endif %}" aria-label="{{ exploitant.get_activite_display }}">{{ exploitant.emoji_vitrine }}</span>
-    <h2><a href="{% url 'portal:producer_detail' exploitant.slug %}">{{ exploitant.nom_ferme }}</a></h2>
+    <h2><a href="{% url 'portal:producer_detail' exploitant.slug %}">{{ exploitant.nom_espace }}</a></h2>
     {% if exploitant.mode_production == 'AB' %}<span class="badge badge-ab">Bio (AB)</span>
     {% elif exploitant.mode_production == 'PERMA' %}<span class="badge badge-perma">Permaculture</span>
     {% elif exploitant.mode_production == 'PAYSAN' %}<span class="badge badge-paysan">Paysanne</span>
@@ -34,7 +34,7 @@ Attend la variable « exploitant ».
       {% for h in exploitant.horaires %}
         <span>🗓️ {{ h.txt }}{% if h.point %} — {% if h.itineraire %}<a href="{{ h.itineraire }}" target="_blank" rel="noopener" title="Itinéraire google maps">{{ h.point }}</a>{% else %}{{ h.point }}{% endif %}{% endif %}</span>
       {% endfor %}
-      {% if not exploitant.horaires %}<span class="muted">Horaires non renseignés — voir la fiche de la ferme.</span>{% endif %}
+      {% if not exploitant.horaires %}<span class="muted">Horaires non renseignés — voir la fiche de l'espace.</span>{% endif %}
     </div>
   </div>
   <p class="vignette-pied">

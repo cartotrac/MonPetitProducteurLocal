@@ -11,7 +11,7 @@
   {% for e in espaces %}
   <button type="submit" name="espace" value="{{ e.exploitant.pk }}" class="choix-carte">
     <span class="choix-icone">{{ e.exploitant.emoji_vitrine }}</span>
-    <strong>{{ e.exploitant.nom_ferme }}</strong>
+    <strong>{{ e.exploitant.nom_espace }}</strong>
     <span class="badge badge-activite">{{ e.role_libelle }}</span>
     <span class="choix-texte">{{ e.exploitant.get_activite_display }}{% if e.exploitant.specialite %} · {{ e.exploitant.get_specialite_display }}{% endif %}{% if e.exploitant.ville %} — {{ e.exploitant.ville }}{% endif %}</span>
   </button>

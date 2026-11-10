@@ -5,11 +5,11 @@
 <h1>⭐ Mes favoris</h1>
 
 {% if est_pro %}
-  <p class="muted">Vos fermes favorites, classées par nature :
+  <p class="muted">Vos espaces pro favoris, classées par nature :
      <strong>Fournisseurs</strong> (chez qui vous achetez) et
      <strong>Clients pro</strong> (vos clients qui sont aussi des
-     producteurs, ou fermes déjà commandées). Ajoutez-en depuis la page
-     de chaque ferme (boutons ☆ de la vitrine).</p>
+     producteurs, ou espaces déjà commandés). Ajoutez-en depuis la page
+     de chaque espace (boutons ☆ de la vitrine).</p>
 
   <section class="harvest-bloc">
     <h2>🚜 Favoris fournisseurs</h2>
@@ -17,7 +17,7 @@
       {% for exploitant in favoris_fournisseurs %}
         {% include "portal/_vignette_producteur.html" %}
       {% empty %}
-        <p class="muted">Aucun fournisseur favori : ajoutez vos fermes
+        <p class="muted">Aucun fournisseur favori : ajoutez vos espaces
            d'approvisionnement depuis leur page (bouton
            « ☆ Favori fournisseur »).</p>
       {% endfor %}
@@ -36,18 +36,18 @@
   </section>
 
   <section class="harvest-bloc">
-    <h2>🔁 Fermes déjà commandées</h2>
+    <h2>🔁 Espaces déjà commandés</h2>
     <div class="grid producers">
       {% for exploitant in deja_commandes %}
         {% include "portal/_vignette_producteur.html" %}
       {% empty %}
         <p class="muted">Vous n'avez pas encore commandé chez d'autres
-           fermes du portail.</p>
+           espaces du portail.</p>
       {% endfor %}
     </div>
   </section>
 {% else %}
-  <p class="muted">Vos producteurs favoris et les fermes chez lesquelles vous
+  <p class="muted">Vos producteurs favoris et les espaces chez lesquels vous
      avez déjà commandé : un accès direct, sans repasser par la recherche.</p>
 
   <section class="harvest-bloc">

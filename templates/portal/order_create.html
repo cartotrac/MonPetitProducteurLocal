@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load unites %}{% load static %}
-{% block title %}Commander chez {{ exploitant.nom_ferme }} — MonPetitProducteurLocal{% endblock %}
+{% block title %}Commander chez {{ exploitant.nom_espace }} — MonPetitProducteurLocal{% endblock %}
 {% block content %}
-<h1>{{ exploitant.libelle_commander }} — {{ exploitant.nom_ferme }}</h1>
+<h1>{{ exploitant.libelle_commander }} — {{ exploitant.nom_espace }}</h1>
 
 {% if mode == 'recolte' %}
   <p>{{ exploitant.vocab.recolte|capfirst }} de la semaine du {{ semaine.lundi|date:"d/m/Y" }}.
@@ -11,7 +11,7 @@
      préparation. <strong>La ligne passe en orange si vous demandez plus
      que la dispo restante</strong> : le producteur ajustera avec vous.</p>
 {% elif mode == 'carte' %}
-  <p>🧾 Carte « {{ carte_active.nom }} » publiée par {{ exploitant.nom_ferme }} :
+  <p>🧾 Carte « {{ carte_active.nom }} » publiée par {{ exploitant.nom_espace }} :
      le restant de chaque article décompte les commandes déjà validées.
      Le producteur confirme au moment de la préparation.
      <strong>La ligne passe en orange si vous demandez plus que le restant</strong> :
