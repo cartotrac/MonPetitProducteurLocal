@@ -55,7 +55,14 @@ if [ -f .env ] && grep -q "^DB_ENGINE=django.db.backends.postgresql" .env; then
     echo "   ERREUR : pg_dump introuvable — sauvegardez la base à la main avant de relancer." >&2
     exit 1
   fi
-  set -a; . ./.env; set +a
+  # Lecture du .env clé par clé : jamais de "source" direct, les
+  # mots de passe contiennent souvent des caractères spéciaux.
+  lire_env() { grep -m1 "^$1=" .env | cut -d= -f2-; }
+  DB_NAME=$(lire_env DB_NAME)
+  DB_USER=$(lire_env DB_USER)
+  DB_HOST=$(lire_env DB_HOST)
+  DB_PORT=$(lire_env DB_PORT)
+  DB_PASSWORD=$(lire_env DB_PASSWORD)
   PGPASSWORD="$DB_PASSWORD" pg_dump -h "$DB_HOST" -p "${DB_PORT:-5432}" -U "$DB_USER" "$DB_NAME" \
     | gzip > "backups/db_$HORODAGE.sql.gz"
   echo "   sauvegarde PostgreSQL : backups/db_$HORODAGE.sql.gz"
