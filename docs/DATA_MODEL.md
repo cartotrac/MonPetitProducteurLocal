@@ -8,7 +8,7 @@
 ## Principes
 
 - **PostgreSQL** en prod : attributs libres en **JSONB** (SQLite accepté en
-  mono-ferme : Django dégrade `JSONField` en texte — OK, aucun filtrage
+  mono-espace : Django dégrade `JSONField` en texte — OK, aucun filtrage
   avancé requis sur ces attributs).
 - Les quantités hebdo sont des **estimations** : aucun décompte à la commande.
   Seules les quantités **livrées dans les paniers** sont décomptées.
@@ -25,6 +25,34 @@
 - **Fichiers** : seuls les visuels de l'exploitant sont importés, sous
   `media/exploitants/{id}/` avec un **naming explicite** et un **quota par
   type**. Le catalogue standard vit en emojis/SVG embarqués : zéro fichier.
+
+## Espaces pro
+
+### Exploitant **[V1]**
+
+Un **espace pro local** : exploitation agricole, fromagerie, conserverie,
+foodtruck, traiteur ou restaurant — le vocabulaire du portail s'adapte au
+métier (« Ma ferme », « Mon foodtruck », « Mon restaurant »…) via les
+libellés `titre_fiche` / `libelle_fiche` / `vocab`.
+
+| Champ | Type | Notes |
+|---|---|---|
+| user | OneToOne User | compte propriétaire |
+| nom_espace | Char(150) | nom de l'espace (ancien `nom_ferme`, renommé par RENAME COLUMN) |
+| slug | Slug(160) unique | adresse publique, auto |
+| siret | Char(14) | clé de Luhn validée en forme |
+| activite | Choices | maraîcher, arboriculteur, éleveur, fromager, apiculteur, micro-brasseur, conserverie, foodtruck, traiteur, restaurant, autre |
+| specialite | Char(12), **OPTIONNELLE** | listes propres à chaque métier : foodtrucks (pizza, burger, tacos…), traiteurs (buffets, pièces cocktail…), restaurants (bistronomie, cuisine du marché…), éleveurs (bovine, volailles…) ; **vide pour les autres activités** — jamais exigée à l'inscription |
+| mode_production / mode_fonctionnement | Choices | AB/perma/paysanne… ; récoltes hebdo vs boutique à date |
+| latitude / longitude | Float, null | position sur la carte |
+| visible / est_demo | Boolean | vitrine publique ; espace de démonstration |
+
+### MembreExploitation **[V1]**
+
+Équipe **multi-comptes** : `user` + `exploitant` (uniques ensemble) —
+une même personne peut être rattachée à plusieurs espaces ; le
+propriétaire (OneToOne `Exploitant.user`) administre la fiche, l'équipe
+et les paramètres, les membres gèrent le courant.
 
 ## Catalogue
 
@@ -172,7 +200,7 @@ Inchangés. Écrans exploitant dédiés prévus (issue #9).
 ### ModeleMessage
 
 Modèles personnalisables, placeholders `{{ client }}`, `{{ panier }}`,
-`{{ ferme }}`, `{{ creneau }}`…
+`{{ espace }}`, `{{ creneau }}`…
 
 | Champ | Type | Notes |
 |---|---|---|
@@ -240,7 +268,7 @@ Chaque exploitant a un dossier dédié `media/exploitants/{id}/` :
 |---|---|---|
 | `logo.png` | 1 seul, écrasé à la mise à jour | 1 |
 | `banniere.jpg` | 1 seul, écrasée | 1 |
-| `ferme-*.jpg` | photos de la ferme, slug explicite | ≤ 10 |
+| `espace-*.jpg` | photos de l'espace, slug explicite | ≤ 10 |
 | `produits/{slug_produit}.jpg` | 1 image par produit, écrasée à la mise à jour | 1 par produit |
 
 - Écrasement plutôt qu'accumulation : **pas de versions orphelines**.
@@ -262,6 +290,7 @@ Chaque exploitant a un dossier dédié `media/exploitants/{id}/` :
 
 | Version | Changement |
 |---|---|
+| 0.4 | Notion « ferme » → « espace pro » : champ `nom_ferme` renommé `nom_espace` (RENAME COLUMN réel, sans perte), libellés adaptés au métier, spécialité OPTIONNELLE par liste de métier, placeholder `{{ espace }}` |
 | 0.3 | Commande porte l'identité contact (e-mail OU tél + nom) ; regroupement clients loggués/non ; écran suivi par client |
 | 0.2 | Noms de tables et champs en français ; purge des commandes non livrées ; système de fichiers/naming/quota |
 | 0.1 | Première rédaction |
