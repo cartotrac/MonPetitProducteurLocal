@@ -20,6 +20,15 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+if ! venv/bin/python -V >/dev/null 2>&1; then
+  echo "ERREUR : le virtualenv venv/ est absent ou cassé — son" >&2
+  echo "interpréteur Python n'existe plus. Recréez-le puis relancez :" >&2
+  echo "  python3 -m venv venv" >&2
+  echo "  venv/bin/pip install -r requirements.txt" >&2
+  echo "  venv/bin/pip install \"psycopg[binary]\"" >&2
+  exit 1
+fi
+
 DEMO=0
 for arg in "$@"; do
   case "$arg" in
@@ -33,6 +42,7 @@ rm -rf portal/migrations
 
 echo "==> 2/7 Récupération du code"
 git pull
+git checkout -- portal/migrations 2>/dev/null || true
 
 echo "==> 3/7 Dépendances"
 venv/bin/pip install -q -r requirements.txt
