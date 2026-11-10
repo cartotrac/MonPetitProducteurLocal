@@ -383,6 +383,13 @@ def producer_search(request):
         if type_marche_choisi:
             marches = [m for m in marches
                        if m["type"] in type_marche_choisi]
+            # Mode All-in-1 : filtrer sur les marchés/boutiques ne
+            # garde QUE ces entités — sur la carte comme dans les
+            # vignettes. Les producteurs qui les alimentent restent
+            # accessibles depuis la fiche générée de chaque marché
+            # ou boutique (lien « Voir la fiche » des popups).
+            if visu == "tout":
+                exploitants = []
     # Dénombrements affichés à côté du titre : producteurs visibles,
     # clients inscrits (comptes non pro), visiteurs (sessions anonymes),
     # + photo quotidienne pour l'historique / tendance des badges.
