@@ -16,7 +16,10 @@ def illustration_produit_chemin(instance, filename):
 
 
 class Exploitant(models.Model):
-    """Profil exploitant : un compte utilisateur = une exploitation.
+    """Espace pro local : un compte propriétaire — et des comptes
+    rattachés via MembreExploitation — gèrent un même espace, qu'il
+    s'agisse d'une exploitation agricole, d'une fromagerie, d'un
+    foodtruck ou d'un restaurant.
 
     Nommage français sans accent, voir docs/DATA_MODEL.md.
     """
@@ -138,7 +141,7 @@ class Exploitant(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE,
                                 related_name="exploitant")
-    nom_ferme = models.CharField("Nom de l'exploitation", max_length=150)
+    nom_espace = models.CharField("Nom de l'exploitation", max_length=150)
     slug = models.SlugField("Adresse publique", max_length=160,
                             unique=True, blank=True)
     siret = models.CharField("SIRET", max_length=14, blank=True)
@@ -158,7 +161,8 @@ class Exploitant(models.Model):
                   "foodtrucks (pizza, burger, tacos…), traiteurs "
                   "(buffets, pièces cocktail…), restaurants (cuisine "
                   "du marché, bistronomie…) et éleveurs (bovine, "
-                  "volailles…). Vide pour les autres activités.")
+                  "volailles…). OPTIONNELLE pour tous, vide pour "
+                  "les autres activités.")
     logo = models.ImageField("Logo miniature", upload_to=logo_chemin,
                              blank=True, null=True)
     description = models.TextField("Présentation de l'exploitation", blank=True)
@@ -173,10 +177,10 @@ class Exploitant(models.Model):
     longitude = models.FloatField("Longitude", blank=True, null=True,
                                    help_text="Position sur la carte (optionnel)")
     visible = models.BooleanField("Visible publiquement", default=True)
-    # Exploitation fictive créée par la commande peupler_demo : les
+    # Espace fictif créé par la commande peupler_demo : les
     # vignettes, la fiche et la carte l'affichent clairement comme DÉMO.
-    est_demo = models.BooleanField("Exploitation de démonstration",
-                                    default=False)
+    est_demo = models.BooleanField("Espace de démonstration",
+                                   default=False)
     # Mode de fonctionnement : les maraîchers et arboriculteurs publient
     # des récoltes hebdomadaires livrées en paniers ; les fromagers,
     # éleveurs et micro-brasseurs tiennent plutôt une boutique avec un
@@ -192,12 +196,12 @@ class Exploitant(models.Model):
     creee_le = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "Exploitant"
-        verbose_name_plural = "Exploitants"
-        ordering = ["nom_ferme"]
+        verbose_name = "Espace pro"
+        verbose_name_plural = "Espaces pro"
+        ordering = ["nom_espace"]
 
     def __str__(self):
-        return self.nom_ferme
+        return self.nom_espace
 
     @property
     def emoji_activite(self):
@@ -307,7 +311,7 @@ class Exploitant(models.Model):
         "MARAICHER": ("🥬", "Ma ferme"),
         "ARBORICULTEUR": ("🍎", "Ma ferme"),
         "ELEVEUR": ("🐄", "Ma ferme"),
-        "AUTRE": ("🌾", "Ma ferme"),
+        "AUTRE": ("🌾", "Mon espace"),
         "FROMAGER": ("🧀", "Ma fromagerie"),
         "APICULTEUR": ("🍯", "Ma miellerie"),
         "MICRO_BRASSEUR": ("🍺", "Ma boutique"),
@@ -321,14 +325,14 @@ class Exploitant(models.Model):
     def libelle_fiche(self):
         """« Ma ferme », « Mon foodtruck » ou « Ma boutique » selon
         l'activité du pro."""
-        return self.LIBELLES_FICHE.get(self.activite, ("", "Ma ferme"))[1]
+        return self.LIBELLES_FICHE.get(self.activite, ("", "Mon espace"))[1]
 
     @property
     def titre_fiche(self):
         """Libellé précédé de son emoji, prêt pour un titre de page ou
         une entrée de menu."""
         emoji, libelle = self.LIBELLES_FICHE.get(
-            self.activite, ("🚜", "Ma ferme"))
+            self.activite, ("🚜", "Mon espace"))
         # Métier à spécialité : l'icône la porte aussi (🚚🍕, 🍽️🥗…),
         # comme sur la carte et les vignettes.
         if (self.activite in self.ACTIVITES_AVEC_SPECIALITE
@@ -349,13 +353,13 @@ class Exploitant(models.Model):
         "FOODTRUCK": "L'équipe du foodtruck",
         "TRAITEUR": "L'équipe de traiteurs",
         "RESTAURANT": "L'équipe du restaurant",
-        "AUTRE": "L'équipe de la ferme",
+        "AUTRE": "L'équipe de l'espace",
     }
 
     @property
     def libelle_equipe(self):
         return self.EQUIPE_LIBELLES.get(self.activite,
-                                        "L'équipe de la ferme")
+                                        "L'équipe de l'espace")
 
     # Rythme de publication par défaut selon l'activité (utilisé
     # tant que l'exploitant n'a rien choisi dans Paramètres → Ma
@@ -469,7 +473,7 @@ class Exploitant(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             from django.utils.text import slugify
-            base = slugify(self.nom_ferme) or "exploitant"
+            base = slugify(self.nom_espace) or "exploitant"
             slug = base
             n = 2
             while Exploitant.objects.filter(slug=slug).exclude(pk=self.pk).exists():
@@ -653,7 +657,7 @@ class Produit(models.Model):
                     "position", "nom"]
 
     def __str__(self):
-        return f"{self.nom} ({self.exploitant.nom_ferme})"
+        return f"{self.nom} ({self.exploitant.nom_espace})"
 
     def save(self, *args, **kwargs):
         from django.utils.text import slugify
@@ -722,7 +726,7 @@ class SemaineRecolte(models.Model):
         ordering = ["-lundi"]
 
     def __str__(self):
-        return f"Récolte du {self.lundi} — {self.exploitant.nom_ferme}"
+        return f"Récolte du {self.lundi} — {self.exploitant.nom_espace}"
 
 
 class LigneRecolte(models.Model):
@@ -869,7 +873,7 @@ class Carte(models.Model):
         ordering = ["-maj_le"]
 
     def __str__(self):
-        return f"{self.nom} — {self.exploitant.nom_ferme} ({self.statut})"
+        return f"{self.nom} — {self.exploitant.nom_espace} ({self.statut})"
 
     def activer(self):
         """Publie cette carte : la carte active précédente passe en
@@ -1018,7 +1022,7 @@ class Commande(models.Model):
 
     def __str__(self):
         return (f"Commande #{self.pk} — {self.nom_client} "
-                f"→ {self.exploitant.nom_ferme}")
+                f"→ {self.exploitant.nom_espace}")
 
     @property
     def libelle_statut(self):
@@ -1155,7 +1159,7 @@ class Panier(models.Model):
     @property
     def destination_itineraire(self):
         """(lat, lon) du point de retrait s'il est géolocalisé, sinon
-        de la ferme du producteur — base des liens de calcul
+        de l'espace du producteur — base des liens de calcul
         d'itinéraire côté client (OpenStreetMap, Google Maps) quand le
         panier est marqué livré."""
         pt = self.point_livraison
@@ -1207,7 +1211,7 @@ class LignePanier(models.Model):
 
 class ModeleMessage(models.Model):
     """Modèle de message personnalisable (issue #3), placeholders
-    {{ client }}, {{ panier }}, {{ ferme }}, {{ creneau }}. Fallback sur le
+    {{ client }}, {{ panier }}, {{ espace }}, {{ creneau }}. Fallback sur le
     défaut si le modèle personnalisé est cassé."""
 
     class Type(models.TextChoices):
@@ -1383,8 +1387,8 @@ class ParametresVitrine(models.Model):
 
 class MembreExploitation(models.Model):
     """Compte individuel rattaché à une exploitation : plusieurs
-    personnes (famille, salariés, associés) peuvent gérer la même ferme
-    — même SIRET — sans y être « propriétaire » du compte.
+    personnes (famille, salariés, associés) peuvent gérer le même
+    espace pro — même SIRET — sans y être « propriétaire » du compte.
 
     Le propriétaire reste l'utilisateur porteur du OneToOneField
     Exploitant.user ; les membres accèdent aux mêmes espace pro,
@@ -1399,8 +1403,8 @@ class MembreExploitation(models.Model):
     ajoute_le = models.DateTimeField("Ajouté le", auto_now_add=True)
 
     class Meta:
-        verbose_name = "Membre de l'exploitation"
-        verbose_name_plural = "Membres de l'exploitation"
+        verbose_name = "Membre de l'espace"
+        verbose_name_plural = "Membres de l'espace"
         ordering = ["ajoute_le"]
         # Un compte peut être rattaché à plusieurs espaces pro (multi-
         # espace / multi-activité), mais une seule fois par espace.
@@ -1408,7 +1412,7 @@ class MembreExploitation(models.Model):
 
     def __str__(self):
         return (f"{self.user.get_full_name() or self.user.username}"
-                f" — {self.exploitant.nom_ferme}")
+                f" — {self.exploitant.nom_espace}")
 
 
 class Favori(models.Model):
@@ -1437,7 +1441,7 @@ class Favori(models.Model):
         ordering = ["-ajoute_le"]
 
     def __str__(self):
-        return (f"⭐ {self.exploitant.nom_ferme}"
+        return (f"⭐ {self.exploitant.nom_espace}"
                 f" ({self.user.username})")
 
 

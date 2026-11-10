@@ -21,18 +21,18 @@ def _aide_mot_de_passe(form):
 
 
 class InscriptionExploitantForm(UserCreationForm):
-    """Inscription exploitant simplifiée : compte + ferme minimale.
+    """Inscription exploitant simplifiée : compte + espace pro minimal.
     Pas de nom d'utilisateur à inventer : l'e-mail sert d'identifiant.
-    Nom de la ferme, activité et localisation à la création ; tout le
+    Nom de l'espace, activité et localisation à la création ; tout le
     reste (SIRET, mode de production, logo, description, téléphone,
     réseaux…) se complète ensuite dans la page ⚙️ Paramètres."""
 
-    nom_ferme = forms.CharField(
-        label="Nom de l'exploitation", max_length=150,
+    nom_espace = forms.CharField(
+        label="Nom de l'espace pro", max_length=150,
         help_text="Le nom affiché sur votre vitrine (modifiable ensuite).")
     est_demo = forms.BooleanField(
-        label="Exploitation de démonstration", required=False,
-        help_text="Cochez pour marquer cette exploitation comme fictive "
+        label="Espace de démonstration", required=False,
+        help_text="Cochez pour marquer cet espace comme fictif "
                   "(test, formation, démo) : un badge 🧪 DÉMO la distingue "
                   "sur le portail. ⚠️ Attention : une exploitation de "
                   "démonstration peut être supprimée sans préavis lors "
@@ -46,10 +46,10 @@ class InscriptionExploitantForm(UserCreationForm):
         label="Spécialité (selon le métier)", required=False,
         choices=[("", "— Précisez la spécialité —")]
         + list(Exploitant.Specialite.choices),
-        help_text="Liste propre à chaque métier — foodtruck, traiteur, "
-                  "restaurant, éleveur — exigée pour un foodtruck, "
-                  "optionnelle pour les trois autres : elle s'affiche "
-                  "sur les pages publiques. Autre métier : laisser vide.")
+        help_text="OPTIONNELLE, liste propre à chaque métier : "
+                  "foodtruck, traiteur, restaurant, éleveur. Elle "
+                  "s'affiche sur les pages publiques. Autre métier : "
+                  "laisser vide.")
     adresse = forms.CharField(label="Adresse", max_length=255, required=False)
     ville = forms.CharField(label="Ville", max_length=100, required=False)
     code_postal = forms.CharField(
@@ -84,7 +84,7 @@ class InscriptionExploitantForm(UserCreationForm):
               "de confidentialité",
         required=True)
 
-    field_order = ["nom_ferme", "est_demo", "activite", "specialite",
+    field_order = ["nom_espace", "est_demo", "activite", "specialite",
                    "adresse", "ville", "code_postal", "departement",
                    "latitude", "longitude", "first_name", "last_name",
                    "email", "telephone", "photo_externe", "pieux",
@@ -113,19 +113,13 @@ class InscriptionExploitantForm(UserCreationForm):
         if donnees.get("pieux"):
             # Honeypot rempli : robot — erreur volontairement générique.
             raise forms.ValidationError("Formulaire invalide.")
-        activite = donnees.get("activite")
         specialite = donnees.get("specialite")
-        if activite == Exploitant.Activite.FOODTRUCK and not specialite:
-            self.add_error(
-                "specialite",
-                "Précisez la spécialité de votre foodtruck (pizza, "
-                "burger, tacos…) : elle apparaît sur les pages "
-                "publiques et les vignettes.")
-        elif specialite not in Exploitant.SPECIALITES_PAR_ACTIVITE.get(
-                activite, []):
-            # Métier sans liste, ou spécialité hors liste du métier
-            # choisi : valeur null en base — la spécialité n'existe
-            # que pour foodtruck, traiteur, restaurant et éleveur.
+        if specialite not in Exploitant.SPECIALITES_PAR_ACTIVITE.get(
+                donnees.get("activite"), []):
+            # Spécialité OPTIONNELLE pour tous les métiers : hors
+            # liste du métier choisi (ou métier sans liste), valeur
+            # null en base — la spécialité n'existe que pour
+            # foodtruck, traiteur, restaurant et éleveur.
             donnees["specialite"] = ""
         return donnees
 
@@ -134,7 +128,7 @@ class InscriptionExploitantForm(UserCreationForm):
         _aide_mot_de_passe(self)
         # Autofocus sur le 1er champ + remplissage automatique du
         # navigateur (identité) pour un parcours sans friction.
-        self.fields["nom_ferme"].widget.attrs["autofocus"] = "autofocus"
+        self.fields["nom_espace"].widget.attrs["autofocus"] = "autofocus"
         self.fields["first_name"].widget.attrs["autocomplete"] = "given-name"
         self.fields["last_name"].widget.attrs["autocomplete"] = "family-name"
         self.fields["email"].widget.attrs["autocomplete"] = "email"
@@ -162,7 +156,7 @@ class InscriptionExploitantForm(UserCreationForm):
             code_postal = self.cleaned_data.get("code_postal", "") or ""
             Exploitant.objects.create(
                 user=user,
-                nom_ferme=self.cleaned_data["nom_ferme"],
+                nom_espace=self.cleaned_data["nom_espace"],
                 activite=self.cleaned_data.get(
                     "activite", Exploitant.Activite.MARAICHER),
                 specialite=self.cleaned_data.get("specialite", "") or "",
@@ -188,12 +182,12 @@ class InscriptionFermeSeuleForm(forms.Form):
     demandé — prénom, nom, e-mail et photo viennent du compte courant
     (profil Google ou inscription maison)."""
 
-    nom_ferme = forms.CharField(
-        label="Nom de l'exploitation", max_length=150,
+    nom_espace = forms.CharField(
+        label="Nom de l'espace pro", max_length=150,
         help_text="Le nom affiché sur votre vitrine (modifiable ensuite).")
     est_demo = forms.BooleanField(
-        label="Exploitation de démonstration", required=False,
-        help_text="Cochez pour marquer cette exploitation comme fictive "
+        label="Espace de démonstration", required=False,
+        help_text="Cochez pour marquer cet espace comme fictif "
                   "(test, formation, démo) : un badge 🧪 DÉMO la distingue "
                   "sur le portail. ⚠️ Attention : une exploitation de "
                   "démonstration peut être supprimée sans préavis lors "
@@ -207,10 +201,10 @@ class InscriptionFermeSeuleForm(forms.Form):
         label="Spécialité (selon le métier)", required=False,
         choices=[("", "— Précisez la spécialité —")]
         + list(Exploitant.Specialite.choices),
-        help_text="Liste propre à chaque métier — foodtruck, traiteur, "
-                  "restaurant, éleveur — exigée pour un foodtruck, "
-                  "optionnelle pour les trois autres : elle s'affiche "
-                  "sur les pages publiques. Autre métier : laisser vide.")
+        help_text="OPTIONNELLE, liste propre à chaque métier : "
+                  "foodtruck, traiteur, restaurant, éleveur. Elle "
+                  "s'affiche sur les pages publiques. Autre métier : "
+                  "laisser vide.")
     adresse = forms.CharField(label="Adresse", max_length=255, required=False)
     ville = forms.CharField(label="Ville", max_length=100, required=False)
     code_postal = forms.CharField(
@@ -241,7 +235,7 @@ class InscriptionFermeSeuleForm(forms.Form):
               "de confidentialité",
         required=True)
 
-    field_order = ["nom_ferme", "est_demo", "activite", "specialite",
+    field_order = ["nom_espace", "est_demo", "activite", "specialite",
                    "adresse", "ville", "code_postal", "departement",
                    "latitude", "longitude", "pieux", "accepte_conditions"]
 
@@ -250,19 +244,13 @@ class InscriptionFermeSeuleForm(forms.Form):
         if donnees.get("pieux"):
             # Honeypot rempli : robot — erreur volontairement générique.
             raise forms.ValidationError("Formulaire invalide.")
-        activite = donnees.get("activite")
         specialite = donnees.get("specialite")
-        if activite == Exploitant.Activite.FOODTRUCK and not specialite:
-            self.add_error(
-                "specialite",
-                "Précisez la spécialité de votre foodtruck (pizza, "
-                "burger, tacos…) : elle apparaît sur les pages "
-                "publiques et les vignettes.")
-        elif specialite not in Exploitant.SPECIALITES_PAR_ACTIVITE.get(
-                activite, []):
-            # Métier sans liste, ou spécialité hors liste du métier
-            # choisi : valeur null en base — la spécialité n'existe
-            # que pour foodtruck, traiteur, restaurant et éleveur.
+        if specialite not in Exploitant.SPECIALITES_PAR_ACTIVITE.get(
+                donnees.get("activite"), []):
+            # Spécialité OPTIONNELLE pour tous les métiers : hors
+            # liste du métier choisi (ou métier sans liste), valeur
+            # null en base — la spécialité n'existe que pour
+            # foodtruck, traiteur, restaurant et éleveur.
             donnees["specialite"] = ""
         return donnees
 
@@ -287,7 +275,7 @@ class InscriptionFermeSeuleForm(forms.Form):
         code_postal = self.cleaned_data.get("code_postal", "") or ""
         return Exploitant.objects.create(
             user=utilisateur,
-            nom_ferme=self.cleaned_data["nom_ferme"],
+            nom_espace=self.cleaned_data["nom_espace"],
             activite=self.cleaned_data.get(
                 "activite", Exploitant.Activite.MARAICHER),
             specialite=self.cleaned_data.get("specialite", "") or "",
@@ -449,7 +437,7 @@ class ProfilExploitantForm(forms.ModelForm):
         label="Site web de l'exploitation", required=False)
     facebook = forms.URLField(label="Page Facebook", required=False)
     instagram = forms.URLField(label="Compte Instagram", required=False)
-    field_order = ["nom_ferme", "activite", "specialite", "siret", "mode_production",
+    field_order = ["nom_espace", "activite", "specialite", "siret", "mode_production",
                    "logo", "logo_externe", "description", "adresse", "ville",
                    "code_postal", "departement", "telephone", "latitude",
                    "longitude", "est_demo", "mode_fonctionnement"]
@@ -469,11 +457,11 @@ class ProfilExploitantForm(forms.ModelForm):
 
     class Meta:
         model = Exploitant
-        fields = ["nom_ferme", "activite", "specialite", "siret", "mode_production",
+        fields = ["nom_espace", "activite", "specialite", "siret", "mode_production",
                   "logo", "description", "adresse", "ville", "code_postal",
                   "departement", "telephone", "latitude", "longitude",
                   "est_demo", "mode_fonctionnement"]
-        labels = {"nom_ferme": "Nom de l'exploitation",
+        labels = {"nom_espace": "Nom de l'espace pro",
                   "specialite": "Spécialité (listes selon le métier : "
                                 "foodtruck, traiteur, restaurant, "
                                 "éleveur)",

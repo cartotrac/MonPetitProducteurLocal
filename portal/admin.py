@@ -31,10 +31,10 @@ admin.site.register(User, PortalUserAdmin)
 
 @admin.register(Exploitant)
 class ExploitantAdmin(admin.ModelAdmin):
-    list_display = ("nom_ferme", "ville", "departement", "mode_production",
+    list_display = ("nom_espace", "ville", "departement", "mode_production",
                     "visible")
     list_filter = ("mode_production", "visible", "departement")
-    search_fields = ("nom_ferme", "ville", "siret")
+    search_fields = ("nom_espace", "ville", "siret")
 
 
 @admin.register(ProduitStandard)
@@ -47,7 +47,7 @@ class ProduitStandardAdmin(admin.ModelAdmin):
 @admin.register(Categorie)
 class CategorieAdmin(admin.ModelAdmin):
     list_display = ("nom", "exploitant", "position")
-    search_fields = ("nom", "exploitant__nom_ferme")
+    search_fields = ("nom", "exploitant__nom_espace")
 
 
 @admin.register(Produit)
@@ -55,7 +55,7 @@ class ProduitAdmin(admin.ModelAdmin):
     list_display = ("nom", "exploitant", "categorie", "unite_vente", "prix",
                     "actif")
     list_filter = ("actif", "unite_vente")
-    search_fields = ("nom", "exploitant__nom_ferme")
+    search_fields = ("nom", "exploitant__nom_espace")
     autocomplete_fields = ("categorie", "origine_standard")
 
 
@@ -95,7 +95,7 @@ class CommandeAdmin(admin.ModelAdmin):
                     "statut", "total")
     list_filter = ("statut", "date_livraison")
     search_fields = ("nom_client", "email_client", "telephone_client",
-                     "exploitant__nom_ferme")
+                     "exploitant__nom_espace")
     inlines = [LigneCommandeInline]
 
 
