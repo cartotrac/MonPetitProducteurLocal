@@ -162,7 +162,7 @@ SITE_ID = 1
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 # Connexion allauth (URLs non écrasées par notre /comptes/login/ maison) :
 # par e-mail uniquement, cohérent avec l'identifiant des comptes.
-ACCOUNT_LOGIN_METHODS = {"username": False, "email": True}
+ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_EMAIL_VERIFICATION = "none"
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_EMAIL_REQUIRED = True
