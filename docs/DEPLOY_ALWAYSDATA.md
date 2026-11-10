@@ -48,16 +48,15 @@ DB_PORT=5432
 > ⚠️ `CSRF_TRUSTED_ORIGINS` (avec `https://`) est **indispensable** :
 > sinon tous les formulaires échouent avec « CSRF verification failed ».
 
-Puis (les migrations ne sont pas versionnées : les générer sur le serveur) :
+Puis (les migrations sont **versionnées dans le dépôt** : rien à générer) :
 
 ```bash
-venv/bin/python manage.py makemigrations portal
 venv/bin/python manage.py migrate
 venv/bin/python manage.py createsuperuser
 venv/bin/python manage.py collectstatic
 ```
 
-> 💡 Alternative légère : pour une instance mono-ferme (Raspberry Pi, très
+> 💡 Alternative légère : pour une instance mono-espace (Raspberry Pi, très
 > petit hébergement), laisser `DB_ENGINE` vide => la base devient un simple
 > fichier SQLite (`db.sqlite3`), sauvegardable/copiable d'un coup.
 
@@ -105,15 +104,33 @@ Toujours dans **Web > Sites**, ajouter deux « Collections » (routes) :
 ## 5. Mise à jour
 
 ```bash
-cd ~/monpetitproducteurlocal && git pull
+cd ~/monpetitproducteurlocal
+bash scripts/deploy_prod.sh
+```
+
+Le script fait tout : suppression de l'ancien dossier `portal/migrations`
+local **non versionné** — sans ça, `git pull` refuse la mise à jour —, tirage
+du code, dépendances, **sauvegarde de la base** avant migration, `check`,
+`migrate`, `collectstatic`, puis redémarrage WSGI. Avec l'option
+`--demo`, il recharge en outre les espaces de démonstration :
+`peupler_demo --purge`, `peupler_demo`, `simuler_stats_demo` — jamais les
+données réelles.
+
+Redémarrage : toujours, même sans modification — le code Python est
+chargé en mémoire. Le script le fait via l'API AlwaysData si les variables
+d'environnement `AD_API_KEY` et `AD_SITE_ID` sont définies ; sinon, depuis
+le panneau : **Web > Sites > Redémarrer**.
+
+Équivalent à la main :
+
+```bash
+rm -rf portal/migrations
+git pull
 venv/bin/pip install -r requirements.txt
-venv/bin/python manage.py makemigrations portal
+venv/bin/python manage.py check
 venv/bin/python manage.py migrate
 venv/bin/python manage.py collectstatic --noinput
 ```
-
-Puis **redémarrer l'application WSGI** depuis le panneau (toujours, même
-sans modification : le code Python est chargé en mémoire).
 
 ### Commandes de maintenance
 
@@ -141,7 +158,9 @@ venv/bin/python manage.py charger_catalogues_activites
 
 ## 7. Évolutions prévues
 
-- Automatiser le déploiement (script `deploy.sh` ou GitHub Actions + SSH)
+- Déploiement sans coupure — la fenêtre entre `git pull` et `migrate`
+  est aujourd'hui de quelques secondes ; viser un blue/green si le trafic
+  le justifie
 - Mutualisation par département : soit instances séparées, soit passage en
   multi-tenant (schémas PostgreSQL) quand le projet sera mûr
 - Envoi effectif des SMS de disponibilité hebdo via la passerelle

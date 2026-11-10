@@ -88,7 +88,7 @@ python manage.py runserver
 
 ## Déploiement
 
-Voir [docs/DEPLOY_ALWAYSDATA.md](docs/DEPLOY_ALWAYSDATA.md) et les [décisions techniques](docs/DECISIONS.md).
+Sur le serveur, depuis la racine du projet : `bash scripts/deploy_prod.sh` (+ `--demo` pour recharger les espaces de démonstration). Détails : [docs/DEPLOY_ALWAYSDATA.md](docs/DEPLOY_ALWAYSDATA.md) et [décisions techniques](docs/DECISIONS.md).
 
 ## Licence
 
