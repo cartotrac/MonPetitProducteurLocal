@@ -1390,7 +1390,6 @@ def dashboard(request):
 
     return render(request, "portal/pro/dashboard.html", {
         "exploitant": exploitant,
-        "est_proprietaire": hasattr(request.user, "exploitant"),
         "nb_produits": len(produits),
         "meteo": meteo_synthese(exploitant),
         "calendrier": _calendrier_recoltes(exploitant),

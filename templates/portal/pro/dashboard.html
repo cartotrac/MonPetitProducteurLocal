@@ -83,6 +83,7 @@
 </details>
 
 
+{% if est_proprietaire or user.is_superuser %}
 <details id="catalogue" class="bloc-replie" open>
   <summary class="summary-avec-actions"><h2>📚 Catalogue <span class="muted aide-replier">({{ nb_produits }} {{ exploitant.vocab.article }}{{ nb_produits|pluralize }})</span></h2>
     <a class="btn btn-outline btn-sm" href="{% url 'portal:product_list' %}">✏️ Gérer</a></summary>
@@ -93,6 +94,7 @@
      <a href="{% url 'portal:categories_manage' %}">Catégories</a> ·
      <a href="{% url 'portal:catalogue_standard' %}">Importer des produits types</a></p>
 </details>
+{% endif %}
 
 <details id="recoltes" class="bloc-replie" open>
   <summary><h2>🗓️ {{ exploitant.vocab.recoltes_titre }} <span class="muted aide-replier">(ligne de publication — cliquez pour replier/déplier)</span></h2></summary>
