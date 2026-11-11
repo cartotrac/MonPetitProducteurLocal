@@ -1960,3 +1960,15 @@ html.dark .search-bar input.filtre-vide {
   .nav-links .btn-session { width: 28px; height: 28px; }
   .nav-links .btn-session .pastille-session { width: 10px; height: 10px; }
 }
+
+/* ===== Fenêtre « Donner mon avis » (mentions légales, section
+       retours) : même habillage que la fenêtre d'aide ; le champ
+       activité n'apparaît que pour les gérants d'espaces pro. ===== */
+dialog.dialog-retour { max-width: min(680px, 94vw); width: 680px;
+  border: 1px solid #4e6b3a; border-radius: 12px; padding: 1.1rem 1.4rem;
+  background: #fdfcf7; color: #2b3a26; }
+html.dark dialog.dialog-retour { background: #1a2314;
+  border-color: #8fae76; color: #e6e4da; }
+.champ-cache { display: none; }
+dialog.dialog-retour .champ-retour-boutons { display: flex; gap: 0.6rem;
+  justify-content: flex-end; margin-top: 0.9rem; }

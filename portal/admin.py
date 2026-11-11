@@ -6,7 +6,8 @@ from .models import (Annonce, Bulletin, Categorie, Commande, ConfigMessagerie,
                      CreneauLivraison, Exploitant, LigneCommande, LignePanier,
                      LigneRecolte, ModeleMessage, Panier, ParametresVitrine,
                      PointLivraison, PreferenceContact, Produit,
-                     ProduitStandard, ProfilClient, SemaineRecolte)
+                     ProduitStandard, ProfilClient, RetourUtilisateur,
+                    SemaineRecolte)
 
 
 class ExploitantInline(admin.StackedInline):
@@ -124,3 +125,12 @@ admin.site.register(Annonce)
 admin.site.register(PreferenceContact)
 admin.site.register(ConfigMessagerie)
 admin.site.register(ParametresVitrine)
+
+
+@admin.register(RetourUtilisateur)
+class RetourUtilisateurAdmin(admin.ModelAdmin):
+    list_display = ("cree_le", "profil", "activite", "axe", "traite")
+    list_filter = ("profil", "axe", "activite", "traite")
+    search_fields = ("message", "email", "page")
+    list_editable = ("traite",)
+    readonly_fields = ("cree_le",)

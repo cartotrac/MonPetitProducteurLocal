@@ -12,6 +12,8 @@ urlpatterns = [
          name="politique_confidentialite"),
     path("conditions-utilisation/", views.conditions_utilisation,
          name="conditions_utilisation"),
+    path("retours/ajouter/", views.retour_create,
+         name="retour_create"),
     path("charte-logo/", views.charte_logo, name="charte_logo"),
     path("recherche/", views.producer_search, name="producer_search"),
     path("carte/exploitants.json", views.producteurs_geojson,

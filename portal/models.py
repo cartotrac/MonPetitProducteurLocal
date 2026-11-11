@@ -1499,6 +1499,55 @@ class StatistiqueQuotidienne(models.Model):
                f"{self.nb_clients} / {self.nb_visiteurs}"
 
 
+class RetourUtilisateur(models.Model):
+    """Retour d'usage volontaire — bug, avis, suggestion — saisi via la
+    fenêtre « Donner mon avis » des mentions légales. RGPD :
+    minimisation stricte, aucune donnée de navigation ni compte lié ;
+    le profil et l'activité ne servent qu'à orienter le retour vers le
+    bon axe d'amélioration de la feuille de route."""
+
+    class Profil(models.TextChoices):
+        VISITEUR = "VISITEUR", "Visiteur sans compte"
+        CLIENT = "CLIENT", "Client Localien"
+        GERANT = "GERANT", "Gérant d'un espace pro"
+        DEV = "DEV", "Développeur / contributeur"
+
+    class Axe(models.TextChoices):
+        OBJECTIFS = "OBJECTIFS", "Clarté des objectifs du portail"
+        ACCES_INFOS = "ACCES_INFOS", ("Accès aux informations des "
+                                     "producteurs locaux")
+        CREATION_COMPTE = "CREATION_COMPTE", "Facilité de création de compte"
+        ERGONOMIE = "ERGONOMIE", "Ergonomie générale"
+        BUG = "BUG", "Bug"
+        INSCRIPTION_PRO = "INSCRIPTION_PRO", "Inscription d'un espace pro"
+        GESTION = "GESTION", "Gestion des commandes et des clients"
+        COMMUNICATION = ("COMMUNICATION",
+                         "Communication client (newsletter, annonces, SMS)")
+        VOCABULAIRE = "VOCABULAIRE", "Vocabulaire adapté à mon métier"
+        DASHBOARD = "DASHBOARD", "Ergonomie du dashboard et des paramètres"
+        AUTRE = "AUTRE", "Autre sujet"
+
+    profil = models.CharField("Profil", max_length=10,
+                              choices=Profil.choices)
+    activite = models.CharField("Activité", max_length=15, blank=True,
+                                default="", choices=Exploitant.Activite.choices)
+    axe = models.CharField("Sujet", max_length=20, choices=Axe.choices)
+    message = models.TextField("Votre retour")
+    email = models.EmailField("E-mail de réponse", blank=True, default="")
+    page = models.CharField("Page concernée", max_length=200,
+                            blank=True, default="")
+    cree_le = models.DateTimeField(auto_now_add=True)
+    traite = models.BooleanField("Traité", default=False)
+
+    class Meta:
+        verbose_name = "Retour d'usage"
+        verbose_name_plural = "Retours d'usage"
+        ordering = ["-cree_le"]
+
+    def __str__(self):
+        return f"📣 {self.get_profil_display()} — {self.get_axe_display()}"
+
+
 def nom_affiche(user):
     """Nom affiché du compte : l'alias personnalisé s'il est
     renseigné, sinon prénom + nom, sinon l'identifiant."""

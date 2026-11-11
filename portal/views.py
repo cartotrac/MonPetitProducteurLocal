@@ -175,7 +175,8 @@ def google_entree_client(request):
 def mentions_legales(request):
     """Mentions légales : application libre (dépôt GitHub), instance
     hébergée par son opérateur, hébergeur technique AlwaysData."""
-    return render(request, "portal/mentions.html")
+    return render(request, "portal/mentions.html",
+                      {"retour_form": _retour_form_initial(request)})
 
 
 def politique_confidentialite(request):
@@ -4376,3 +4377,46 @@ def pub_rubrique(request, rubrique):
         "form_annonce": AnnonceForm(),
         "nb_destinataires": nb_destinataires,
     })
+
+
+# ---- Fenêtre « Donner mon avis » (mentions légales, section retours) ----
+
+from .forms import RetourUtilisateurForm  # noqa: E402
+from .models import RetourUtilisateur  # noqa: E402
+
+
+def _retour_form_initial(request):
+    """Formulaire de retour pré-rempli d'après la session : gérant
+    d'espace pro si le compte en gère un, client s'il est connecté,
+    visiteur sinon."""
+    if not request.user.is_authenticated:
+        return RetourUtilisateurForm(
+            initial={"profil": RetourUtilisateur.Profil.VISITEUR})
+    if exploitant_pour(request.user) is not None:
+        return RetourUtilisateurForm(
+            initial={"profil": RetourUtilisateur.Profil.GERANT,
+                     "email": request.user.email})
+    return RetourUtilisateurForm(
+        initial={"profil": RetourUtilisateur.Profil.CLIENT,
+                 "email": request.user.email})
+
+
+def retour_create(request):
+    """Réception de la fenêtre « Donner mon avis » : enregistre le
+    retour d'usage segmenté par profil — et par activité pour les
+    gérants. Honeypot : un robot qui remplit le champ invisible
+    repart avec un merci, sans rien écrire en base."""
+    if request.method != "POST":
+        return redirect("portal:mentions_legales")
+    form = RetourUtilisateurForm(request.POST)
+    if form.is_valid():
+        if not form.cleaned_data.get("piege"):
+            form.save()
+        messages.success(request, "✅ Merci ! Votre retour est "
+                          "enregistré — il oriente directement la "
+                          "feuille de route.")
+        return redirect("portal:mentions_legales")
+    messages.warning(request, "Votre retour n'a pas pu être enregistré : "
+                     "vérifiez les champs en rouge de la fenêtre.")
+    return render(request, "portal/mentions.html",
+                  {"retour_form": form, "retour_ouvert": True})

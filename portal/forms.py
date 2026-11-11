@@ -4,7 +4,7 @@ from django.contrib.auth.forms import (AuthenticationForm,
 from django.contrib.auth.models import User
 
 from .models import (Annonce, Bulletin, Categorie, Exploitant, Produit,
-                    ProfilClient, SemaineRecolte)
+                    ProfilClient, RetourUtilisateur, SemaineRecolte)
 
 
 def _aide_mot_de_passe(form):
@@ -576,3 +576,40 @@ class MessagerieForm(forms.Form):
         label="Envoyer chaque semaine la disponibilité des produits par SMS",
         required=False)
 
+
+
+class RetourUtilisateurForm(forms.ModelForm):
+    """Fenêtre « Donner mon avis » (mentions légales) : saisie
+    segmentée par profil — et par activité pour les gérants d'espaces
+    pro. Anti-spam maison : honeypot « piege », invisible et jamais
+    demandé — les robots qui le remplissent repartent avec un merci
+    sans rien enregistrer."""
+
+    piege = forms.CharField(required=False, widget=forms.HiddenInput)
+
+    class Meta:
+        model = RetourUtilisateur
+        fields = ("profil", "activite", "axe", "message", "email", "page")
+        labels = {
+            "profil": "Vous êtes",
+            "activite": "Votre activité",
+            "axe": "Sujet de votre retour",
+            "message": "Votre retour",
+            "email": "E-mail si vous souhaitez une réponse (facultatif)",
+            "page": "Page concernée (facultatif)",
+        }
+        widgets = {
+            "message": forms.Textarea(
+                attrs={"rows": 6,
+                       "placeholder": "Ce qui vous a gêné, manqué ou plu…"}),
+            "page": forms.TextInput(
+                attrs={"placeholder": "Ex : recherche, commande, dashboard…"}),
+        }
+
+    def clean(self):
+        nettoye = super().clean()
+        if (nettoye.get("profil") == RetourUtilisateur.Profil.GERANT
+                and not nettoye.get("activite")):
+            self.add_error("activite",
+                           "Indiquez votre activité pour orienter votre retour.")
+        return nettoye
