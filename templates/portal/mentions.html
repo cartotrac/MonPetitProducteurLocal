@@ -238,6 +238,9 @@
       majAxes();
     }
     {% if retour_ouvert %}dlg.showModal();{% endif %}
+    if (new URLSearchParams(window.location.search).get("avis") === "1") {
+      dlg.showModal();
+    }
   })();
 </script>
 {% endblock %}

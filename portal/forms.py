@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import (AuthenticationForm,
                                        UserCreationForm)
 from django.contrib.auth.models import User
+from django.contrib.auth.validators import UnicodeUsernameValidator
 
 from .models import (Annonce, Bulletin, Categorie, Exploitant, Produit,
                     ProfilClient, RetourUtilisateur, SemaineRecolte)
@@ -512,6 +513,19 @@ class ProfilPersonnelForm(forms.Form):
                   "partout où il apparaît (salutation, commandes passées "
                   "en votre nom propre) — laissez vide pour garder votre "
                   "nom complet.")
+    username = forms.CharField(
+        label="Identifiant", max_length=150,
+        help_text="Nom affiché quand l'alias et le prénom/nom ne sont "
+                  "pas renseignés. Il ne sert PAS à la connexion : "
+                  "votre identifiant de connexion reste votre e-mail.")
+
+    def clean_username(self):
+        """L'identifiant doit rester unique et valide (lettres,
+        chiffres, @/./+/-/_ comme chez Django)."""
+        valeur = self.cleaned_data["username"].strip()
+        if valeur:
+            UnicodeUsernameValidator()(valeur)
+        return valeur
 
 
 class BulletinForm(forms.ModelForm):

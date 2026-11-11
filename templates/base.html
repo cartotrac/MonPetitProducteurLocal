@@ -98,6 +98,7 @@
   {% for message in messages %}
     <div class="flash {{ message.tags }}">{{ message }}</div>
   {% endfor %}
+  {% block bandeau_verification %}
   {% if courriel_a_verifier %}
     <div class="flash warning bandeau-verification">
       📬 <strong>Vérifiez votre e-mail</strong> pour sécuriser votre compte
@@ -109,6 +110,7 @@
       </form>
     </div>
   {% endif %}
+  {% endblock %}
   {% if mode_pro %}
     {% block retour_dashboard %}{% endblock %}
   {% endif %}
@@ -361,5 +363,36 @@
 })();
 </script>
 {% endif %}
+
+<script>
+/* Œil de vérification 👁 : chaque champ de mot de passe reçoit un
+   bouton qui affiche ou masque la saisie — pour relire son mot de
+   passe avant de l'envoyer (inscription, connexion, profil,
+   messagerie SMTP/SMS…). */
+(function () {
+  document.querySelectorAll('input[type="password"]').forEach(
+    function (champ) {
+      var conteneur = document.createElement("span");
+      conteneur.className = "mdp-revele";
+      champ.parentNode.insertBefore(conteneur, champ);
+      conteneur.appendChild(champ);
+      var bouton = document.createElement("button");
+      bouton.type = "button";
+      bouton.className = "mdp-revele-bouton";
+      bouton.textContent = "👁";
+      bouton.title = "Afficher le mot de passe";
+      bouton.setAttribute("aria-label",
+                           "Afficher ou masquer le mot de passe");
+      bouton.addEventListener("click", function () {
+        var visible = champ.type === "text";
+        champ.type = visible ? "password" : "text";
+        bouton.textContent = visible ? "👁" : "🙈";
+        bouton.title = visible ? "Afficher le mot de passe"
+                               : "Masquer le mot de passe";
+      });
+      conteneur.appendChild(bouton);
+    });
+})();
+</script>
 </body>
 </html>

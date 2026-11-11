@@ -9,6 +9,9 @@ URL — l'aperçu de la page (photo-picker.js) est seul.
 {% endcomment %}
 <div class="profil-mise-en-page" data-picker-custom>
   <div class="profil-champs">
+    <div class="form-champ">{{ form.username.label_tag }} {{ form.username }}
+      {{ form.username.errors }}
+      <span class="helptext">{{ form.username.help_text }}</span></div>
     <div class="form-duo">
       <div class="form-champ">{{ form.prenom.label_tag }} {{ form.prenom }}
         {{ form.prenom.errors }}</div>

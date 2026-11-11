@@ -3898,6 +3898,15 @@ def _enregistrer_infos_perso(request, redirect_vers, **redirect_kwargs):
     form = ProfilPersonnelForm(request.POST)
     if form.is_valid():
         user = request.user
+        username = (form.cleaned_data.get("username") or "").strip()
+        if username and username.lower() != user.username.lower():
+            if User.objects.exclude(pk=user.pk).filter(
+                    username__iexact=username).exists():
+                form.add_error("username",
+                               "Cet identifiant est déjà utilisé par "
+                               "un autre compte.")
+                return form
+            user.username = username
         user.first_name = form.cleaned_data["prenom"]
         user.last_name = form.cleaned_data["nom"]
         user.save()
@@ -4012,6 +4021,7 @@ def profil_client(request):
         form = ProfilPersonnelForm(initial={
             "prenom": request.user.first_name,
             "nom": request.user.last_name,
+            "username": request.user.username,
             "alias": profil.alias,
             "telephone": profil.telephone,
             "photo_externe": profil.photo_url,
@@ -4218,6 +4228,7 @@ def param_rubrique(request, rubrique):
         form_profil = ProfilPersonnelForm(initial={
             "prenom": request.user.first_name,
             "nom": request.user.last_name,
+            "username": request.user.username,
             "alias": profil.alias,
             "telephone": profil.telephone,
             "photo_externe": profil.photo_url,
