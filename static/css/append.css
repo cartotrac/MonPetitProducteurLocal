@@ -2046,3 +2046,11 @@ html.dark .retour-onglet.actif { background: #8fae76; color: #1a2314; }
 .badge-ambassadeur-normal { font-size: 1rem; }
 .badge-ambassadeur-petit { font-size: 0.85rem; opacity: 0.85; }
 .badge-ambassadeur-mini { font-size: 0.75rem; opacity: 0.7; }
+
+
+/* Stats communautaires du bloc session (toutes les pages) : mêmes
+   badges que les vignettes de la page Trouver, en plus compact. */
+.bloc-session-stat {
+  font-size: 0.9em;
+  white-space: nowrap;
+}

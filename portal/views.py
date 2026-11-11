@@ -632,23 +632,11 @@ def producer_search(request):
                     pages_pagination.append("…")
                 pages_pagination.append(n)
                 precedent = n
-    # Salutation personnalisée (en tête de la page) : alias ou nom
-    # du compte ; en mode espace pro, rôle et structure suivent.
-    salutation = None
-    if request.user.is_authenticated:
-        salutation = {"nom": nom_affiche(request.user)}
-        actif = espace_actif(request)
-        if actif is not None:
-            salutation["espace"] = actif.nom_espace
-            salutation["role_libelle"] = (
-                "Gérant·e / propriétaire"
-                if actif.user_id == request.user.id
-                else "Compte rattaché")
-            salutation["activite"] = actif.get_activite_display()
-            salutation["specialite"] = (actif.get_specialite_display()
-                                        if actif.specialite else "")
+    # Salutation : fournie par le processeur de contexte
+    # instance_contexte (badge ambassadeur et stats inclus) — plus de
+    # copie locale ici, le bloc session est identique sur toutes les
+    # pages.
     return render(request, "portal/search_results.html", {
-        "salutation": salutation,
         "exploitants": page_obj,
         "nb_resultats": paginator.count,
         "par_page": par_page,

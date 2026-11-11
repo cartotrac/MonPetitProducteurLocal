@@ -102,9 +102,10 @@
   {% if salutation %}
   <div class="bloc-session {% if courriel_a_verifier %}flash warning bloc-session-alerte{% else %}salutation-chercheur{% endif %}" id="bloc-session">
     <button type="button" class="bloc-session-entete" id="bloc-session-entete" aria-expanded="true">
-      {% if salutation.ambassadeur %}<span class="badge-ambassadeur badge-ambassadeur-{{ salutation.ambassadeur.format }}" title="Ambassadeur du portail — merci !">{{ salutation.ambassadeur.icone }}{% if salutation.ambassadeur.rang %} n°{{ salutation.ambassadeur.rang }}{% endif %}</span>{% endif %}
+      {% if salutation.stats %}<span class="badge badge-ab bloc-session-stat" title="Clients Localien inscrits sur le portail">👥 {{ salutation.stats.clients }} client{{ salutation.stats.clients|pluralize }} inscrit{{ salutation.stats.clients|pluralize }}</span><span class="badge badge-demo bloc-session-stat" title="Visites du portail (sessions distinctes)">👀 {{ salutation.stats.visiteurs }} visiteur{{ salutation.stats.visiteurs|pluralize }}</span>{% endif %}
+      {% if salutation.ambassadeur %}<span class="badge-ambassadeur badge-ambassadeur-{{ salutation.ambassadeur.format }}" title="Ambassadeur du portail — merci !">{{ salutation.ambassadeur.libelle }}</span>{% endif %}
       <span>👋 Ravi de vous retrouver aujourd'hui, <strong>{{ salutation.nom }}</strong> !</span>
-      {% if salutation.espace %}<span class="badge badge-activite">{{ salutation.role_libelle }} · {{ salutation.espace }} — {{ salutation.activite }}{% if salutation.specialite %} · {{ salutation.specialite }}{% endif %}</span>
+      {% if salutation.role_complet %}<span class="badge badge-activite">{{ salutation.role_complet }}</span>
       {% else %}<span class="badge badge-activite">🧺 Client Localien</span>{% endif %}
       {% if courriel_a_verifier %}<span class="bloc-session-etat">📬 E-mail à vérifier</span>{% endif %}
       <span class="bloc-session-chevron" aria-hidden="true">▾</span>

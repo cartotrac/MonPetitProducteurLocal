@@ -101,12 +101,23 @@ def instance_contexte(request):
                 rang = Exploitant.objects.filter(
                     activite=espace.activite, est_demo=False,
                     id__lte=espace.id).count()
+                # Libellé complet du badge : l'activité et la
+                # spécialité vivent dans le badge, plus dans le
+                # titre du bloc (« Pro n°1 - 🏆 Restaurant :
+                # Pizzeria ! »).
+                detail = espace.get_activite_display()
+                if espace.specialite:
+                    detail += " : " + espace.get_specialite_display()
                 if rang <= 3:
                     ambassadeur = {"icone": "🏆", "rang": rang,
-                                  "format": "grand"}
+                                   "format": "grand",
+                                   "libelle": "Pro n°" + str(rang)
+                                              + " - 🏆 " + detail + " !"}
                 elif rang <= 10:
                     ambassadeur = {"icone": "🏅", "rang": rang,
-                                  "format": "normal"}
+                                   "format": "normal",
+                                   "libelle": "Pro n°" + str(rang)
+                                              + " - 🏅 " + detail + " !"}
             elif (espace is None
                   and not request.user.username.startswith("demo.")
                   and not Exploitant.objects.filter(
@@ -118,16 +129,39 @@ def instance_contexte(request):
                         .count() + 1)
                 if rang <= 100:
                     ambassadeur = {"icone": "⭐", "rang": rang,
-                                  "format": "normal"}
+                                   "format": "normal",
+                                   "libelle": "Client n°" + str(rang)
+                                              + " - ⭐ !"}
                 elif rang <= 500:
                     ambassadeur = {"icone": "✨", "rang": 0,
-                                  "format": "petit"}
+                                   "format": "petit",
+                                   "libelle": "Client - ✨ !"}
                 elif rang <= 1000:
                     ambassadeur = {"icone": "🌟", "rang": 0,
-                                  "format": "mini"}
+                                   "format": "mini",
+                                   "libelle": "Client - 🌟 !"}
         except Exception:
             ambassadeur = None
         salutation["ambassadeur"] = ambassadeur
+        # Rôle complet du badge du titre : « Gérant·e / propriétaire
+        # (MonEspace) » ou « Compte rattaché (MonEspace) ».
+        if salutation.get("role_libelle"):
+            salutation["role_complet"] = (
+                salutation["role_libelle"] + " ("
+                + salutation["espace"] + ")")
+        # Stats communautaires du bloc session (toutes les pages) :
+        # clients inscrits (comptes non pro) et visiteurs (sessions
+        # anonymes distinctes) — mêmes décomptes que la page Trouver.
+        try:
+            salutation["stats"] = {
+                "clients": (User.objects
+                            .filter(exploitant__isnull=True,
+                                    membres_exploitation__isnull=True)
+                            .count()),
+                "visiteurs": Visiteur.objects.count(),
+            }
+        except Exception:
+            salutation["stats"] = None
     # Fenêtre « Donner mon avis » : disponible sur toutes les
     # pages, pré-remplie au maximum d'après la session — profil réel
     # du compte (visiteur, Localien, gérant ou compte rattaché d'un
