@@ -1974,11 +1974,31 @@ dialog.dialog-retour .champ-retour-boutons { display: flex; gap: 0.6rem;
   justify-content: flex-end; margin-top: 0.9rem; }
 
 
-/* ---- Bloc session unifié (page recherche) : salutation, e-mail à
-   vérifier et accès aux retours d'usage regroupés en tête de page. ---- */
-.bloc-session .bloc-session-verif { margin: 0.4rem 0 0; font-size: 0.95rem; }
+/* ---- Bloc session (toutes les pages, sous le bandeau) : salutation
+   + e-mail à vérifier + retours d'usage. Habillage orange « alerte »
+   (flash warning) tant que l'e-mail n'est pas vérifié, carte verte
+   ensuite ; repliable, choix mémorisé (localStorage
+   mppl_bloc_session_replie). ---- */
+.bloc-session { margin-bottom: 1rem; }
+.bloc-session .bloc-session-entete {
+  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+  width: 100%; background: none; border: none; cursor: pointer;
+  font: inherit; color: inherit; text-align: left; padding: 0;
+}
+.bloc-session .bloc-session-chevron {
+  margin-left: auto; font-size: 0.9em; flex: none;
+  transition: transform 0.15s ease;
+}
+.bloc-session.bloc-session-replie .bloc-session-chevron {
+  transform: rotate(-90deg);
+}
+.bloc-session .bloc-session-corps { margin-top: 0.5rem; }
+.bloc-session.bloc-session-replie .bloc-session-corps { display: none; }
+.bloc-session .bloc-session-corps p { margin: 0.3rem 0; }
+.bloc-session .bloc-session-verif { margin-top: 0.4rem; font-size: 0.95rem; }
 .bloc-session .bloc-session-verif-form { margin: 0.4rem 0 0.2rem; }
 .bloc-session .bloc-session-avis { margin-top: 0.55rem; }
+.bloc-session .bloc-session-etat { font-weight: 700; }
 
 /* ---- Section 🔐 Sécurité de « Mon profil » : repliée par défaut,
    ouverte d'un clic (e-mail et mot de passe). ---- */

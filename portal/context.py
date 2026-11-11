@@ -11,7 +11,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from .models import (Visiteur, espace_actif, espaces_pro,
-                     exploitant_actif, exploitant_pour)
+                     exploitant_actif, exploitant_pour, nom_affiche)
 
 
 def exploitant_contexte(request):
@@ -68,7 +68,25 @@ def instance_contexte(request):
                 user=request.user, verified=True).exists()
         except Exception:
             pass  # bandeau indicatif : jamais bloquant pour l'affichage
+    # Salutation de tête de page (toutes les pages, comptes
+    # connectés) : nom affiché (alias > prénom/nom > identifiant) et,
+    # en mode espace pro, la structure gérée. Le bloc session est
+    # repliable côté navigateur (choix mémorisé).
+    salutation = None
+    if request.user.is_authenticated:
+        salutation = {"nom": nom_affiche(request.user)}
+        actif = espace_actif(request)
+        if actif is not None:
+            salutation["espace"] = actif.nom_espace
+            salutation["role_libelle"] = (
+                "Gérant·e / propriétaire"
+                if actif.user_id == request.user.id
+                else "Compte rattaché")
+            salutation["activite"] = actif.get_activite_display()
+            salutation["specialite"] = (actif.get_specialite_display()
+                                        if actif.specialite else "")
     return {
+        "salutation": salutation,
         "instance_admin_nom": admin.get("nom", ""),
         "instance_admin_url": admin.get("url", ""),
         "instance_admin_logo": admin.get("logo", ""),

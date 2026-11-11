@@ -4,26 +4,11 @@
 {% block extrahead %}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 {% endblock %}
-{% block bandeau_verification %}{% endblock %}
 {% block retour_dashboard %}{% endblock %}
 {% block content %}
-{% if salutation or courriel_a_verifier %}
-<div class="salutation-chercheur bloc-session">
-  {% if salutation %}
+{% if salutation %}
+<div class="salutation-chercheur">
   <p class="salutation-texte">👋 Ravi de vous retrouver aujourd'hui, <strong>{{ salutation.nom }}</strong> !</p>
-  {% if salutation.espace %}
-  <p class="salutation-espace"><span class="badge badge-activite">{{ salutation.role_libelle }}</span> pour le compte de <strong>{{ salutation.espace }}</strong> — {{ salutation.activite }}{% if salutation.specialite %} · {{ salutation.specialite }}{% endif %}</p>
-  {% endif %}
-  {% endif %}
-  {% if courriel_a_verifier %}
-  <p class="bloc-session-verif">📬 <strong>Vérifiez votre e-mail</strong> pour sécuriser votre compte (récupération de mot de passe, connexion Google) :</p>
-  <form method="post" class="inline bloc-session-verif-form" action="{% url 'portal:renvoyer_verification' %}">
-    {% csrf_token %}
-    <input type="hidden" name="suivant" value="{{ request.get_full_path }}">
-    <button class="btn btn-sm" type="submit">Renvoyer l'e-mail de vérification</button>
-  </form>
-  {% endif %}
-  <a class="btn btn-outline btn-sm bloc-session-avis" href="{% url 'portal:mentions_legales' %}?avis=1#retours">📣 Donner mon avis sur le portail</a>
 </div>
 {% endif %}
 <div class="entete-chercher">

@@ -99,16 +99,29 @@
     <div class="flash {{ message.tags }}">{{ message }}</div>
   {% endfor %}
   {% block bandeau_verification %}
-  {% if courriel_a_verifier %}
-    <div class="flash warning bandeau-verification">
-      📬 <strong>Vérifiez votre e-mail</strong> pour sécuriser votre compte
-      (récupération de mot de passe, connexion Google).
-      <form method="post" class="inline" action="{% url 'portal:renvoyer_verification' %}">
+  {% if salutation %}
+  <div class="bloc-session {% if courriel_a_verifier %}flash warning bloc-session-alerte{% else %}salutation-chercheur{% endif %}" id="bloc-session">
+    <button type="button" class="bloc-session-entete" id="bloc-session-entete" aria-expanded="true">
+      <span>👋 Ravi de vous retrouver aujourd'hui, <strong>{{ salutation.nom }}</strong> !</span>
+      {% if salutation.espace %}<span class="badge badge-activite">{{ salutation.role_libelle }} · {{ salutation.espace }}</span>{% endif %}
+      {% if courriel_a_verifier %}<span class="bloc-session-etat">📬 E-mail à vérifier</span>{% endif %}
+      <span class="bloc-session-chevron" aria-hidden="true">▾</span>
+    </button>
+    <div class="bloc-session-corps" id="bloc-session-corps">
+      {% if salutation.espace %}
+      <p class="bloc-session-espace">Espace géré : <strong>{{ salutation.espace }}</strong> — {{ salutation.activite }}{% if salutation.specialite %} · {{ salutation.specialite }}{% endif %}</p>
+      {% endif %}
+      {% if courriel_a_verifier %}
+      <p class="bloc-session-verif">📬 <strong>Vérifiez votre e-mail</strong> pour sécuriser votre compte (récupération de mot de passe, connexion Google) :</p>
+      <form method="post" class="inline bloc-session-verif-form" action="{% url 'portal:renvoyer_verification' %}">
         {% csrf_token %}
         <input type="hidden" name="suivant" value="{{ request.path }}">
-        <button class="btn" type="submit">Renvoyer l'e-mail de vérification</button>
+        <button class="btn btn-sm" type="submit">Renvoyer l'e-mail de vérification</button>
       </form>
+      {% endif %}
+      <a class="btn btn-outline btn-sm bloc-session-avis" href="{% url 'portal:mentions_legales' %}?avis=1#retours">📣 Donner mon avis sur le portail</a>
     </div>
+  </div>
   {% endif %}
   {% endblock %}
   {% if mode_pro %}
@@ -392,6 +405,35 @@
       });
       conteneur.appendChild(bouton);
     });
+})();
+</script>
+
+<script>
+/* Bloc session (toutes les pages) : repliable, choix mémorisé dans
+   le navigateur (localStorage mppl_bloc_session_replie) — le bloc
+   suit l'utilisateur de page en page, ouvert par défaut tant que
+   l'e-mail n'est pas vérifié. */
+(function () {
+  var bloc = document.getElementById("bloc-session");
+  if (!bloc) { return; }
+  var bouton = document.getElementById("bloc-session-entete");
+  var replie = false;
+  try {
+    replie = localStorage.getItem("mppl_bloc_session_replie") === "1";
+  } catch (e) { replie = false; }
+  function appliquer() {
+    bloc.classList.toggle("bloc-session-replie", replie);
+    bouton.setAttribute("aria-expanded", replie ? "false" : "true");
+  }
+  appliquer();
+  bouton.addEventListener("click", function () {
+    replie = !replie;
+    try {
+      localStorage.setItem("mppl_bloc_session_replie",
+                           replie ? "1" : "0");
+    } catch (e) {}
+    appliquer();
+  });
 })();
 </script>
 </body>
