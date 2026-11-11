@@ -2053,4 +2053,5 @@ html.dark .retour-onglet.actif { background: #8fae76; color: #1a2314; }
 .bloc-session-stat {
   font-size: 0.9em;
   white-space: nowrap;
+  cursor: pointer;
 }

@@ -7,13 +7,16 @@ distingue le gestionnaire principal (fiche ferme, SIRET, équipe,
 catalogue) des membres limités à la gestion courante.
 """
 
+import datetime
+
 from django.conf import settings
 from django.utils import timezone
 
 from django.contrib.auth.models import User
 
-from .models import (Exploitant, Visiteur, espace_actif, espaces_pro,
-                     exploitant_actif, exploitant_pour, nom_affiche)
+from .models import (Exploitant, StatistiqueQuotidienne, Visiteur,
+                     espace_actif, espaces_pro, exploitant_actif,
+                     exploitant_pour, nom_affiche)
 
 
 def exploitant_contexte(request):
@@ -38,6 +41,25 @@ def exploitant_contexte(request):
     except Exception:
         return {"exploitant_courant": None, "mode_pro": False,
                 "nb_espaces_pro": 0, "est_proprietaire": False}
+
+
+def _serie_communaute(champ, lignes):
+    """Série 90 jours prête à dessiner (barres en %) + tendance ~7
+    jours, pour les fenêtres 📈 des badges du bloc session — mêmes
+    mini-graphes que la page Trouver et l'accueil."""
+    valeurs = [getattr(ligne, champ) or 0 for ligne in lignes]
+    if not valeurs:
+        return {"points": [], "tendance": 0, "dernier": 0}
+    maximum = max(valeurs) or 1
+    points = [{
+        "hauteur": round(100 * valeur / maximum),
+        "valeur": valeur,
+        "jour": ligne.date.strftime("%d/%m"),
+        "titre": ligne.date.strftime("%d/%m") + " : " + str(valeur),
+    } for ligne, valeur in zip(lignes, valeurs)]
+    reference = valeurs[0] if len(valeurs) < 8 else valeurs[-8]
+    return {"points": points, "tendance": valeurs[-1] - reference,
+            "dernier": valeurs[-1]}
 
 
 def instance_contexte(request):
@@ -151,7 +173,8 @@ def instance_contexte(request):
                 + salutation["espace"] + ")")
         # Stats communautaires du bloc session (toutes les pages) :
         # clients inscrits (comptes non pro) et visiteurs (sessions
-        # anonymes distinctes) — mêmes décomptes que la page Trouver.
+        # anonymes distinctes) — mêmes décomptes que la page Trouver ;
+        # séries 90 jours pour les fenêtres 📈 des badges.
         try:
             salutation["stats"] = {
                 "clients": (User.objects
@@ -160,6 +183,13 @@ def instance_contexte(request):
                             .count()),
                 "visiteurs": Visiteur.objects.count(),
             }
+            lignes_stats = list(StatistiqueQuotidienne.objects.filter(
+                date__gte=timezone.localdate()
+                - datetime.timedelta(days=89)).order_by("date"))
+            salutation["stats"]["serie_clients"] = _serie_communaute(
+                "nb_clients", lignes_stats)
+            salutation["stats"]["serie_visiteurs"] = _serie_communaute(
+                "nb_visiteurs", lignes_stats)
         except Exception:
             salutation["stats"] = None
     # Fenêtre « Donner mon avis » : disponible sur toutes les
