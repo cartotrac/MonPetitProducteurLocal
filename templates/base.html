@@ -29,6 +29,17 @@
       <a class="brand" href="{% url 'portal:home' %}" id="brand-accueil"><img class="brand-logo" src="{% static 'img/logo.svg' %}" alt="Logo MonPetitProducteurLocal" width="30" height="30"> MonPetitProducteurLocal{% if mode_pro %}<span class="brand-demo-badge" title="Instance de démonstration">DÉMO</span>{% endif %}</a>
       <button class="btn-darkmode" type="button" id="btn-darkmode" title="Basculer en mode sombre" aria-label="Basculer en mode sombre">🌙</button>
       {% if user.is_authenticated and nb_espaces_pro %}
+        {% if nb_espaces_pro > 1 %}
+        <form class="inline" method="post" action="{% url 'portal:bascule_espace' %}">
+          {% csrf_token %}
+          <select name="espace" class="select-espace" title="Changer d'espace pro" aria-label="Changer d'espace pro" onchange="this.form.submit()">
+            {% if not mode_pro %}<option value="" selected>🚜 Mes espaces pro…</option>{% endif %}
+            {% for e in espaces_pro_liste %}
+              <option value="{{ e.pk }}"{% if mode_pro and exploitant_courant.pk == e.pk %} selected{% endif %}>{{ e.emoji }} {{ e.nom }}{% if e.role == "MEMBRE" %} · rattaché{% endif %}</option>
+            {% endfor %}
+          </select>
+        </form>
+        {% endif %}
         {% if mode_pro %}
         <form class="inline" method="post" action="{% url 'portal:bascule_espace' %}">
           {% csrf_token %}<button class="btn-darkmode btn-espace" type="submit" name="action" value="grand-public" title="Revenir en grand public : commander au nom propre (alias)" aria-label="Revenir en grand public">🧺</button>

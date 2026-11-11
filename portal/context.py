@@ -28,12 +28,16 @@ def exploitant_contexte(request):
         actif = espace_actif(request)
         courant = (actif if actif is not None
                    else exploitant_pour(request.user))
-        nb_espaces = (len(espaces_pro(request.user))
-                      if request.user.is_authenticated else 0)
+        liste_espaces = (espaces_pro(request.user)
+                         if request.user.is_authenticated else [])
         return {
             "exploitant_courant": courant,
             "mode_pro": actif is not None,
-            "nb_espaces_pro": nb_espaces,
+            "nb_espaces_pro": len(liste_espaces),
+            "espaces_pro_liste": [
+                {"pk": espace.pk, "nom": espace.nom_espace,
+                 "emoji": espace.emoji_vitrine, "role": role}
+                for espace, role in liste_espaces],
             "est_proprietaire": (
                 actif is not None
                 and (actif.user_id == request.user.id
@@ -41,7 +45,8 @@ def exploitant_contexte(request):
         }
     except Exception:
         return {"exploitant_courant": None, "mode_pro": False,
-                "nb_espaces_pro": 0, "est_proprietaire": False}
+                "nb_espaces_pro": 0, "espaces_pro_liste": [],
+                "est_proprietaire": False}
 
 
 def _serie_communaute(champ, lignes):

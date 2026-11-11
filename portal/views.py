@@ -139,6 +139,16 @@ def bascule_espace(request):
     propre / alias)."""
     if request.method != "POST":
         return redirect("portal:home")
+    brut = request.POST.get("espace", "").strip()
+    if brut.isdigit():
+        for exploitant, _role in espaces_pro(request.user):
+            if exploitant.pk == int(brut):
+                request.session["mppl_espace_actif"] = exploitant.pk
+                messages.success(
+                    request, "Espace actif : " + exploitant.nom_espace + ".")
+                return redirect("portal:dashboard")
+        messages.error(request, "Espace introuvable.")
+        return redirect("portal:choix_espace_pro")
     if request.POST.get("action") == "pro":
         espaces = espaces_pro(request.user)
         if not espaces:
