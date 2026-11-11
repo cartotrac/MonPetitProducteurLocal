@@ -150,22 +150,32 @@
   var spe = document.getElementById("id_specialite");
   var ligneSpe = document.getElementById("ligne-specialite");
   var titre = document.getElementById("titre-ferme");
+  /* Modèle des options d'origine (l'option vide incluse), copié
+     avant toute reconstruction de la liste par majActivite(). */
+  var OPTIONS_SPE = spe ? Array.prototype.map.call(
+      spe.options, function (o) { return o.cloneNode(true); }) : [];
 
   function majActivite() {
     var actives = (act && SPECIALITES_PAR_ACT[act.value]) || null;
     if (spe) {
+      /* La liste est RECONSTRUITE à chaque changement d'activité :
+         fiable sur tous les navigateurs, contrairement à l'attribut
+         hidden des <option> (ignoré sur certains Safari/mobiles).
+         La valeur est conservée si elle fait toujours partie de la
+         liste, réinitialisée sinon (le serveur la vide aussi, côté
+         clean()). */
+      var garde = actives && actives.indexOf(spe.value) >= 0
+        ? spe.value : "";
+      while (spe.options.length) { spe.remove(0); }
+      OPTIONS_SPE.forEach(function (o) {
+        if (!actives || o.value === "" ||
+            actives.indexOf(o.value) >= 0) {
+          spe.add(o.cloneNode(true));
+        }
+      });
+      spe.value = garde;
       spe.disabled = !actives;
       spe.required = !!(act && act.value === "FOODTRUCK");
-      for (var i = 0; i < spe.options.length; i++) {
-        var o = spe.options[i];
-        /* Seules les spécialités du métier choisi sont proposées
-           (l'option vide reste) ; changement de métier : choix
-           réinitialisé si la valeur ne fait plus partie de la liste. */
-        o.hidden = !!actives && o.value !== "" &&
-          actives.indexOf(o.value) < 0;
-      }
-      if (!actives || (spe.value &&
-          actives.indexOf(spe.value) < 0)) { spe.value = ""; }
     }
     if (ligneSpe) { ligneSpe.classList.toggle("champ-grise", !actives); }
     if (titre && act) {

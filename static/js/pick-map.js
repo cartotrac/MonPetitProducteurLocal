@@ -224,6 +224,18 @@ function esc(t) {
   }
 
   function initCarte(carteEl) {
+    /* Leaflet absent (CDN unpkg injoignable, bloqueur de publicité,
+       hors-ligne) : message visible dans le cadre au lieu d'une
+       carte muette — l'utilisateur sait pourquoi rien ne répond. */
+    if (typeof L === "undefined") {
+      carteEl.innerHTML = '<p class="muted" style="padding:1rem;margin:0">' +
+        "⚠️ Carte indisponible : la bibliothèque Leaflet (unpkg.com) " +
+        "n'a pas pu être chargée — connexion, bloqueur de publicité ? " +
+        "Rechargez la page ou saisissez directement votre adresse " +
+        "ci-dessous.</p>";
+      console.error("pick-map : Leaflet (unpkg) n'est pas chargé.");
+      return;
+    }
     var latIn = document.getElementById(carteEl.dataset.latInput);
     var lonIn = document.getElementById(carteEl.dataset.lonInput);
     if (!latIn || !lonIn) return;
