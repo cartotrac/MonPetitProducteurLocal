@@ -1086,11 +1086,14 @@ def proprietaire_requis(fonction):
     """Réservé au gestionnaire principal (compte propriétaire de
     l'exploitation) : fiche espace/SIRET, équipe, catalogue et catégories.
     Les membres de l'équipe n'ont accès qu'à la gestion courante :
-    récoltes, commandes, paniers, points de livraison."""
+    récoltes, commandes, paniers, points de livraison. Le support —
+    admin de l'instance (superuser) rattaché à l'équipe — bénéficie
+    des mêmes droits que le gestionnaire principal."""
     def wrapper(request, *args, **kwargs):
         exploitant_courant = exploitant_actif(request)
         if (exploitant_courant is None
-                or exploitant_courant.user_id != request.user.id):
+                or (exploitant_courant.user_id != request.user.id
+                    and not request.user.is_superuser)):
             messages.error(
                 request, "Action réservée au gestionnaire principal de "
                 "l'exploitation (fiche espace, SIRET, équipe, catalogue).")
@@ -4020,6 +4023,15 @@ def profil_client(request):
                   {"form": form, "form_motdepasse": form_motdepasse})
 
 
+def _admins_instance():
+    """Comptes admins de l'instance (superusers actifs) : le support
+    à rattacher en un clic pour les pros — identifiés par le drapeau
+    superuser, pas par le nom du compte ; il peut y en avoir
+    plusieurs (la page propose alors une liste de choix)."""
+    return list(User.objects.filter(is_superuser=True,
+                                    is_active=True))
+
+
 @login_required
 @exploitant_requis
 @proprietaire_requis
@@ -4055,6 +4067,9 @@ def equipe_manage(request):
                         request, f"{user.get_full_name() or user.username} "
                         "rattaché(e) à l'exploitation.")
         elif action == "retirer":
+            # Le compte gérant (propriétaire) n'est pas dans la liste
+            # des membres : impossible à retirer — tous les autres
+            # comptes rattachés (support inclus) le sont.
             membre = exploitant.membres.filter(
                 pk=request.POST.get("membre_id")).first()
             if membre:
@@ -4063,11 +4078,47 @@ def equipe_manage(request):
                 membre.delete()
                 messages.info(request, f"{nom} n'est plus membre de "
                                "l'exploitation.")
+        elif action == "support":
+            # 🛟 Rattachement du support : l'admin de l'instance
+            # rejoint l'équipe avec les mêmes droits que le gérant
+            # (sauf la propriété), retirable à tout moment.
+            admins = _admins_instance()
+            pk_brut = request.POST.get("admin", "").strip()
+            admin = None
+            if pk_brut:
+                admin = next((u for u in admins
+                              if str(u.pk) == pk_brut), None)
+            if admin is None and len(admins) == 1:
+                admin = admins[0]
+            if admin is None:
+                messages.error(request, "Choisissez le compte support "
+                               "à rattacher.")
+            elif admin.id == exploitant.user_id:
+                messages.error(request, "Le support est déjà le "
+                               "gérant de cette exploitation.")
+            elif MembreExploitation.objects.filter(
+                    user=admin, exploitant=exploitant).exists():
+                messages.info(request, "Le support est déjà rattaché "
+                              "à cette exploitation.")
+            else:
+                MembreExploitation.objects.create(
+                    user=admin, exploitant=exploitant)
+                messages.success(
+                    request, "🛟 " + (admin.get_full_name()
+                                     or admin.username)
+                    + " rattaché(e) au support : mêmes droits que le "
+                    "gérant, retirable à tout moment dans l'équipe.")
         return redirect("portal:equipe_manage")
+    admins_instance = [
+        u for u in _admins_instance()
+        if u.id != exploitant.user_id
+        and not MembreExploitation.objects.filter(
+            user=u, exploitant=exploitant).exists()]
     return render(request, "portal/pro/equipe.html", {
         "exploitant": exploitant,
         "membres": exploitant.membres.select_related("user"),
         "est_proprietaire": True,
+        "admins_instance": admins_instance,
     })
 
 
@@ -4091,7 +4142,8 @@ def param_rubrique(request, rubrique):
     exploitant = exploitant_actif(request)
     vitrine, _cree = ParametresVitrine.objects.get_or_create(
         exploitant=exploitant)
-    est_proprietaire = exploitant.user_id == request.user.id
+    est_proprietaire = (exploitant.user_id == request.user.id
+                       or request.user.is_superuser)
     if rubrique == "messagerie" and not est_proprietaire:
         return redirect("portal:param_rubrique", rubrique="profil")
     messagerie = vitrine.messagerie or {}

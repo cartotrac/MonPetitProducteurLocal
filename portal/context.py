@@ -36,7 +36,8 @@ def exploitant_contexte(request):
             "nb_espaces_pro": nb_espaces,
             "est_proprietaire": (
                 actif is not None
-                and actif.user_id == request.user.id),
+                and (actif.user_id == request.user.id
+                     or request.user.is_superuser)),
         }
     except Exception:
         return {"exploitant_courant": None, "mode_pro": False,
@@ -117,19 +118,19 @@ def instance_contexte(request):
         # exclus du décompte (préfixe « demo. » ou espace démo).
         ambassadeur = None
         try:
-            espace = (actif if actif is not None
-                      else exploitant_pour(request.user))
-            if espace is not None and not espace.est_demo:
+            # Badge Pro en navigation pro, badge Client en
+            # navigation client (nom propre) — jamais l'inverse.
+            if actif is not None and not actif.est_demo:
                 rang = Exploitant.objects.filter(
-                    activite=espace.activite, est_demo=False,
-                    id__lte=espace.id).count()
+                    activite=actif.activite, est_demo=False,
+                    id__lte=actif.id).count()
                 # Libellé complet du badge : l'activité et la
                 # spécialité vivent dans le badge, plus dans le
                 # titre du bloc (« Pro n°1 - 🏆 Restaurant :
                 # Pizzeria ! »).
-                detail = espace.get_activite_display()
-                if espace.specialite:
-                    detail += " : " + espace.get_specialite_display()
+                detail = actif.get_activite_display()
+                if actif.specialite:
+                    detail += " : " + actif.get_specialite_display()
                 if rang <= 3:
                     ambassadeur = {"icone": "🏆", "rang": rang,
                                    "format": "grand",
@@ -140,7 +141,7 @@ def instance_contexte(request):
                                    "format": "normal",
                                    "libelle": "Pro n°" + str(rang)
                                               + " - 🏅 " + detail + " !"}
-            elif (espace is None
+            elif (actif is None
                   and not request.user.username.startswith("demo.")
                   and not Exploitant.objects.filter(
                       user=request.user, est_demo=True).exists()):
