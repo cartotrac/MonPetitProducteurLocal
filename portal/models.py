@@ -141,7 +141,7 @@ class Exploitant(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE,
                                 related_name="exploitant")
-    nom_espace = models.CharField("Nom de l'exploitation", max_length=150)
+    nom_espace = models.CharField("Nom de l'espace pro", max_length=150)
     slug = models.SlugField("Adresse publique", max_length=160,
                             unique=True, blank=True)
     siret = models.CharField("SIRET", max_length=14, blank=True)
@@ -152,7 +152,7 @@ class Exploitant(models.Model):
         "Activité", max_length=15, choices=Activite.choices,
         default=Activite.MARAICHER,
         help_text="Les pros déjà enregistrés sont typés maraîcher ; "
-                  "d'autres activités (élevage, fromagerie, arboriculture…)"
+                  "d'autres activités (élevage, fromagerie, arboriculture…) "
                   "arriveront avec leurs listes de produits dédiées.")
     specialite = models.CharField(
         "Spécialité", max_length=12, choices=Specialite.choices,
