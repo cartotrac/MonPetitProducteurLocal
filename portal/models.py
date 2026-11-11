@@ -1386,19 +1386,6 @@ class ParametresVitrine(models.Model):
     afficher_creneaux = models.BooleanField("Afficher les créneaux", default=True)
     reseaux = models.JSONField("Réseaux sociaux", default=dict, blank=True,
                                help_text='Ex : {"facebook": "https://…"}')
-    # Rythme de publication de l'encart vitrine (« …de la semaine »,
-    # « …du mois »…) : LIBRE — plusieurs publications par période
-    # restent possibles, seul le libellé s'adapte. Vide = déduit de
-    # l'activité (maraîcher : semaine, arboriculteur : mois…).
-    class Rythme(models.TextChoices):
-        JOUR = "JOUR", "Quotidien — « …du jour »"
-        SEMAINE = "SEMAINE", "Hebdomadaire — « …de la semaine »"
-        MOIS = "MOIS", "Mensuel — « …du mois »"
-        SAISON = "SAISON", "Saisonnier — « …de la saison »"
-
-    rythme_publication = models.CharField(
-        "Rythme de publication", max_length=8,
-        choices=Rythme.choices, blank=True, default="")
     # Paramètres de messagerie du propriétaire (page Paramètres) :
     # serveur SMTP d'envoi des e-mails (newsletters, annonces,
     # confirmations) et passerelle SMS pour la disponibilité hebdo.
