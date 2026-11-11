@@ -5,9 +5,9 @@
 <h1>{{ exploitant.libelle_commander }} — {{ exploitant.nom_espace }}</h1>
 
 {% if mode == 'recolte' %}
-  <p>{{ exploitant.vocab.recolte|capfirst }} de la semaine du {{ semaine.lundi|date:"d/m/Y" }}.
+  <p>{{ exploitant.vocab.recolte|capfirst }} publiée : {{ periode_libelle }}.
      La « dispo restante » est l'estimation du producteur moins ce qui est
-     déjà commandé cette semaine. Le producteur confirme au moment de la
+     déjà commandé sur la période. Le producteur confirme au moment de la
      préparation. <strong>La ligne passe en orange si vous demandez plus
      que la dispo restante</strong> : le producteur ajustera avec vous.</p>
 {% elif mode == 'carte' %}
@@ -18,7 +18,7 @@
      le producteur ajustera avec vous.</p>
 {% else %}
   <div class="flash warning">⚠️ Le producteur n'a pas publié de {{ exploitant.vocab.recolte }}
-    cette semaine : voici la liste de ses produits aux prix de référence.
+    pour la période en cours : voici la liste de ses produits aux prix de référence.
     <strong>Les quantités commandées restent soumises à sa validation et
     aux disponibilités réelles</strong> — il vous recontacte pour ajuster
     si besoin.</div>
@@ -42,7 +42,7 @@
               <td>{% if offre.reste is not None %}{% if offre.reste > 0 %}<strong>{{ offre.reste|qte }} {{ offre.reste|unite:offre.produit }}</strong>{% else %}<span class="muted">complet</span>{% endif %}{% else %}<span class="muted">à volonté</span>{% endif %}</td>
             {% endif %}
             <td>{{ offre.prix }} €</td>
-            <td><input type="number" step="{% if offre.produit.unite_vente == 'KG' %}0.01{% else %}1{% endif %}" min="0" name="{{ offre.cle }}" placeholder="0" value="{{ valeurs|get_item:offre.cle|default:'' }}" data-nom="{{ offre.produit.nom }}" data-emoji="{{ offre.produit.emoji }}" data-prix="{{ offre.prix }}" data-unite="{{ offre.produit.unite_courte }}" {% if offre.reste is not None %}data-reste="{{ offre.reste }}"{% endif %} {% if offre.reste is not None and offre.reste <= 0 %}disabled title="Complet : déjà commandé cette semaine"{% endif %}></td>
+            <td><input type="number" step="{% if offre.produit.unite_vente == 'KG' %}0.01{% else %}1{% endif %}" min="0" name="{{ offre.cle }}" placeholder="0" value="{{ valeurs|get_item:offre.cle|default:'' }}" data-nom="{{ offre.produit.nom }}" data-emoji="{{ offre.produit.emoji }}" data-prix="{{ offre.prix }}" data-unite="{{ offre.produit.unite_courte }}" {% if offre.reste is not None %}data-reste="{{ offre.reste }}"{% endif %} {% if offre.reste is not None and offre.reste <= 0 %}disabled title="Complet : déjà commandé sur la période"{% endif %}></td>
           </tr>
         {% endfor %}
         </tbody>
@@ -57,7 +57,7 @@
       <h3>Vous n'avez pas de compte ? Pas de souci 🌱</h3>
       <p class="muted">Laissez votre numéro : le producteur vous appelle
          pour valider votre commande. L'e-mail est optionnel — il permet
-         de recevoir la liste des {{ exploitant.vocab.recoltes }} de la semaine par newsletter.</p>
+         de recevoir les listes de {{ exploitant.vocab.recoltes }} par newsletter.</p>
       <div class="form-row">
         <label>Votre nom *
           <input type="text" name="nom_client" required value="{{ nom_client }}"

@@ -747,6 +747,21 @@ def marche_detail(request, slug):
     raise Http404("Marché ou boutique de producteurs inconnu.")
 
 
+def _libelle_periode_publication(exploitant, lundi_pub):
+    """Libellé de la période publiée, adapté à la fréquence de
+    publication de l'exploitant : « semaine du 09/11/2026 » en
+    hebdomadaire, « du 26/10 au 08/11 » en quinzaine ou mensuel —
+    vitrine et page de commande ne disent plus « semaine » quand
+    la publication est moins fréquente."""
+    freq = getattr(exploitant, "frequence_publication", None) or "HEBDO"
+    if freq in ("QUINZAINE", "MENSUEL"):
+        jours = 13 if freq == "QUINZAINE" else 29
+        fin = lundi_pub + datetime.timedelta(days=jours)
+        return ("du " + lundi_pub.strftime("%d/%m")
+                + " au " + fin.strftime("%d/%m"))
+    return "semaine du " + lundi_pub.strftime("%d/%m/%Y")
+
+
 def producer_detail(request, slug):
     """Page publique d'un exploitant : récolte de la semaine + à venir,
     météo en direct sur place et bandeau des créneaux de livraison."""
@@ -761,23 +776,10 @@ def producer_detail(request, slug):
                                              lundi__lte=lundi)
                .order_by("-lundi").first())
 
-    def _libelle_periode(semaine_pub):
-        """Libellé de la période publiée, adapté à la fréquence de
-        publication de l'exploitant : « semaine du 09/11/2026 » en
-        hebdomadaire, « du 26/10 au 08/11 » en quinzaine ou
-        mensuel — la vitrine ne dit plus « semaine » quand la
-        publication est moins fréquente."""
-        lundi_pub = semaine_pub.lundi
-        freq = (exploitant.frequence_publication or "HEBDO")
-        if freq in ("QUINZAINE", "MENSUEL"):
-            jours = 13 if freq == "QUINZAINE" else 29
-            fin = lundi_pub + datetime.timedelta(days=jours)
-            return ("du " + lundi_pub.strftime("%d/%m")
-                    + " au " + fin.strftime("%d/%m"))
-        return "semaine du " + lundi_pub.strftime("%d/%m/%Y")
-
-    periode_libelle = _libelle_periode(semaine) if semaine else ""
-    libelles_avenir = {s.pk: _libelle_periode(s) for s in semaines_avenir}
+    periode_libelle = (_libelle_periode_publication(exploitant, semaine.lundi)
+                       if semaine else "")
+    libelles_avenir = {s.pk: _libelle_periode_publication(exploitant, s.lundi)
+                       for s in semaines_avenir}
     lignes = list(semaine.lignes.select_related("produit__categorie",
                                                 "produit__origine_standard")
                   if semaine else [])
@@ -3580,6 +3582,8 @@ def order_create(request, slug):
                                              lundi__lte=lundi)
                .order_by("-lundi").first())
     offres, mode = _offres_commande(exploitant, semaine)
+    periode_libelle = (_libelle_periode_publication(exploitant, semaine.lundi)
+                       if semaine else "")
     carte_active = (Carte.objects.filter(
         exploitant=exploitant, statut=Carte.Statut.ACTIVE).first())
     dates = _dates_livraison(exploitant, today)
@@ -3600,6 +3604,7 @@ def order_create(request, slug):
         contexte = {"exploitant": exploitant, "semaine": semaine,
                     "offres": offres, "groupes": _groupes_offres(offres),
                     "mode": mode,
+                    "periode_libelle": periode_libelle,
                     "carte_active": carte_active,
                     "points_livraison": exploitant.points_livraison.all(),
                     "dates": dates_aff, "points_jours": points_jours}
