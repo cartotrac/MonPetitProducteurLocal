@@ -4437,15 +4437,18 @@ from .models import RetourUtilisateur  # noqa: E402
 
 
 def _retour_form_initial(request):
-    """Formulaire de retour pré-rempli d'après la session : gérant
-    d'espace pro si le compte en gère un, client s'il est connecté,
-    visiteur sinon."""
+    """Formulaire de retour pré-rempli d'après le mode de NAVIGATION
+    courant : gérant de l'espace pro actif (avec son activité) en
+    navigation pro, client connecté en navigation publique — même si
+    le compte gère aussi un espace —, visiteur sans compte sinon."""
     if not request.user.is_authenticated:
         return RetourUtilisateurForm(
             initial={"profil": RetourUtilisateur.Profil.VISITEUR})
-    if exploitant_pour(request.user) is not None:
+    espace = espace_actif(request)
+    if espace is not None:
         return RetourUtilisateurForm(
             initial={"profil": RetourUtilisateur.Profil.GERANT,
+                     "activite": espace.activite,
                      "email": request.user.email})
     return RetourUtilisateurForm(
         initial={"profil": RetourUtilisateur.Profil.CLIENT,

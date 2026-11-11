@@ -214,9 +214,11 @@ def instance_contexte(request):
             initial = {}
             if request.user.is_authenticated:
                 initial["email"] = request.user.email
+                # Le mode de NAVIGATION drive le profil du retour :
+                # navigation pro = gérant de l'espace courant (avec
+                # son activité), navigation publique = client — même
+                # si le compte est aussi gérant d'un espace.
                 espace = espace_actif(request)
-                if espace is None:
-                    espace = exploitant_pour(request.user)
                 if espace is not None:
                     initial["profil"] = RetourUtilisateur.Profil.GERANT
                     initial["activite"] = espace.activite

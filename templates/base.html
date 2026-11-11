@@ -446,11 +446,16 @@
     <input type="hidden" name="suivant" value="{{ request.get_full_path }}">
     {{ retour_form.piege }}
     {{ retour_form.non_field_errors }}
-    <p id="retour-ligne-profil"><label for="id_profil">{{ retour_form.profil.label }}</label>
-    {{ retour_form.profil }}</p>
-    <p id="bloc-activite"><label for="id_activite">{{ retour_form.activite.label }}</label>
-    {{ retour_form.activite }}
-    {{ retour_form.activite.errors }}</p>
+    <p id="retour-ligne-profil"><label>Vous êtes</label>
+      <strong id="retour-profil-libelle">{% if retour_form.profil.value == "GERANT" %}👨‍🌾 {{ salutation.role_libelle }} · {{ salutation.espace }}{% elif retour_form.profil.value == "DEV" %}👨‍💻 Développeur / contributeur{% elif retour_form.profil.value == "CLIENT" %}🧺 Client Localien{% else %}👀 Visiteur sans compte{% endif %}</strong>
+      {{ retour_form.profil.errors }}
+      <input type="hidden" name="profil" id="id_profil" value="{{ retour_form.profil.value|default:'VISITEUR' }}">
+    </p>
+    <p id="bloc-activite"><label>Votre activité</label>
+      <strong>{{ salutation.activite|default:"—" }}</strong>
+      {{ retour_form.activite.errors }}
+      <input type="hidden" name="activite" id="id_activite" value="{{ retour_form.activite.value|default:'' }}">
+    </p>
     <p><label for="id_axe">{{ retour_form.axe.label }}</label>
     <select name="axe" id="id_axe">
       <option value="OBJECTIFS" data-profils="VISITEUR CLIENT GERANT DEV">Clarté des objectifs du portail</option>
