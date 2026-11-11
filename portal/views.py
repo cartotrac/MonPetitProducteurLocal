@@ -760,6 +760,24 @@ def producer_detail(request, slug):
                                              publiee=True,
                                              lundi__lte=lundi)
                .order_by("-lundi").first())
+
+    def _libelle_periode(semaine_pub):
+        """Libellé de la période publiée, adapté à la fréquence de
+        publication de l'exploitant : « semaine du 09/11/2026 » en
+        hebdomadaire, « du 26/10 au 08/11 » en quinzaine ou
+        mensuel — la vitrine ne dit plus « semaine » quand la
+        publication est moins fréquente."""
+        lundi_pub = semaine_pub.lundi
+        freq = (exploitant.frequence_publication or "HEBDO")
+        if freq in ("QUINZAINE", "MENSUEL"):
+            jours = 13 if freq == "QUINZAINE" else 29
+            fin = lundi_pub + datetime.timedelta(days=jours)
+            return ("du " + lundi_pub.strftime("%d/%m")
+                    + " au " + fin.strftime("%d/%m"))
+        return "semaine du " + lundi_pub.strftime("%d/%m/%Y")
+
+    periode_libelle = _libelle_periode(semaine) if semaine else ""
+    libelles_avenir = {s.pk: _libelle_periode(s) for s in semaines_avenir}
     lignes = list(semaine.lignes.select_related("produit__categorie",
                                                 "produit__origine_standard")
                   if semaine else [])
@@ -836,6 +854,8 @@ def producer_detail(request, slug):
         "lignes": lignes,
         "groupes_categories": groupes,
         "semaines_avenir": semaines_avenir,
+        "periode_libelle": periode_libelle,
+        "libelles_avenir": libelles_avenir,
         "restes": restes,
         "est_favori": est_favori,
         "nature_favori": nature_favori,

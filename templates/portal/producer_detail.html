@@ -110,7 +110,7 @@
 
 <section>
 <section class="cal-courante">
-  <h2>🧺 {{ exploitant.titre_semaine }}{% if semaine %} (semaine du {{ semaine.lundi|date:"d/m/Y" }}){% endif %}</h2>
+  <h2>🧺 {{ exploitant.titre_semaine }}{% if semaine %} ({{ periode_libelle }}){% endif %}</h2>
   {% if semaine and semaine.note %}<p class="flash info">{{ semaine.note }}</p>{% endif %}
   {% if lignes %}
     <p class="muted">Les quantités sont des estimations : elles vous informent des
@@ -141,7 +141,7 @@
         un téléphone, le producteur vous recontactera.</span>
     {% endif %}
   {% else %}
-    <p class="muted">Pas encore de {{ exploitant.vocab.recolte }} publiée cette semaine.</p>
+    <p class="muted">Pas encore de {{ exploitant.vocab.recolte }} publiée pour la période en cours.</p>
   {% endif %}
 </section>
 
@@ -173,10 +173,10 @@
   <div class="grid">
     {% for s in semaines_avenir %}
       <div class="card cal-avenir">
-        <strong>Semaine du {{ s.lundi|date:"d/m/Y" }}</strong>
+        <strong>{{ libelles_avenir|get_item:s.pk }}</strong>
         <p class="muted">{{ s.lignes.count }} produit{{ s.lignes.count|pluralize }} prévus</p>
         {% if s.note %}<p>« {{ s.note }} »</p>{% endif %}
-        <p class="muted">Disponible à la commande dès cette semaine-là.</p>
+        <p class="muted">Disponible à la commande dès cette période.</p>
       </div>
     {% endfor %}
   </div>
