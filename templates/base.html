@@ -109,17 +109,22 @@
     </button>
     <div class="bloc-session-corps" id="bloc-session-corps">
       {% if salutation.espace %}
-      <p class="bloc-session-espace">Espace géré : <strong>{{ salutation.espace }}</strong> — {{ salutation.activite }}{% if salutation.specialite %} · {{ salutation.specialite }}{% endif %}</p>
+      <p class="salutation-espace"><span class="badge badge-activite">{{ salutation.role_libelle }}</span> pour le compte de <strong>{{ salutation.espace }}</strong> — {{ salutation.activite }}{% if salutation.specialite %} · {{ salutation.specialite }}{% endif %}</p>
       {% endif %}
       {% if courriel_a_verifier %}
-      <p class="bloc-session-verif">📬 <strong>Vérifiez votre e-mail</strong> pour sécuriser votre compte (récupération de mot de passe, connexion Google) :</p>
-      <form method="post" class="inline bloc-session-verif-form" action="{% url 'portal:renvoyer_verification' %}">
-        {% csrf_token %}
-        <input type="hidden" name="suivant" value="{{ request.path }}">
-        <button class="btn btn-sm" type="submit">Renvoyer l'e-mail de vérification</button>
-      </form>
+      <div class="bloc-session-ligne">
+        <p class="bloc-session-verif">📬 <strong>Vérifiez votre e-mail</strong> pour sécuriser votre compte (récupération de mot de passe, connexion Google).</p>
+        <form method="post" class="inline bloc-session-verif-form" action="{% url 'portal:renvoyer_verification' %}">
+          {% csrf_token %}
+          <input type="hidden" name="suivant" value="{{ request.path }}">
+          <button class="btn btn-sm" type="submit">Renvoyer l'e-mail</button>
+        </form>
+      </div>
       {% endif %}
-      <a class="btn btn-outline btn-sm bloc-session-avis" href="{% url 'portal:mentions_legales' %}?avis=1#retours">📣 Donner mon avis sur le portail</a>
+      <div class="bloc-session-ligne">
+        <p class="bloc-session-avis-texte">Une remarque, un bug, une idée pour améliorer le portail ?</p>
+        <button type="button" class="btn btn-outline btn-sm bloc-session-avis" data-ouvrir-retour>📣 Donner mon avis</button>
+      </div>
     </div>
   </div>
   {% endif %}
@@ -375,6 +380,50 @@
   });
 })();
 </script>
+{% if retour_form %}
+<dialog id="dialog-retour" class="dialog-retour" aria-label="Donner mon avis">
+  <h3>📣 Votre retour</h3>
+  <div class="retour-onglets" role="tablist">
+    <button type="button" class="retour-onglet actif" data-onglet="utilisateur">👤 Utilisateur</button>
+    <button type="button" class="retour-onglet" data-onglet="dev">👨‍💻 Développeur</button>
+  </div>
+  <form method="post" action="{% url 'portal:retour_create' %}">
+    {% csrf_token %}
+    <input type="hidden" name="suivant" value="{{ request.get_full_path }}">
+    {{ retour_form.piege }}
+    {{ retour_form.non_field_errors }}
+    <p id="retour-ligne-profil"><label for="id_profil">{{ retour_form.profil.label }}</label>
+    {{ retour_form.profil }}</p>
+    <p id="bloc-activite"><label for="id_activite">{{ retour_form.activite.label }}</label>
+    {{ retour_form.activite }}
+    {{ retour_form.activite.errors }}</p>
+    <p><label for="id_axe">{{ retour_form.axe.label }}</label>
+    <select name="axe" id="id_axe">
+      <option value="OBJECTIFS" data-profils="VISITEUR CLIENT GERANT DEV">Clarté des objectifs du portail</option>
+      <option value="ACCES_INFOS" data-profils="VISITEUR CLIENT">Accès aux informations des producteurs locaux</option>
+      <option value="CREATION_COMPTE" data-profils="VISITEUR CLIENT">Facilité de création de compte</option>
+      <option value="ERGONOMIE" data-profils="VISITEUR CLIENT GERANT">Ergonomie générale</option>
+      <option value="BUG" data-profils="VISITEUR CLIENT GERANT DEV">Bug</option>
+      <option value="INSCRIPTION_PRO" data-profils="GERANT">Inscription d'un espace pro</option>
+      <option value="GESTION" data-profils="GERANT">Gestion des commandes et des clients</option>
+      <option value="COMMUNICATION" data-profils="GERANT">Communication client (newsletter, annonces, SMS)</option>
+      <option value="VOCABULAIRE" data-profils="GERANT">Vocabulaire adapté à mon métier</option>
+      <option value="DASHBOARD" data-profils="GERANT">Ergonomie du dashboard et des paramètres</option>
+      <option value="AUTRE" data-profils="VISITEUR CLIENT GERANT DEV">Autre sujet</option>
+    </select></p>
+    <p><label for="id_message">{{ retour_form.message.label }}</label>
+    {{ retour_form.message }}
+    {{ retour_form.message.errors }}</p>
+    <p><label for="id_email">{{ retour_form.email.label }}</label>
+    {{ retour_form.email }}</p>
+    <p><label for="id_page">{{ retour_form.page.label }}</label>
+    {{ retour_form.page }}</p>
+    <div class="champ-retour-boutons">
+      <button class="btn" type="button" id="retour-fermer">Fermer</button>
+      <button class="btn" type="submit">Envoyer mon retour</button>
+    </div>
+  </form>
+</dialog>
 {% endif %}
 
 <script>
@@ -434,6 +483,73 @@
     } catch (e) {}
     appliquer();
   });
+})();
+</script>
+<script>
+/* Fenêtre « Donner mon avis » (toutes les pages) : ouverture depuis
+   le bloc session, les boutons de page (mentions…) ou ?avis=1.
+   Onglets : Développeur force le profil DEV et masque profil +
+   activité ; Utilisateur restaure le profil pré-rempli de la
+   session (visiteur / Localien / gérant ou compte rattaché d'un
+   espace pro). */
+(function () {
+  var dlg = document.getElementById("dialog-retour");
+  if (!dlg) { return; }
+  document.querySelectorAll("[data-ouvrir-retour]").forEach(
+    function (b) {
+      b.addEventListener("click", function () {
+        var onglet = (b.dataset.ongletRetour === "dev")
+          ? document.querySelector('.retour-onglet[data-onglet="dev"]')
+          : null;
+        if (onglet) { onglet.click(); }
+        dlg.showModal();
+      });
+    });
+  var btnFerme = document.getElementById("retour-fermer");
+  if (btnFerme) {
+    btnFerme.addEventListener("click", function () { dlg.close(); });
+  }
+  dlg.addEventListener("click", function (evt) {
+    if (evt.target === dlg) { dlg.close(); }
+  });
+  var selProfil = document.getElementById("id_profil");
+  var selAxe = document.getElementById("id_axe");
+  var blocAct = document.getElementById("bloc-activite");
+  var ligneProfil = document.getElementById("retour-ligne-profil");
+  var profilInitial = selProfil ? selProfil.value : "VISITEUR";
+  function majAxes() {
+    var p = selProfil.value;
+    selAxe.querySelectorAll("option").forEach(function (o) {
+      var profs = (o.dataset.profils || "").split(" ");
+      o.hidden = profs.indexOf(p) === -1;
+    });
+    var visible = selAxe.querySelector("option:not([hidden])");
+    if (visible && selAxe.selectedOptions[0] &&
+        selAxe.selectedOptions[0].hidden) {
+      selAxe.value = visible.value;
+    }
+    blocAct.classList.toggle("champ-cache", p !== "GERANT");
+  }
+  if (selProfil && selAxe) {
+    selProfil.addEventListener("change", majAxes);
+    majAxes();
+    document.querySelectorAll(".retour-onglet").forEach(function (o) {
+      o.addEventListener("click", function () {
+        document.querySelectorAll(".retour-onglet").forEach(
+          function (a) { a.classList.remove("actif"); });
+        o.classList.add("actif");
+        var dev = o.dataset.onglet === "dev";
+        selProfil.value = dev ? "DEV" : profilInitial;
+        if (ligneProfil) {
+          ligneProfil.classList.toggle("champ-cache", dev);
+        }
+        majAxes();
+      });
+    });
+  }
+  if (new URLSearchParams(window.location.search).get("avis") === "1") {
+    dlg.showModal();
+  }
 })();
 </script>
 </body>

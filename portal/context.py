@@ -85,8 +85,43 @@ def instance_contexte(request):
             salutation["activite"] = actif.get_activite_display()
             salutation["specialite"] = (actif.get_specialite_display()
                                         if actif.specialite else "")
+    # Fenêtre « Donner mon avis » : disponible sur toutes les
+    # pages, pré-remplie au maximum d'après la session — profil réel
+    # du compte (visiteur, Localien, gérant ou compte rattaché d'un
+    # espace pro) et activité de l'espace géré. Après une erreur de
+    # saisie, les valeurs tapées reprennent le temps d'un
+    # ré-affichage (transitoire en session).
+    retour_form = None
+    try:
+        from .forms import RetourUtilisateurForm
+        from .models import RetourUtilisateur
+        donnees = None
+        try:
+            donnees = request.session.pop("mppl_retour_form", None)
+        except Exception:
+            donnees = None
+        if donnees:
+            retour_form = RetourUtilisateurForm(donnees)
+        else:
+            initial = {}
+            if request.user.is_authenticated:
+                initial["email"] = request.user.email
+                espace = espace_actif(request)
+                if espace is None:
+                    espace = exploitant_pour(request.user)
+                if espace is not None:
+                    initial["profil"] = RetourUtilisateur.Profil.GERANT
+                    initial["activite"] = espace.activite
+                else:
+                    initial["profil"] = RetourUtilisateur.Profil.CLIENT
+            else:
+                initial["profil"] = RetourUtilisateur.Profil.VISITEUR
+            retour_form = RetourUtilisateurForm(initial=initial)
+    except Exception:
+        retour_form = None
     return {
         "salutation": salutation,
+        "retour_form": retour_form,
         "instance_admin_nom": admin.get("nom", ""),
         "instance_admin_url": admin.get("url", ""),
         "instance_admin_logo": admin.get("logo", ""),

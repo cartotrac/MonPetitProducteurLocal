@@ -2017,3 +2017,22 @@ html.dark details.bloc-securite > summary::marker { color: #9ccc65; }
   opacity: 0.7;
 }
 .mdp-revele-bouton:hover, .mdp-revele-bouton:focus-visible { opacity: 1; }
+
+/* ---- Bloc session : lignes texte à gauche, boutons courts à
+   droite, empilés verticalement. ---- */
+.bloc-session .bloc-session-ligne {
+  display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;
+}
+.bloc-session .bloc-session-ligne p { flex: 1 1 14rem; margin: 0.25rem 0; }
+.bloc-session .bloc-session-ligne .btn { margin-left: auto; flex: none; }
+
+/* ---- Onglets Utilisateur / Développeur de la fenêtre retour ---- */
+.retour-onglets { display: flex; gap: 0.4rem; margin: 0.3rem 0 0.8rem; }
+.retour-onglet {
+  border: 1px solid #4e6b3a; background: none; color: #2b3a26;
+  border-radius: 8px; padding: 0.25rem 0.7rem; cursor: pointer;
+  font: inherit; font-size: 0.9rem;
+}
+.retour-onglet.actif { background: #4e6b3a; color: #fff; }
+html.dark .retour-onglet { border-color: #8fae76; color: #e6e4da; }
+html.dark .retour-onglet.actif { background: #8fae76; color: #1a2314; }

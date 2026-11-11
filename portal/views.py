@@ -4413,12 +4413,19 @@ def _retour_form_initial(request):
 
 
 def retour_create(request):
-    """Réception de la fenêtre « Donner mon avis » : enregistre le
-    retour d'usage segmenté par profil — et par activité pour les
-    gérants. Honeypot : un robot qui remplit le champ invisible
-    repart avec un merci, sans rien écrire en base."""
+    """Réception de la fenêtre « Donner mon avis », présente sur
+    TOUTES les pages : l'utilisateur reste sur la page courante
+    (champ « suivant »), la fenêtre se rouvre avec les valeurs
+    saisies en cas d'erreur (transitoire en session). Retour
+    d'usage segmenté par profil — et par activité pour les gérants.
+    Honeypot : un robot qui remplit le champ invisible repart avec
+    un merci, sans rien écrire en base."""
     if request.method != "POST":
         return redirect("portal:mentions_legales")
+    # Rester sur la page courante : chemin relatif interne seulement.
+    suivant = request.POST.get("suivant") or ""
+    if not suivant.startswith("/") or suivant.startswith("//"):
+        suivant = reverse("portal:mentions_legales")
     form = RetourUtilisateurForm(request.POST)
     if form.is_valid():
         if not form.cleaned_data.get("piege"):
@@ -4426,8 +4433,15 @@ def retour_create(request):
         messages.success(request, "✅ Merci ! Votre retour est "
                           "enregistré — il oriente directement la "
                           "feuille de route.")
-        return redirect("portal:mentions_legales")
-    messages.warning(request, "Votre retour n'a pas pu être enregistré : "
-                     "vérifiez les champs en rouge de la fenêtre.")
-    return render(request, "portal/mentions.html",
-                  {"retour_form": form, "retour_ouvert": True})
+        return redirect(suivant)
+    # Erreur : les valeurs saisies reprennent le temps d'un
+    # ré-affichage (transitoire en session), la fenêtre se rouvre.
+    request.session["mppl_retour_form"] = {
+        champ: request.POST.get(champ, "")
+        for champ in ("profil", "activite", "axe", "message",
+                      "email", "page")}
+    messages.warning(request, "Votre retour n'a pas pu être "
+                     "enregistré : vérifiez la fenêtre « Donner mon "
+                     "avis ».")
+    separateur = "&" if "?" in suivant else "?"
+    return redirect(suivant + separateur + "avis=1")

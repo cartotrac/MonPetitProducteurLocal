@@ -81,10 +81,11 @@
      route. Rien n'est trop petit : ce qui vous fait perdre une
      minute nous intéresse.</p>
   <p id="retours"><strong>Formulaire intégré</strong> — la fenêtre
-     ci-dessous propose automatiquement les sujets adaptés à votre
-     profil (visiteur, client, gérant d'espace pro) et, pour les
-     gérants, à votre activité :</p>
-  <p><button class="btn" type="button" id="btn-retour">📣 Donner mon avis</button></p>
+     « Donner mon avis », disponible en tête de chaque page, propose
+     automatiquement les sujets adaptés à votre profil (visiteur,
+     client, gérant d'espace pro) et, pour les gérants, à votre
+     activité :</p>
+  <p><button class="btn" type="button" data-ouvrir-retour>📣 Donner mon avis</button></p>
 
   <h3>Deux canaux, selon le sujet</h3>
   <ul>
@@ -160,6 +161,7 @@
      qui vous orientera vers les chantiers ouverts, ou ouvrez une
      issue directement sur le
      <a href="https://github.com/cartotrac/MonPetitProducteurLocal" target="_blank" rel="noopener">dépôt GitHub</a>.</p>
+  <p><button class="btn btn-outline" type="button" data-ouvrir-retour data-onglet-retour="dev">👨‍💻 Donner un retour développeur</button></p>
 </section>
 
 <section class="harvest-bloc">
@@ -167,80 +169,5 @@
   <p><a href="{% url 'portal:politique_confidentialite' %}">Politique de confidentialité</a> ·
      <a href="{% url 'portal:conditions_utilisation' %}">Conditions d'utilisation</a></p>
 </section>
-
-<dialog id="dialog-retour" class="dialog-retour" aria-label="Donner mon avis">
-  <h3>📣 Votre retour</h3>
-  <form method="post" action="{% url 'portal:retour_create' %}">
-    {% csrf_token %}
-    {{ retour_form.piege }}
-    {{ retour_form.non_field_errors }}
-    <p><label for="id_profil">{{ retour_form.profil.label }}</label>
-    {{ retour_form.profil }}</p>
-    <p id="bloc-activite"><label for="id_activite">{{ retour_form.activite.label }}</label>
-    {{ retour_form.activite }}
-    {{ retour_form.activite.errors }}</p>
-    <p><label for="id_axe">{{ retour_form.axe.label }}</label>
-    <select name="axe" id="id_axe">
-      <option value="OBJECTIFS" data-profils="VISITEUR CLIENT GERANT DEV">Clarté des objectifs du portail</option>
-      <option value="ACCES_INFOS" data-profils="VISITEUR CLIENT">Accès aux informations des producteurs locaux</option>
-      <option value="CREATION_COMPTE" data-profils="VISITEUR CLIENT">Facilité de création de compte</option>
-      <option value="ERGONOMIE" data-profils="VISITEUR CLIENT GERANT">Ergonomie générale</option>
-      <option value="BUG" data-profils="VISITEUR CLIENT GERANT DEV">Bug</option>
-      <option value="INSCRIPTION_PRO" data-profils="GERANT">Inscription d'un espace pro</option>
-      <option value="GESTION" data-profils="GERANT">Gestion des commandes et des clients</option>
-      <option value="COMMUNICATION" data-profils="GERANT">Communication client (newsletter, annonces, SMS)</option>
-      <option value="VOCABULAIRE" data-profils="GERANT">Vocabulaire adapté à mon métier</option>
-      <option value="DASHBOARD" data-profils="GERANT">Ergonomie du dashboard et des paramètres</option>
-      <option value="AUTRE" data-profils="VISITEUR CLIENT GERANT DEV">Autre sujet</option>
-    </select></p>
-    <p><label for="id_message">{{ retour_form.message.label }}</label>
-    {{ retour_form.message }}
-    {{ retour_form.message.errors }}</p>
-    <p><label for="id_email">{{ retour_form.email.label }}</label>
-    {{ retour_form.email }}</p>
-    <p><label for="id_page">{{ retour_form.page.label }}</label>
-    {{ retour_form.page }}</p>
-    <div class="champ-retour-boutons">
-      <button class="btn" type="button" id="retour-fermer">Fermer</button>
-      <button class="btn" type="submit">Envoyer mon retour</button>
-    </div>
-  </form>
-</dialog>
-<script>
-  (function () {
-    var dlg = document.getElementById("dialog-retour");
-    var btnOuvre = document.getElementById("btn-retour");
-    if (btnOuvre) {
-      btnOuvre.addEventListener("click", function () { dlg.showModal(); });
-    }
-    var btnFerme = document.getElementById("retour-fermer");
-    if (btnFerme) {
-      btnFerme.addEventListener("click", function () { dlg.close(); });
-    }
-    var selProfil = document.getElementById("id_profil");
-    var selAxe = document.getElementById("id_axe");
-    var blocAct = document.getElementById("bloc-activite");
-    function majAxes() {
-      var p = selProfil.value;
-      selAxe.querySelectorAll("option").forEach(function (o) {
-        var profs = (o.dataset.profils || "").split(" ");
-        o.hidden = profs.indexOf(p) === -1;
-      });
-      var visible = selAxe.querySelector("option:not([hidden])");
-      if (visible && selAxe.selectedOptions[0] &&
-          selAxe.selectedOptions[0].hidden) {
-        selAxe.value = visible.value;
-      }
-      blocAct.classList.toggle("champ-cache", p !== "GERANT");
-    }
-    if (selProfil && selAxe) {
-      selProfil.addEventListener("change", majAxes);
-      majAxes();
-    }
-    {% if retour_ouvert %}dlg.showModal();{% endif %}
-    if (new URLSearchParams(window.location.search).get("avis") === "1") {
-      dlg.showModal();
-    }
-  })();
-</script>
 {% endblock %}
+
