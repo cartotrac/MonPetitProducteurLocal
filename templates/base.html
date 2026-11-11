@@ -102,15 +102,14 @@
   {% if salutation %}
   <div class="bloc-session {% if courriel_a_verifier %}flash warning bloc-session-alerte{% else %}salutation-chercheur{% endif %}" id="bloc-session">
     <button type="button" class="bloc-session-entete" id="bloc-session-entete" aria-expanded="true">
+      {% if salutation.ambassadeur %}<span class="badge-ambassadeur badge-ambassadeur-{{ salutation.ambassadeur.format }}" title="Ambassadeur du portail — merci !">{{ salutation.ambassadeur.icone }}{% if salutation.ambassadeur.rang %} n°{{ salutation.ambassadeur.rang }}{% endif %}</span>{% endif %}
       <span>👋 Ravi de vous retrouver aujourd'hui, <strong>{{ salutation.nom }}</strong> !</span>
-      {% if salutation.espace %}<span class="badge badge-activite">{{ salutation.role_libelle }} · {{ salutation.espace }}</span>{% endif %}
+      {% if salutation.espace %}<span class="badge badge-activite">{{ salutation.role_libelle }} · {{ salutation.espace }} — {{ salutation.activite }}{% if salutation.specialite %} · {{ salutation.specialite }}{% endif %}</span>
+      {% else %}<span class="badge badge-activite">🧺 Client Localien</span>{% endif %}
       {% if courriel_a_verifier %}<span class="bloc-session-etat">📬 E-mail à vérifier</span>{% endif %}
       <span class="bloc-session-chevron" aria-hidden="true">▾</span>
     </button>
     <div class="bloc-session-corps" id="bloc-session-corps">
-      {% if salutation.espace %}
-      <p class="salutation-espace"><span class="badge badge-activite">{{ salutation.role_libelle }}</span> pour le compte de <strong>{{ salutation.espace }}</strong> — {{ salutation.activite }}{% if salutation.specialite %} · {{ salutation.specialite }}{% endif %}</p>
-      {% endif %}
       {% if courriel_a_verifier %}
       <div class="bloc-session-ligne">
         <p class="bloc-session-verif">📬 <strong>Vérifiez votre e-mail</strong> pour sécuriser votre compte (récupération de mot de passe, connexion Google).</p>

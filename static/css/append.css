@@ -2036,3 +2036,13 @@ html.dark details.bloc-securite > summary::marker { color: #9ccc65; }
 .retour-onglet.actif { background: #4e6b3a; color: #fff; }
 html.dark .retour-onglet { border-color: #8fae76; color: #e6e4da; }
 html.dark .retour-onglet.actif { background: #8fae76; color: #1a2314; }
+
+/* ---- Badge Ambassadeur (à gauche du titre du bloc session) :
+   récompense les premiers espaces pro réels de chaque activité
+   (🏆 grand pour les 3 premiers, 🏅 jusqu'au 10e) et les premiers
+   clients inscrits (⭐ 100 numérotés, paliers ✨ 500 / 🌟 1000). ---- */
+.badge-ambassadeur { font-weight: 700; white-space: nowrap; flex: none; }
+.badge-ambassadeur-grand { font-size: 1.15rem; }
+.badge-ambassadeur-normal { font-size: 1rem; }
+.badge-ambassadeur-petit { font-size: 0.85rem; opacity: 0.85; }
+.badge-ambassadeur-mini { font-size: 0.75rem; opacity: 0.7; }

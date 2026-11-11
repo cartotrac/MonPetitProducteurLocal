@@ -10,7 +10,9 @@ catalogue) des membres limités à la gestion courante.
 from django.conf import settings
 from django.utils import timezone
 
-from .models import (Visiteur, espace_actif, espaces_pro,
+from django.contrib.auth.models import User
+
+from .models import (Exploitant, Visiteur, espace_actif, espaces_pro,
                      exploitant_actif, exploitant_pour, nom_affiche)
 
 
@@ -85,6 +87,47 @@ def instance_contexte(request):
             salutation["activite"] = actif.get_activite_display()
             salutation["specialite"] = (actif.get_specialite_display()
                                         if actif.specialite else "")
+        # Badge Ambassadeur : les 10 premiers espaces pro réels de
+        # chaque activité (🏆 grand format pour les 3 premiers, 🏅
+        # ensuite) ; pour les clients inscrits, les 100 premiers
+        # numérotés ⭐ puis des icônes plus discrètes par palier
+        # (✨ 500, 🌟 1000). Comptes et espaces de DÉMONSTRATION
+        # exclus du décompte (préfixe « demo. » ou espace démo).
+        ambassadeur = None
+        try:
+            espace = (actif if actif is not None
+                      else exploitant_pour(request.user))
+            if espace is not None and not espace.est_demo:
+                rang = Exploitant.objects.filter(
+                    activite=espace.activite, est_demo=False,
+                    id__lte=espace.id).count()
+                if rang <= 3:
+                    ambassadeur = {"icone": "🏆", "rang": rang,
+                                  "format": "grand"}
+                elif rang <= 10:
+                    ambassadeur = {"icone": "🏅", "rang": rang,
+                                  "format": "normal"}
+            elif (espace is None
+                  and not request.user.username.startswith("demo.")
+                  and not Exploitant.objects.filter(
+                      user=request.user, est_demo=True).exists()):
+                rang = (User.objects
+                        .exclude(username__startswith="demo.")
+                        .exclude(exploitant__est_demo=True)
+                        .filter(date_joined__lt=request.user.date_joined)
+                        .count() + 1)
+                if rang <= 100:
+                    ambassadeur = {"icone": "⭐", "rang": rang,
+                                  "format": "normal"}
+                elif rang <= 500:
+                    ambassadeur = {"icone": "✨", "rang": 0,
+                                  "format": "petit"}
+                elif rang <= 1000:
+                    ambassadeur = {"icone": "🌟", "rang": 0,
+                                  "format": "mini"}
+        except Exception:
+            ambassadeur = None
+        salutation["ambassadeur"] = ambassadeur
     # Fenêtre « Donner mon avis » : disponible sur toutes les
     # pages, pré-remplie au maximum d'après la session — profil réel
     # du compte (visiteur, Localien, gérant ou compte rattaché d'un
