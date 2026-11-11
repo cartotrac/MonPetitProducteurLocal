@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Produits — {{ exploitant.nom_ferme }}{% endblock %}
+{% block title %}Catalogue — MonPetitProducteurLocal{% endblock %}
 {% block content %}
-<h1>🥕 Produits</h1>
+<h1>📚 Catalogue</h1>
 <p class="muted">Édition complète du catalogue : libellé, unité, prix,
    ordre, catégories, ajout et retrait — en place ou en lot. Le
    <a href="{% url 'portal:dashboard' %}#produits">dashboard</a> ne garde
    que les catégories et le déplacement des produits.</p>
 <p class="retour-edition">
-    <a class="btn btn-outline btn-sm" href="{% url 'portal:product_create' %}">➕ Produit détaillé (photo)</a>
+    <a class="btn btn-outline btn-sm" href="{% url 'portal:product_create' %}">➕ {{ exploitant.vocab.article|capfirst }} détaillé (photo)</a>
     <a class="btn btn-outline btn-sm" href="{% url 'portal:catalogue_standard' %}">📚 Importer des produits types</a>
 </p>
 

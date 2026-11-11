@@ -50,7 +50,7 @@
   {% if est_proprietaire %}
     <a class="btn btn-outline" href="{% url 'portal:catalogue_standard' %}">📚 Importer des produits types</a>
   {% endif %}
-  <a class="btn btn-outline" href="{% url 'portal:product_list' %}">🥕 Produits</a>
+  <a class="btn btn-outline" href="{% url 'portal:product_list' %}">📚 Catalogue</a>
   <a class="btn btn-outline" href="{% url 'portal:mes_producteurs' %}">⭐ Mes favoris</a>
   <a class="btn btn-outline" href="{% url 'portal:clients_suivi' %}">👤 Mes clients</a>
   <a class="btn btn-outline" href="{% url 'portal:points_manage' %}">📍 Points & créneaux</a>
@@ -74,20 +74,20 @@
 </details>
 
 <details id="paniers" class="bloc-replie" open>
-  <summary><h2>🧺 Paniers en cours <span class="muted aide-replier">(cliquez pour replier/déplier)</span></h2></summary>
+  <summary><h2>🧺 {{ exploitant.vocab.paniers_titre }} en cours <span class="muted aide-replier">(cliquez pour replier/déplier)</span></h2></summary>
   <p>{% if paniers_en_cours %}<span class="badge badge-PREPARATION">en cours</span>{% endif %}
-     {{ paniers_en_cours }} panier{{ paniers_en_cours|pluralize }} en préparation ou à livrer —
+     {{ paniers_en_cours }} {{ exploitant.vocab.panier }}{{ paniers_en_cours|pluralize }} en préparation ou à livrer —
      <a href="{% url 'portal:ventes' %}">gérer les ventes</a></p>
 </details>
 
 <details id="produits" class="bloc-replie" open>
-  <summary class="summary-avec-actions"><h2>🥕 Mes produits <span class="muted aide-replier">({{ nb_produits }})</span></h2>
+  <summary class="summary-avec-actions"><h2>📚 Catalogue <span class="muted aide-replier">({{ nb_produits }})</span></h2>
     <a class="btn btn-outline btn-sm" href="{% url 'portal:product_list' %}" title="Libellés, prix, unités, ajout de produits">✏️ Activer l'édition</a>
   </summary>
   {% if not paires %}
     <p class="muted">Aucun produit pour l'instant — créez vos catégories
        ci-dessous puis <a href="{% url 'portal:product_list' %}">ajoutez vos
-       produits</a> (ou <a href="{% url 'portal:catalogue_standard' %}">importez
+       {{ exploitant.vocab.articles }}</a> (ou <a href="{% url 'portal:catalogue_standard' %}">importez
        le catalogue de produits types</a>).</p>
   {% endif %}
   <form method="post" action="{% url 'portal:product_quick_edit' %}" id="form-produits">
@@ -144,8 +144,8 @@
        (ou choisissez-la dans la liste puis ⇄).
        L'édition complète des produits (libellé, unité, prix, ordre, ajout,
        retrait en lot) se fait sur la page
-       <a href="{% url 'portal:product_list' %}">Produits</a> du menu
-       « Gestion ».</p>
+       <a href="{% url 'portal:product_list' %}">Catalogue</a> du menu
+       « Publications ».</p>
 </details>
 
 
@@ -177,14 +177,14 @@
 </details>
 
 <details id="points" class="bloc-replie" open>
-  <summary><h2>📍 Points de livraison &amp; créneaux <span class="muted aide-replier">(cliquez pour replier/déplier)</span></h2></summary>
+  <summary><h2>📍 {{ exploitant.vocab.points }} &amp; {{ exploitant.vocab.creneaux }} <span class="muted aide-replier">(cliquez pour replier/déplier)</span></h2></summary>
   {% if points %}
-    <p>{{ points|length }} point{{ points|length|pluralize }} de livraison —
+    <p>{{ points|length }} {{ exploitant.vocab.points_min }} —
        <a href="{% url 'portal:points_manage' %}">gérer les points et créneaux</a></p>
   {% else %}
     <p class="etat-vide"><span class="etat-vide-emoji">📍</span>
-       Aucun point de livraison : créez-en un (marché, exploitation, dépôt) pour
-       que les clients choisissent où récupérer leurs paniers.
+       Aucun {{ exploitant.vocab.point }} : créez-en un (marché, exploitation, dépôt) pour
+       que les clients choisissent où récupérer leurs {{ exploitant.vocab.paniers_min }}.
        <a class="btn" href="{% url 'portal:points_manage' %}">➕ En ajouter</a></p>
   {% endif %}
 </details>

@@ -247,6 +247,9 @@ class Exploitant(models.Model):
                 "recoltes_emoji": "📜",
                 "nouvelle_recolte": "➕ Nouvelle carte",
                 "recolte_hebdo": "carte de la semaine",
+                "article": "plat", "articles": "plats",
+                "panier": "commande", "paniers_titre": "Commandes",
+                "paniers_min": "commandes",
             }
         elif self.activite in (self.Activite.MARAICHER,
                                self.Activite.ARBORICULTEUR):
@@ -256,6 +259,9 @@ class Exploitant(models.Model):
                 "recoltes_emoji": "🧺",
                 "nouvelle_recolte": "➕ Nouvelle récolte",
                 "recolte_hebdo": "récolte de la semaine",
+                "article": "produit", "articles": "produits",
+                "panier": "panier", "paniers_titre": "Paniers",
+                "paniers_min": "paniers",
             }
         else:
             publication = {
@@ -264,6 +270,9 @@ class Exploitant(models.Model):
                 "recoltes_emoji": "🛍️",
                 "nouvelle_recolte": "➕ Nouvelle boutique",
                 "recolte_hebdo": "boutique de la semaine",
+                "article": "article", "articles": "articles",
+                "panier": "panier", "paniers_titre": "Paniers",
+                "paniers_min": "paniers",
             }
         if self.en_mode_boutique:
             lieux = {
@@ -271,6 +280,7 @@ class Exploitant(models.Model):
                 "point_livraison": "Point de vente / retrait",
                 "creneau": "horaire d'ouverture",
                 "creneaux": "horaires d'ouverture",
+                "points_min": "points de vente",
             }
         else:
             lieux = {
@@ -279,6 +289,7 @@ class Exploitant(models.Model):
                 "point_livraison": "Point de livraison / retrait",
                 "creneau": "créneau de livraison",
                 "creneaux": "créneaux de livraison",
+                "points_min": "points de livraison",
             }
         return {**publication, **lieux}
 

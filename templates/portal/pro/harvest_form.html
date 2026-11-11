@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load l10n %}
-{% block title %}Récolte {% if semaine %}du {{ semaine.lundi|date:"d/m/Y" }}{% else %}nouvelle{% endif %} — MonPetitProducteurLocal{% endblock %}
+{% block title %}{{ exploitant_courant.vocab.recolte|capfirst }} {% if semaine %}du {{ semaine.lundi|date:"d/m/Y" }}{% else %}nouvelle{% endif %} — MonPetitProducteurLocal{% endblock %}
 {% block content %}
-<h1>🧺 {% if semaine %}Récolte du {{ semaine.lundi|date:"d/m/Y" }}{% else %}Nouvelle récolte{% endif %}</h1>
+<h1>{{ exploitant_courant.vocab.recoltes_emoji }} {% if semaine %}{{ exploitant_courant.vocab.recolte|capfirst }} du {{ semaine.lundi|date:"d/m/Y" }}{% else %}Nouvelle {{ exploitant_courant.vocab.recolte }}{% endif %}</h1>
 <p>Renseignez la <strong>quantité estimée</strong> et le prix pour chaque produit
    disponible. Ces quantités sont des <strong>estimations</strong> : elles ne
    bloquent ni ne décomptent aucune commande. Laissez vide un produit non
@@ -62,12 +62,12 @@
       </table>
     </section>
   {% empty %}
-    <p class="muted">Ajoutez d'abord des produits à votre catalogue
+    <p class="muted">Ajoutez d'abord des {{ exploitant_courant.vocab.articles }} à votre catalogue
       (par exemple via « Importer des produits types »).</p>
   {% endfor %}
 
   <div class="save-bar">
-    <button class="btn btn-lg" type="submit">💾 Enregistrer la récolte</button>
+    <button class="btn btn-lg" type="submit">💾 Enregistrer la {{ exploitant_courant.vocab.recolte }}</button>
     <a class="btn btn-outline" href="{% url 'portal:harvest_list' %}">Annuler</a>
   </div>
 </form>

@@ -16,7 +16,7 @@
   {% if courante %}
     <div class="card harvest-item{% if not courante.publiee %} is-hidden{% endif %}">
       <div class="harvest-item-head">
-        <strong>Récolte du {{ courante.lundi|date:"d/m/Y" }}</strong>
+        <strong>{{ exploitant.vocab.recolte|capfirst }} du {{ courante.lundi|date:"d/m/Y" }}</strong>
         <span class="badge {{ courante.publiee|yesno:'badge-ok,badge-off' }}">
           {{ courante.publiee|yesno:'Publiée ✅,Non publiée ⏸' }}</span>
         <span class="muted">{{ courante.nb_lignes }} produit{{ courante.nb_lignes|pluralize }}</span>
@@ -31,14 +31,14 @@
       </div>
     </div>
   {% else %}
-    <p class="muted">Aucune récolte pour la semaine en cours.
+    <p class="muted">Aucune {{ exploitant.vocab.recolte }} pour la semaine en cours.
       <a href="{% url 'portal:harvest_new' %}">En créer une</a> — les valeurs
       de la semaine précédente seront reprises automatiquement.</p>
   {% endif %}
 </section>
 
 <section class="harvest-bloc">
-  <h2>⏭️ Récoltes à venir</h2>
+  <h2>⏭️ {{ exploitant.vocab.recoltes|capfirst }} à venir</h2>
   {% for s in a_venir %}
     <div class="card harvest-item
 {% if not s.publiee %} is-hidden{% endif %}">
@@ -56,7 +56,7 @@
           <input type="hidden" name="action" value="{{ s.publiee|yesno:'depublier,publier' }}">
           <button class="btn btn-sm btn-outline" type="submit">{{ s.publiee|yesno:'Masquer,Publier' }}</button>
         </form>
-        <form method="post" class="inline" onsubmit="return confirm('Supprimer la récolte du {{ s.lundi|date:'d/m/Y' }} ?');">{% csrf_token %}
+        <form method="post" class="inline" onsubmit="return confirm('Supprimer la {{ exploitant.vocab.recolte }} du {{ s.lundi|date:'d/m/Y' }} ?');">{% csrf_token %}
           <input type="hidden" name="pk" value="{{ s.pk }}">
           <input type="hidden" name="action" value="supprimer">
           <button class="btn btn-sm btn-danger" type="submit">🗑 Supprimer</button>
@@ -64,13 +64,13 @@
       </div>
     </div>
   {% empty %}
-    <p class="muted">Aucune récolte planifiée. Anticipez en créant les
+    <p class="muted">Aucune {{ exploitant.vocab.recolte }} planifiée. Anticipez en créant les
       semaines à venir : elles s'afficheront au bon moment sur la vitrine.</p>
   {% endfor %}
 </section>
 
 <section class="harvest-bloc">
-  <h2>📁 Récoltes passées</h2>
+  <h2>📁 {{ exploitant.vocab.recoltes|capfirst }} passées</h2>
   {% for s in passees %}
     <div class="card harvest-item past">
       <div class="harvest-item-head">
@@ -80,7 +80,7 @@
       <div class="harvest-actions">
         <a class="btn btn-sm btn-outline" href="{% url 'portal:harvest_manage' s.pk %}">✏️ Modifier</a>
         <form method="post" class="inline" onsubmit="return
- confirm('Supprimer la récolte du {{ s.lundi|date:'d/m/Y' }} ?');">{% csrf_token %}
+ confirm('Supprimer la {{ exploitant.vocab.recolte }} du {{ s.lundi|date:'d/m/Y' }} ?');">{% csrf_token %}
           <input type="hidden" name="pk" value="{{ s.pk }}">
           <input type="hidden" name="action" value="supprimer">
           <button class="btn btn-sm btn-danger" type="submit">🗑</button>
@@ -88,7 +88,7 @@
       </div>
     </div>
   {% empty %}
-    <p class="muted">Aucune récolte passée.</p>
+    <p class="muted">Aucune {{ exploitant.vocab.recolte }} passée.</p>
   {% endfor %}
 </section>
 {% endblock %}

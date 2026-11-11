@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load unites %}
-{% block title %}Saisir une commande — MonPetitMaraicher{% endblock %}
+{% block title %}Saisir une commande — MonPetitProducteurLocal{% endblock %}
 {% block content %}
 <h1>📝 Saisir une commande</h1>
 <p class="muted">Commande passée hors portail (téléphone, marché…) : elle est
@@ -34,7 +34,7 @@
     <div class="form-row">
       <label>Date de livraison
         <input type="date" name="date_livraison" value="{{ date_defaut }}" required></label>
-      <label>Point de livraison
+      <label>{{ exploitant_courant.vocab.point_livraison }}
         {% if points %}
           <span class="muted">(requis — le panier est numéroté par jour et par point)</span>
           <select name="point_livraison" required>
@@ -64,7 +64,7 @@
       <input type="text" name="note" placeholder="Précisions du client"></label>
   </div>
 
-  <h2>Produits commandés</h2>
+  <h2>{{ exploitant_courant.vocab.articles|capfirst }} commandés</h2>
   {% if mode == 'recolte' and semaine %}
     <p class="muted">Quantités estimées de la {{ exploitant.vocab.recolte }}
        de la semaine du {{ semaine.lundi|date:"d/m/Y" }} : la colonne

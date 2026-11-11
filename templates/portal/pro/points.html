@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Points de livraison — MonPetitProducteurLocal{% endblock %}
+{% block title %}{{ exploitant.vocab.points }} — MonPetitProducteurLocal{% endblock %}
 {% block extra_style %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">{% endblock %}
 {% block content %}
 <h1>📍 {{ exploitant.vocab.points }} &amp; {{ exploitant.vocab.creneaux }}</h1>
 <p class="muted">Vos lieux de mise en relation avec la clientèle :
-   <strong>📍 points de livraison</strong> (paniers),
+   <strong>📍 {{ exploitant.vocab.points_min }}</strong> ({{ exploitant.vocab.paniers_min }}),
    <strong>🏪 boutiques / points de vente</strong> et
    <strong>🎪 marchés</strong> — tout producteur peut déclarer des
    créneaux récurrents sur un marché (stand hebdomadaire, une semaine

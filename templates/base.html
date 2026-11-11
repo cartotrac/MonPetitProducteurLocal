@@ -49,9 +49,8 @@
         {% if mode_pro %}
           <a href="{% url 'portal:dashboard' %}" class="{% if request.path == '/espace-pro/' %}nav-actif{% endif %}">Dashboard</a>
           <div class="nav-gestion">
-            <a class="nav-gestion-titre{% if '/espace-produits' in request.path or '/clients' in request.path or '/espace-ventes' in request.path or '/espace-commandes' in request.path or '/espace-paniers' in request.path or '/points-livraison' in request.path or '/mes-producteurs' in request.path %} nav-actif{% endif %}" href="{% url 'portal:product_list' %}">Gestion ▾</a>
+            <a class="nav-gestion-titre{% if '/clients' in request.path or '/espace-ventes' in request.path or '/espace-commandes' in request.path or '/espace-paniers' in request.path or '/points-livraison' in request.path or '/mes-producteurs' in request.path %} nav-actif{% endif %}" href="{% url 'portal:ventes' %}">Gestion ▾</a>
             <div class="nav-gestion-menu">
-              <a href="{% url 'portal:product_list' %}">🥕 Produits</a>
               <a href="{% url 'portal:clients_suivi' %}">👤 Mes clients</a>
               <a href="{% url 'portal:ventes' %}">🧾 Ventes</a>
               <a href="{% url 'portal:points_manage' %}">📍 Modalités</a>
@@ -62,8 +61,9 @@
             </div>
           </div>
           <div class="nav-gestion">
-            <a class="nav-gestion-titre{% if '/espace-recolte' in request.path or '/publications/' in request.path %} nav-actif{% endif %}" href="{% url 'portal:harvest_list' %}">Publications ▾</a>
+            <a class="nav-gestion-titre{% if '/espace-produits' in request.path or '/espace-recolte' in request.path or '/publications/' in request.path %} nav-actif{% endif %}" href="{% url 'portal:harvest_list' %}">Publications ▾</a>
             <div class="nav-gestion-menu">
+              {% if est_proprietaire or user.is_superuser %}<a href="{% url 'portal:product_list' %}">📚 Catalogue</a>{% endif %}
               <a href="{% url 'portal:harvest_list' %}">{% if exploitant_courant %}{{ exploitant_courant.vocab.recoltes_emoji }} {{ exploitant_courant.vocab.recoltes|capfirst }}{% else %}🧺 Récoltes{% endif %}</a>
               <a href="{% url 'portal:pub_rubrique' 'newsletter' %}">✉️ Newsletter</a>
               <a href="{% url 'portal:pub_rubrique' 'annonces' %}">📌 Annonces</a>
