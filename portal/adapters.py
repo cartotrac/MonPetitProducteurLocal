@@ -30,10 +30,20 @@ class PortailSocialAdapter(DefaultSocialAccountAdapter):
         """Avant la connexion Google : rattacher et connecter
         directement si UN compte local VÉRIFIÉ porte le même e-mail.
         Comptes locaux non vérifiés : jamais rattachés — message et
-        retour au formulaire de connexion (mot de passe)."""
+        retour au formulaire de connexion (mot de passe).
+
+        Le contrôle tourne AUSSI pour un visiteur déjà connecté qui
+        clique « Continuer avec Google » : sans lui, allauth créait
+        un SECOND compte portant le même e-mail (l'e-mail local non
+        vérifié n'arrête pas l'auto-signup), et la connexion par
+        e-mail/identifiant devenait ambiguë — « mot de passe erroné »
+        trompeur sur le mauvais compte."""
         if sociallogin.is_existing:
             return
-        if request.user.is_authenticated:
+        # Rattachement explicite (« connecter Google à MON compte ») :
+        # allauth s'en charge seul — pas d'interférence.
+        process = (sociallogin.state or {}).get("process")
+        if request.user.is_authenticated and process == "connect":
             return
         email = (sociallogin.user.email or "").strip()
         if not email:
