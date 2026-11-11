@@ -389,6 +389,16 @@ class ConnexionForm(AuthenticationForm):
                 email__iexact=username).first()
             if autre:
                 return autre.username
+        # L'identifiant saisi (ou l'e-mail résolu) peut désigner un
+        # compte créé via Google : sans mot de passe maison, l'erreur
+        # générique « identifiant ou mot de passe incorrect » induit
+        # en erreur — message explicite vers le bouton Google.
+        resolu = User.objects.filter(
+            username__iexact=username).first()
+        if resolu is not None and not resolu.has_usable_password():
+            raise forms.ValidationError(
+                "Ce compte se connecte uniquement via Google : "
+                "utilisez le bouton « Continuer avec Google ».")
         return username
 
 
