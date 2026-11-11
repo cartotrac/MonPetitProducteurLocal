@@ -2,13 +2,18 @@
 {% block title %}Catalogue — MonPetitProducteurLocal{% endblock %}
 {% block content %}
 <h1>📚 Catalogue</h1>
-<p class="muted">Édition complète du catalogue : libellé, unité, prix,
-   ordre, catégories, ajout et retrait — en place ou en lot. Le
-   <a href="{% url 'portal:dashboard' %}#produits">dashboard</a> ne garde
-   que les catégories et le déplacement des produits.</p>
+<p class="muted">Vos articles de référence : libellé, unité, prix, descriptif,
+   illustration, ordre et catégories — en place ou en lot. Ce catalogue
+   alimente vos publications : {{ exploitant.vocab.recoltes|lower|default:"récoltes" }} ou cartes
+   saisonnières, puis boutique ou carte fixe. Les produits
+   <strong>📦 importés</strong> viennent des listes de produits types par
+   métier (le badge rappelle la liste d'origine) ; les produits
+   <strong>✍️ perso</strong> sont vos créations. Les catégories créées
+   à l'import restent personnalisables.</p>
 <p class="retour-edition">
-    <a class="btn btn-outline btn-sm" href="{% url 'portal:product_create' %}">➕ {{ exploitant.vocab.article|capfirst }} détaillé (photo)</a>
+    <a class="btn btn-outline btn-sm" href="{% url 'portal:product_create' %}">➕ {{ exploitant.vocab.article|capfirst|default:"Article" }} détaillé (photo)</a>
     <a class="btn btn-outline btn-sm" href="{% url 'portal:catalogue_standard' %}">📚 Importer des produits types</a>
+    <a class="btn btn-outline btn-sm" href="{% url 'portal:categories_manage' %}">🏷 Gérer les catégories</a>
 </p>
 
 {% if not paires %}
@@ -36,12 +41,12 @@
           {% endif %}
         </h3>
         <table class="table table-produits">
-          <thead><tr><th>Produit</th><th>Unité</th><th>Prix (€)</th><th>Catégorie</th><th>Ordre</th><th>Retirer</th></tr></thead>
+          <thead><tr><th>Article</th><th>Unité</th><th>Prix (€)</th><th>Descriptif</th><th>Catégorie</th><th>Ordre</th><th>Retirer</th></tr></thead>
           <tbody>
             {% for produit in liste %}
               <tr>
                 <td>
-                  <span class="view">{% if produit.emoji %}{{ produit.emoji }} {% endif %}{{ produit.nom }}</span>
+                  <span class="view">{% if produit.origine_standard %}<span class="origine-produit importe" title="Importé depuis la liste des produits types : {{ produit.origine_standard.get_activite_display }}">📦 importé · {{ produit.origine_standard.get_activite_display|lower }}</span>{% else %}<span class="origine-produit perso" title="Article créé par vous">✍️ perso</span>{% endif %}{% if produit.illustration %}<img class="vignette-produit" src="{{ produit.illustration.url }}" alt="Illustration de {{ produit.nom }}">{% endif %}{% if produit.emoji %}{{ produit.emoji }} {% endif %}{{ produit.nom }}</span>
                   {% if produit.emoji %}<span class="edit">{{ produit.emoji }} </span>{% endif %}
                   <input class="edit" type="text" name="nom_{{ produit.pk }}" value="{{ produit.nom }}" maxlength="150">
                 </td>
@@ -58,6 +63,10 @@
                   <input class="edit" type="text" name="prix_{{ produit.pk }}" value="{% if produit.prix %}{{ produit.prix }}{% endif %}" size="7" inputmode="decimal">
                 </td>
                 <td>
+                  <span class="view">{% if produit.description %}{{ produit.description|truncatechars:60 }}{% else %}<span class="muted">—</span>{% endif %}</span>
+                  <textarea class="edit" name="desc_{{ produit.pk }}" rows="2" cols="26" maxlength="500" placeholder="Descriptif court pour la vitrine">{{ produit.description }}</textarea>
+                </td>
+                <td>
                   <select name="categorie_cible_{{ produit.pk }}">
                     <option value="" {% if produit.categorie is None %}selected{% endif %}>— sans catégorie —</option>
                     {% for c in categories %}
@@ -71,6 +80,7 @@
                   <button type="submit" name="mouvement" value="produit:{{ produit.pk }}:bas" class="btn btn-sm" title="Vers le bas">▼</button>
                 </td>
                 <td>
+                  <a class="btn btn-sm btn-outline" href="{% url 'portal:product_edit' produit.pk %}" title="Édition détaillée : illustration, descriptif complet">📝</a>
                   <input type="checkbox" name="supprimer" value="{{ produit.pk }}" title="Cocher pour retirer du catalogue">
                   <button type="submit" name="action" value="produit_retirer:{{ produit.pk }}"
                           onclick="if(!confirm('Retirer « {{ produit.nom }} » du catalogue ? Les commandes passées sont conservées.'))event.preventDefault();"
@@ -82,7 +92,7 @@
         </table>
       {% endfor %}
       <div class="card">
-        <h3>➕ Ajouter un produit</h3>
+        <h3>➕ Ajouter un produit (perso)</h3>
         <div class="form-row">
           <label>Nom <input type="text" name="nouveau_nom" placeholder="Ex : Radis rose"></label>
           <label>Unité
@@ -110,7 +120,7 @@
         <button type="submit" name="action" value="produits_retirer"
                 onclick="if(!confirm('Retirer du catalogue les produits cochés ? Les commandes passées sont conservées.'))event.preventDefault();"
                 class="btn btn-outline btn-sm">🗑 Retirer les produits cochés</button>
-        <span class="muted">Modifiez libellé, unité ou prix, reclassez avec ▲▼/⇄, renommez ou supprimez les catégories (✏️/🗑), cochez les produits à retirer, puis enregistrez. Prix vide = prix effacé.</span>
+        <span class="muted">Modifiez libellé, unité, prix ou descriptif, reclassez avec ▲▼/⇄, renommez ou supprimez les catégories (✏️/🗑), cochez les produits à retirer, puis enregistrez. Prix ou descriptif vide = effacé. 📝 ouvre l'édition détaillée (illustration, photo).</span>
       </p>
     </div>
   </form>

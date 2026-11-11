@@ -1453,6 +1453,7 @@ def produit_creer(request):
         if form.is_valid():
             produit = form.save(commit=False)
             produit.exploitant = exploitant
+            produit.perso = True
             produit.emoji = produit.emoji or emoji_pour_nom(produit.nom)
             _enregistrer_image_externe(produit,
                                         request.POST.get("image_externe", ""))
@@ -1492,8 +1493,9 @@ def produit_modifier(request, pk):
 
 @login_required
 @exploitant_requis
+@proprietaire_requis
 def produit_edition_rapide(request):
-    """Mode édition du dashboard « Mes produits » : libellé, unité et prix
+    """Page Catalogue : libellé, unité, prix et descriptif
     modifiés en place, ET ergonomie complète — ajout de produit, ajout
     de catégorie, reclassement des produits (▲▼, changement de
     catégorie) et des catégories, sans quitter la page."""
@@ -1716,7 +1718,7 @@ def produit_edition_rapide(request):
                 produit = Produit.objects.create(
                     exploitant=exploitant, nom=nom[:150], categorie=categorie,
                     unite_vente=unite, prix=prix, position=position,
-                    emoji=emoji_pour_nom(nom[:150]))
+                    perso=True, emoji=emoji_pour_nom(nom[:150]))
                 messages.success(request, f"Produit « {produit.nom} » "
                                  "ajouté.")
             return redirect(destination)
@@ -1729,6 +1731,9 @@ def produit_edition_rapide(request):
             nom = request.POST.get(f"nom_{produit.pk}", "").strip()
             unite = request.POST.get(f"unite_{produit.pk}", "").strip()
             brut_prix = request.POST.get(f"prix_{produit.pk}", "").strip()
+            brut_desc = request.POST.get(f"desc_{produit.pk}", None)
+            desc_cible = (produit.description if brut_desc is None
+                          else brut_desc.strip())
             if not nom:
                 erreurs.append(f"« {produit.nom} » : nom vide, non modifié.")
                 continue
@@ -1743,10 +1748,12 @@ def produit_edition_rapide(request):
                     erreurs.append(f"« {nom} » : prix invalide, non modifié.")
                     continue
             if (nom != produit.nom or unite != produit.unite_vente
-                    or prix_cible != produit.prix):
+                    or prix_cible != produit.prix
+                    or desc_cible != produit.description):
                 produit.nom = nom[:150]
                 produit.unite_vente = unite
                 produit.prix = prix_cible
+                produit.description = desc_cible
                 produit.save()
                 modifies += 1
         if erreurs:

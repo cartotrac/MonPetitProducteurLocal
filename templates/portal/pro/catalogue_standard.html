@@ -48,11 +48,11 @@
   {% empty %}
     <p class="muted">Aucun produit type pour cette activité pour
        l'instant : créez vos produits directement depuis le mode édition
-       du dashboard « Mes produits ».</p>
+       votre page Catalogue.</p>
   {% endfor %}
   {% if paires %}
     <button class="btn" type="submit">📥 Copier la sélection</button>
   {% endif %}
 </form>
-<p><a href="{% url 'portal:dashboard' %}">← Retour à l'espace pro</a></p>
+<p><a class="btn btn-outline btn-sm" href="{% url 'portal:product_list' %}">📚 Retour au catalogue</a> <a href="{% url 'portal:dashboard' %}">← Retour à l'espace pro</a></p>
 {% endblock %}

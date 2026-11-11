@@ -2082,3 +2082,12 @@ html.dark .timeline-periode.cal-avenir { border-color: #f5c518; }
 .zone-edition-pub { margin-top: 0.8rem; padding: 0.8rem; }
 .zone-edition-pub h3 { display: flex; gap: 0.6rem; align-items: center;
                        flex-wrap: wrap; margin-top: 0; }
+
+/* Lot 3 — Catalogue : origine des produits & vignettes */
+.origine-produit{display:inline-block;font-size:.72rem;line-height:1.3;padding:.05rem .45rem;border-radius:999px;border:1px solid #ccc;vertical-align:middle;margin-right:.25rem;white-space:nowrap}
+.origine-produit.importe{background:#e8ecfb}
+.origine-produit.perso{background:#e7f5e3}
+.vignette-produit{width:30px;height:30px;object-fit:cover;border-radius:6px;vertical-align:middle;margin-right:.25rem}
+html.dark .origine-produit{border-color:#4a4f44}
+html.dark .origine-produit.importe{background:#232b45}
+html.dark .origine-produit.perso{background:#1e2f1e}
