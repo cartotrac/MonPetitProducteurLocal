@@ -4,14 +4,21 @@
 <h1>⚖️ Mentions légales</h1>
 
 <section class="harvest-bloc">
-  <h2>Application</h2>
-  <p><strong>Ce portail est une application en cours de développement</strong> :
-     la plateforme est mise en place et améliorée en continu. Cette
-     instance de démonstration vise à constituer la communauté des
-     producteurs locaux et à recueillir leurs retours d'usage, pour
-     construire un outil au plus près des besoins de chaque métier.
-     Les fonctionnalités évoluent régulièrement : merci de votre
-     patience et de vos remarques.</p>
+  <h2>Le portail en deux mots</h2>
+  <p><strong>MonPetitProducteurLocal met en relation les pros locaux —
+     maraîchers, arboriculteurs, éleveurs, fromagers, apiculteurs,
+     micro-brasseurs, conserveries, foodtrucks, traiteurs,
+     restaurants — et leurs clients.</strong> Chaque pro tient sa
+     vitrine (productions, prix, points de livraison, créneaux), reçoit
+     et gère ses commandes, et communique directement avec ses clients
+     par e-mail ou SMS. Chaque client trouve les pros près de chez
+     lui, commande ses paniers et suit ses livraisons.</p>
+  <p>L'application est <strong>en cours de développement</strong> :
+     cette instance de démonstration sert à constituer la communauté
+     et à recueillir les retours d'usage (voir « Vos retours »
+     ci-dessous), pour construire un outil au plus près des besoins de
+     chaque métier. Les fonctionnalités évoluent régulièrement :
+     merci de votre patience — et de vos remarques.</p>
 </section>
 
 <section class="harvest-bloc">
@@ -20,11 +27,8 @@
      {% if instance_admin_url %}<a href="{{ instance_admin_url }}" target="_blank" rel="noopener"><strong>{{ instance_admin_nom|default:"l'admin de l'instance" }}</strong></a>
      {% if instance_admin_logo %}<img class="footer-admin-logo" src="{{ instance_admin_logo }}" alt="Logo {{ instance_admin_nom }}">{% endif %}
      {% else %}<strong>{{ instance_admin_nom|default:"l'admin de l'instance" }}</strong>{% endif %},
-     responsable de son contenu et de l'animation des producteurs et
-     clients qui y sont référencés.</p>
-  <p>Les informations publiées sur les vitrines (productions, prix,
-     disponibilités, points de livraison) relèvent de la responsabilité
-     de chaque producteur.</p>
+     responsable de son contenu et de l'animation des pros et clients
+     qui y sont référencés.</p>
 </section>
 
 <section class="harvest-bloc">
@@ -36,43 +40,105 @@
 </section>
 
 <section class="harvest-bloc">
-  <h2>🔒 Conformité RGPD</h2>
-  <p>Le portail applique les principes du Règlement (UE) 2016/679
-     (RGPD) : <strong>minimisation</strong> — seuls les éléments
-     strictement nécessaires à la mise en relation producteur / client
-     sont enregistrés (identité, coordonnées de contact, historique des
-     commandes pour les comptes ; identité de contact saisie au moment
-     de la commande pour les commandes sans compte) ;
-     <strong>finalité déterminée</strong> — ces données servent
-     exclusivement à traiter les commandes et la communication
-     producteur ↔ client (confirmations, annonces de paniers prêts) ;
-     <strong>pas de cession à des tiers</strong> ni de revente, pas de
-     profilage ni de publicité.</p>
-  <p>Les photos et visuels sont hébergés par les producteurs eux-mêmes
+  <h2>Responsabilité des contenus</h2>
+  <p>Les informations publiées sur les vitrines — productions, prix,
+     disponibilités, points et créneaux de livraison — sont saisies
+     par chaque pro : elles relèvent de sa seule responsabilité.
+     L'éditeur veille au bon fonctionnement de la plateforme mais ne
+     garantit pas l'exactitude des informations de chaque vitrine.</p>
+</section>
+
+<section class="harvest-bloc">
+  <h2>🔒 Données personnelles (RGPD)</h2>
+  <p>Le portail applique les principes du Règlement (UE) 2016/679 :
+     <strong>minimisation</strong> — seuls les éléments strictement
+     nécessaires à la mise en relation pro / client sont enregistrés
+     (identité, coordonnées de contact, historique des commandes
+     pour les comptes ; identité de contact saisie au moment de la
+     commande sinon) ; <strong>finalité déterminée</strong> — ces
+     données servent exclusivement à traiter les commandes et la
+     communication pro ↔ client (confirmations, annonces de paniers
+     prêts) ; <strong>ni cession à des tiers, ni revente</strong>, ni
+     profilage, ni publicité.</p>
+  <p>Les photos et visuels sont hébergés par les pros eux-mêmes
      (liens externes) : le portail n'héberge aucun fichier envoyé par
      les clients. Les paramètres de messagerie (SMTP, passerelle SMS)
-     appartiennent à chaque exploitation : l'admin de l'instance n'a
+     appartiennent à chaque espace pro : l'admin de l'instance n'a
      pas accès à ces secrets.</p>
   <p><strong>Vos droits</strong> (accès, rectification, effacement,
      limitation, portabilité, opposition) s'exercent auprès de
-     l'exploitant de l'instance — via la page de contact de votre
-     producteur ou l'adresse de contact de l'admin de l'instance — et auprès
-     de chaque producteur pour les données de commande le concernant.
-     Les commandes non validées puis livrées sont purgées : la durée
-     de conservation se limite à l'activité du service et aux
-     obligations comptables des producteurs.</p>
+     l'admin de l'instance et, pour les données d'une commande, auprès
+     du pro concerné. Les commandes non validées puis livrées sont
+     purgées : la conservation se limite à l'activité du service et
+     aux obligations comptables des pros. Le détail complet figure
+     dans la <a href="{% url 'portal:politique_confidentialite' %}">politique de confidentialité</a>.</p>
+</section>
+
+<section class="harvest-bloc">
+  <h2>📣 Vos retours : bugs, avis et suggestions</h2>
+  <p>Le portail est conçu <strong>avec ses utilisateurs</strong> :
+     chaque retour — bug, maladresse, idée — oriente la feuille de
+     route. Rien n'est trop petit : ce qui vous fait perdre une
+     minute nous intéresse.</p>
+
+  <h3>Deux canaux, selon le sujet</h3>
+  <ul>
+    <li><strong>Sujet « portail »</strong> — bug, ergonomie, création
+        de compte, information manquante : écrivez à l'admin de
+        l'instance,
+        {% if instance_admin_url %}<a href="{{ instance_admin_url }}" target="_blank" rel="noopener"><strong>{{ instance_admin_nom|default:"admin de l'instance" }}</strong></a>{% else %}<strong>{{ instance_admin_nom|default:"l'admin de l'instance" }}</strong>{% endif %}.</li>
+    <li><strong>Sujet « vitrine ou commande »</strong> — prix,
+        horaires, créneaux, contenu d'une fiche : contactez
+        directement le pro via les coordonnées affichées sur sa
+        vitrine.</li>
+  </ul>
+
+  <h3>Signaler un bug</h3>
+  <p>Précisez la page concernée, votre navigateur, les étapes qui
+     reproduisent le problème et le résultat attendu : c'est ce qui
+     nous fait gagner le plus de temps.</p>
+
+  <h3>Votre avis, selon votre profil</h3>
+  <p><strong>Pour tous</strong> — la clarté des objectifs :
+     comprend-on d'un coup d'œil ce que le portail propose et pour
+     qui ?</p>
+  <p><strong>Visiteurs et clients</strong> :</p>
+  <ul>
+    <li>la facilité d'accès aux informations des producteurs locaux —
+        recherche, carte, vitrines ;</li>
+    <li>la facilité de création de compte ;</li>
+    <li>l'ergonomie : commander, suivre une commande, gérer ses
+        favoris.</li>
+  </ul>
+  <p><strong>Gérants d'espaces pro</strong> — dites-nous ce qui
+     coince, pensé pour <em>votre</em> métier :</p>
+  <ul>
+    <li>🥬 <strong>Maraîchers et arboriculteurs</strong> : récoltes
+        hebdo, paniers, estimation des quantités ;</li>
+    <li>🐄 <strong>Éleveurs, fromagers, apiculteurs,
+        micro-brasseurs, conserveries</strong> : vocabulaire et
+        listes de produits dédiés à votre production ;</li>
+    <li>🚚 <strong>Foodtrucks</strong> : carte du jour, créneaux et
+        lieux ;</li>
+    <li>🍽️ <strong>Traiteurs et restaurants</strong> : buffets,
+        cartes, mise en avant de votre cuisine ;</li>
+  </ul>
+  <p>…et pour tous les métiers : l'inscription, la gestion des
+     commandes et des clients, la communication (newsletter, annonces,
+     SMS), la cohérence du vocabulaire avec votre métier,
+     l'ergonomie du dashboard et des paramètres.</p>
 </section>
 
 <section class="harvest-bloc">
   <h2>🌱 Philosophie et gouvernance</h2>
-  <p>Le portail est pensé pour renforcer les circuits courts et
-     l'indépendance des petits producteurs — pas pour les intermédiaire
-     les capter : chaque professionnel reste maître de ses prix, de ses
-     produits et de ses clients, et les données de production et de
-     clientèle appartiennent aux producteurs.</p>
-  <p>La conception est <strong>contributive</strong> : les retours terrain
-     des professionnels alimentent les choix d'évolution, et chaque
-     instance reste sous le contrôle de son admin local.</p>
+  <p>Le portail renforce les circuits courts et l'indépendance des
+     petits pros — il ne vise pas à s'interposer entre eux et leurs
+     clients : chaque professionnel reste maître de ses prix, de ses
+     produits et de sa clientèle, et les données de production et de
+     clientèle lui appartiennent.</p>
+  <p>La conception est <strong>contributive</strong> : les retours
+     terrain des professionnels alimentent les choix d'évolution, et
+     chaque instance reste sous le contrôle de son admin local.</p>
 </section>
 
 <section class="harvest-bloc">
