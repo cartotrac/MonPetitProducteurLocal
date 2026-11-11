@@ -33,7 +33,7 @@
         <form class="inline" method="post" action="{% url 'portal:bascule_espace' %}">
           {% csrf_token %}
           <select name="espace" class="select-espace" title="Changer d'espace pro" aria-label="Changer d'espace pro" onchange="this.form.submit()">
-            {% if not mode_pro %}<option value="" selected>🚜 Mes espaces pro…</option>{% endif %}
+            <option value="client"{% if not mode_pro %} selected{% endif %}>🧺 Espace client</option>
             {% for e in espaces_pro_liste %}
               <option value="{{ e.pk }}"{% if mode_pro and exploitant_courant.pk == e.pk %} selected{% endif %}>{{ e.emoji }} {{ e.nom }}{% if e.role == "MEMBRE" %} · rattaché{% endif %}</option>
             {% endfor %}
@@ -84,7 +84,7 @@
             <a class="nav-gestion-titre{% if '/parametres/' in request.path or '/equipe/' in request.path %} nav-actif{% endif %}" href="{% url 'portal:param_rubrique' 'profil' %}">Paramètres ▾</a>
             <div class="nav-gestion-menu">
               <a href="{% url 'portal:param_rubrique' 'profil' %}">👤 Mon profil</a>
-              <a href="{% url 'portal:param_rubrique' 'espace' %}">{{ exploitant_courant.titre_fiche }}</a>
+              {% if est_proprietaire or user.is_superuser %}<a href="{% url 'portal:param_rubrique' 'espace' %}">{{ exploitant_courant.titre_fiche }}</a>{% endif %}
               {% if est_proprietaire %}<a href="{% url 'portal:equipe_manage' %}">👥 Mon équipe</a>{% endif %}
               {% if est_proprietaire %}<a href="{% url 'portal:param_rubrique' 'messagerie' %}">✉️ Messagerie</a>{% endif %}
             </div>
@@ -228,7 +228,7 @@
           <a href="{% url 'portal:pub_rubrique' 'newsletter' %}">Newsletter</a>
           <a href="{% url 'portal:pub_rubrique' 'annonces' %}">Annonces</a>
           <a href="{% url 'portal:param_rubrique' 'profil' %}">Mon profil</a>
-          <a href="{% url 'portal:param_rubrique' 'espace' %}">{{ exploitant_courant.titre_fiche }}</a>
+          {% if est_proprietaire or user.is_superuser %}<a href="{% url 'portal:param_rubrique' 'espace' %}">{{ exploitant_courant.titre_fiche }}</a>{% endif %}
           {% if est_proprietaire %}<a href="{% url 'portal:equipe_manage' %}">Mon équipe</a>{% endif %}
         {% else %}
           <a href="{% url 'portal:my_orders' %}">Mes commandes</a>

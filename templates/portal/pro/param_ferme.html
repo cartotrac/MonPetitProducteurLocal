@@ -102,16 +102,9 @@
       <div class="form-champ">{{ form_espace.instagram.label_tag }} {{ form_espace.instagram }}
         {{ form_espace.instagram.errors }}</div>
     </div>
-    <div class="form-row">
-      <label for="id_rythme_publication">🗓️ Rythme de publication de la vitrine</label>
-      <select id="id_rythme_publication" name="rythme_publication">
-        <option value="">Automatique (selon mon activité)</option>
-        {% for code, libelle in rythmes %}
-          <option value="{{ code }}"{% if rythme_actuel == code %} selected{% endif %}>{{ libelle }}</option>
-        {% endfor %}
-      </select>
-      <p class="muted">Libellé affiché sur la vitrine (« …de la semaine », « …du mois ») — purement indicatif : publiez aussi souvent que nécessaire, plusieurs {{ exploitant.vocab.recoltes|lower }} par période ne posent aucun problème.</p>
-    </div>
+    <p class="muted">🗓️ La fréquence de publication (hebdomadaire, quinzaine, mensuelle)
+       se règle sur le <a href="{% url 'portal:dashboard' %}#recoltes">dashboard</a> : le libellé
+       de la vitrine (« …de la semaine », « …du mois ») s'adapte tout seul.</p>
     <div class="save-bar">
       <button class="btn btn-lg" type="submit">💾 Enregistrer {{ exploitant.libelle_fiche|lower }}</button>
     </div>

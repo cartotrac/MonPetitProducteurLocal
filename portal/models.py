@@ -386,32 +386,29 @@ class Exploitant(models.Model):
         return self.EQUIPE_LIBELLES.get(self.activite,
                                         "L'équipe de l'espace")
 
-    # Rythme de publication par défaut selon l'activité (utilisé
-    # tant que l'exploitant n'a rien choisi dans Paramètres → Ma
-    # ferme). Purement indicatif : le libellé de l'encart vitrine
-    # s'adapte, le nombre de publications reste libre.
-    RYTHMES_DEFAUT = {
-        "MARAICHER": "SEMAINE", "ARBORICULTEUR": "MOIS",
-        "FOODTRUCK": "SEMAINE", "TRAITEUR": "MOIS",
-        "APICULTEUR": "MOIS", "MICRO_BRASSEUR": "MOIS",
-        "CONSERVERIE": "MOIS", "FROMAGER": "MOIS",
-        "ELEVEUR": "MOIS", "AUTRE": "SEMAINE",
+    # Fréquence de publication par défaut selon l'activité
+    # (sélecteur du dashboard) : le maraîcher publie chaque semaine,
+    # l'arboriculteur ou la fromagerie plutôt chaque mois. Une seule
+    # valeur désormais — l'ancien réglage « rythme de la vitrine »
+    # (page Paramètres) est fusionné dedans.
+    FREQUENCES_DEFAUT = {
+        "MARAICHER": "HEBDO", "ARBORICULTEUR": "MENSUEL",
+        "FOODTRUCK": "HEBDO", "TRAITEUR": "MENSUEL",
+        "APICULTEUR": "MENSUEL", "MICRO_BRASSEUR": "MENSUEL",
+        "CONSERVERIE": "MENSUEL", "FROMAGER": "MENSUEL",
+        "ELEVEUR": "MENSUEL", "AUTRE": "HEBDO",
     }
-    RYTHME_LIBELLES = {"JOUR": "du jour", "SEMAINE": "de la semaine",
-                        "MOIS": "du mois", "SAISON": "de la saison"}
-
-    @property
-    def rythme_publication(self):
-        try:
-            choix = (self.parametres_vitrine.rythme_publication or "")
-        except Exception:
-            choix = ""
-        return choix or self.RYTHMES_DEFAUT.get(self.activite, "SEMAINE")
 
     @property
     def libelle_rythme(self):
-        return self.RYTHME_LIBELLES.get(self.rythme_publication,
-                                        "de la semaine")
+        """Libellé de l'encart vitrine, déduit de la fréquence de
+        publication du dashboard : « …de la semaine », « …de la
+        quinzaine », « …du mois »."""
+        freq = self.frequence_publication or self.FREQUENCES_DEFAUT.get(
+            self.activite, self.FrequencePublication.HEBDO)
+        return {"HEBDO": "de la semaine",
+                "QUINZAINE": "de la quinzaine",
+                "MENSUEL": "du mois"}.get(freq, "de la semaine")
 
     @property
     def titre_semaine(self):
@@ -496,6 +493,13 @@ class Exploitant(models.Model):
         return "Boutiques, marchés & points de livraison"
 
     def save(self, *args, **kwargs):
+        # À la création : fréquence de publication par défaut adaptée
+        # au métier (le formulaire d'inscription ne la propose pas).
+        if (self._state.adding
+                and self.frequence_publication
+                in ("", self.FrequencePublication.HEBDO)):
+            self.frequence_publication = self.FREQUENCES_DEFAUT.get(
+                self.activite, self.FrequencePublication.HEBDO)
         if not self.slug:
             from django.utils.text import slugify
             base = slugify(self.nom_espace) or "exploitant"

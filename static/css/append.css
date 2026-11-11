@@ -2095,8 +2095,9 @@ html.dark .origine-produit.perso{background:#1e2f1e}
 /* ---- Sélecteur d'espaces pro (bandeau, multi-espaces) ---- */
 .select-espace { background: rgba(255, 255, 255, 0.12); color: inherit;
   border: 1px solid transparent; border-radius: 999px;
-  padding: 0.22rem 0.5rem; font: inherit; font-size: 0.85rem;
-  max-width: 12rem; cursor: pointer; vertical-align: middle; }
+  padding: 0.18rem 0.4rem; font: inherit; font-size: 0.8rem;
+  max-width: 9rem; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; cursor: pointer; vertical-align: middle; }
 .select-espace:hover, .select-espace:focus-visible { border-color: currentColor; }
 html.dark .select-espace { background: rgba(255, 255, 255, 0.08);
   color: #e6e4da; }

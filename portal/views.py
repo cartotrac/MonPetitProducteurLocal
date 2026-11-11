@@ -4298,9 +4298,10 @@ def parametres(request):
 @exploitant_requis
 def param_rubrique(request, rubrique):
     """Rubriques indépendantes du menu Paramètres : « Mon profil »
-    (compte individuel), « Mon espace » (vitrine publique) et
-    « Messagerie » (propriétaire seulement — SMTP d'envoi des e-mails
-    et passerelle SMS). Chaque page s'enregistre séparément."""
+    (compte individuel, tout compte rattaché), « Mon espace »
+    (vitrine publique) et « Messagerie » — ces deux dernières
+    réservées au gérant de l'espace et au support (SMTP d'envoi des
+    e-mails, passerelle SMS). Chaque page s'enregistre séparément."""
     if rubrique not in ("profil", "espace", "messagerie"):
         return redirect("portal:param_rubrique", rubrique="profil")
     exploitant = exploitant_actif(request)
@@ -4308,7 +4309,7 @@ def param_rubrique(request, rubrique):
         exploitant=exploitant)
     est_proprietaire = (exploitant.user_id == request.user.id
                        or request.user.is_superuser)
-    if rubrique == "messagerie" and not est_proprietaire:
+    if rubrique in ("espace", "messagerie") and not est_proprietaire:
         return redirect("portal:param_rubrique", rubrique="profil")
     messagerie = vitrine.messagerie or {}
     form_motdepasse = None
@@ -4334,10 +4335,6 @@ def param_rubrique(request, rubrique):
                     else:
                         reseaux.pop(cle, None)
                 vitrine.reseaux = reseaux
-                rythme = request.POST.get("rythme_publication", "")
-                vitrine.rythme_publication = (
-                    rythme if rythme
-                    in ParametresVitrine.Rythme.values else "")
                 vitrine.save()
                 if exploitant.siret and not exploitant.siret_valide:
                     messages.warning(
@@ -4457,8 +4454,6 @@ def param_rubrique(request, rubrique):
             "exploitant": exploitant,
             "form_espace": form_espace,
             "vitrine": vitrine,
-            "rythmes": ParametresVitrine.Rythme.choices,
-            "rythme_actuel": vitrine.rythme_publication,
         })
 
     form_messagerie = MessagerieForm(initial=messagerie)
