@@ -22,6 +22,7 @@
   {% block extrahead %}{% endblock %}
 </head>
 <body data-geojson-url="{% url 'portal:producers_geojson' %}" class="{% if request.GET.apercu %}mode-apercu{% endif %}">
+{% if not request.GET.apercu %}
 <header class="site-header">
   <nav class="nav container">
     <div class="nav-gauche">
@@ -93,13 +94,14 @@
     </div>
   </nav>
 </header>
+{% endif %}
 
 <main class="container">
   {% for message in messages %}
     <div class="flash {{ message.tags }}">{{ message }}</div>
   {% endfor %}
   {% block bandeau_verification %}
-  {% if salutation %}
+  {% if salutation and not request.GET.apercu %}
   <div class="bloc-session {% if courriel_a_verifier %}flash warning bloc-session-alerte{% else %}salutation-chercheur{% endif %}" id="bloc-session">
     <button type="button" class="bloc-session-entete" id="bloc-session-entete" aria-expanded="true">
       {% if salutation.stats %}<span class="stats-item"><span class="badge badge-ab bloc-session-stat" data-stats="clients" role="button" tabindex="0" title="Clients Localien inscrits — cliquez pour l'historique">👥 {{ salutation.stats.clients }} client{{ salutation.stats.clients|pluralize }} inscrit{{ salutation.stats.clients|pluralize }}</span><div class="stats-pop" data-serie="clients">
