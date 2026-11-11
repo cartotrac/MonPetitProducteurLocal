@@ -100,19 +100,20 @@
     </div>
 
     <div id="carte-inscription" data-pick-map data-lat-input="id_latitude"
-         data-lon-input="id_longitude" style="height: 300px; border-radius: 8px; margin: 1rem 0 0.4rem;"></div>
-    <p class="muted">👆 Cliquez sur la carte pour positionner votre
-       exploitation : latitude/longitude sont renseignées, et l'adresse,
-       la ville, le code postal et le département complétés par
-       géocodage inverse (champs encore vides seulement). Vous pouvez
-       aussi :</p>
-    <div class="form-row">
-      <button type="button" class="btn btn-outline btn-sm"
-              data-geocoder data-cp="id_code_postal" data-ville="id_ville"
-              data-carte="carte-inscription"
-              data-libelle="📍 Localiser ma commune">📍 Localiser ma commune</button>
-      <button type="button" class="btn btn-outline btn-sm" id="btn-geoloc-moi">🌍 Me géolocaliser</button>
-    </div>
+         data-lon-input="id_longitude" data-adresse-input="id_adresse"
+         data-ville-input="id_ville" data-cp-input="id_code_postal"
+         data-dept-input="id_departement"
+         style="height: 300px; border-radius: 8px; margin: 1rem 0 0.4rem;"></div>
+    <p class="muted">👆 Positionnez votre exploitation de trois façons :
+       <strong>clic ou déplacement du marqueur</strong> — l'adresse, la
+       ville, le code postal et le département se mettent à jour
+       automatiquement ; <strong>🎯 sur la carte</strong> — géolocalisation
+       navigateur ; <strong>🔎 sur la carte</strong> — recherche d'une
+       commune, adresse, département ou pays avec suggestions (les
+       champs reconnus sont remplis, une région zoome sans bouger le
+       marqueur). Réciproquement, valider une adresse saisie dans les
+       champs ci-dessous repositionne le marqueur et recalcule la
+       position.</p>
 
     <div class="form-champ">{{ form.adresse.label_tag }} {{ form.adresse }}
       {{ form.adresse.errors }}</div>
@@ -167,10 +168,10 @@
    2. Le titre du bloc exploitation suit l'activité : « Ma ferme »,
       « Mon foodtruck », « Ma boutique » (mêmes libellés que la
       rubrique Paramètres des pros connectés).
-   3. Position sur la carte = géocodage inverse : un clic sur la carte
-      (ou le bouton 🌍 Me géolocaliser) renseigne latitude/longitude
-      puis complète adresse, ville, code postal et département si
-      ces champs sont encore vides. */
+   3. Carte : contrôles intégrés délégués à pick-map.js — contrôleur
+      de couches (Plan/Ortho, Régions, Départements), 🎯 géolocalisation,
+      🔎 recherche intelligente et géocodage inverse bidirectionnel
+      (marqueur ↔ champs d'adresse). */
 (function () {
   var TITRES = { "FOODTRUCK": "🚚 Mon foodtruck",
                  "TRAITEUR": "🥗 Ma boutique" };
@@ -218,61 +219,4 @@
     majActivite();
   }
 
-  function renseigner(lat, lon) {
-    var carteEl = document.getElementById("carte-inscription");
-    if (carteEl && carteEl._pickMap) { carteEl._pickMap.appliquer(lat, lon); }
-    fetch("https://nominatim.openstreetmap.org/reverse?format=json"
-          + "&countrycodes=fr&lat=" + lat + "&lon=" + lon)
-      .then(function (r) { return r.json(); })
-      .then(function (res) {
-        var a = (res && res.address) || {};
-        function remplir(id, valeur) {
-          var el = document.getElementById(id);
-          if (el && !(el.value || "").trim() && valeur) { el.value = valeur; }
-        }
-        remplir("id_adresse",
-                [a.house_number, a.road].filter(Boolean).join(" "));
-        remplir("id_ville", a.city || a.town || a.village
-                || a.municipality || "");
-        remplir("id_code_postal", a.postcode || "");
-        remplir("id_departement", (a.postcode || "").slice(0, 2));
-      })
-      .catch(function () { /* géocodage inverse indisponible :
-                              lat/lon sont déjà positionnés */ });
-  }
-
-  /* Clic sur la carte : pick-map.js (defer) s'initialise au
-     DOMContentLoaded avant cet écouteur, _pickMap est donc prêt. */
-  document.addEventListener("DOMContentLoaded", function () {
-    var carteEl = document.getElementById("carte-inscription");
-    if (carteEl && carteEl._pickMap) {
-      carteEl._pickMap.carte.on("click", function (e) {
-        renseigner(e.latlng.lat, e.latlng.lng);
-      });
-    }
-  });
-
-  var btn = document.getElementById("btn-geoloc-moi");
-  if (btn) {
-    btn.addEventListener("click", function () {
-      if (!navigator.geolocation) {
-        alert("Géolocalisation non disponible sur ce navigateur.");
-        return;
-      }
-      btn.disabled = true;
-      btn.textContent = "⏳ Localisation…";
-      navigator.geolocation.getCurrentPosition(function (pos) {
-        btn.disabled = false;
-        btn.textContent = "🌍 Me géolocaliser";
-        renseigner(pos.coords.latitude, pos.coords.longitude);
-      }, function () {
-        btn.disabled = false;
-        btn.textContent = "🌍 Me géolocaliser";
-        alert("Position refusée ou indisponible : cliquez directement "
-              + "sur la carte ou utilisez « Localiser ma commune ».");
-      });
-    });
-  }
 })();
-</script>
-{% endblock %}

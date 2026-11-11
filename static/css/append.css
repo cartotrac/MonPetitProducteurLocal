@@ -2102,3 +2102,39 @@ html.dark .origine-produit.perso{background:#1e2f1e}
 html.dark .select-espace { background: rgba(255, 255, 255, 0.08);
   color: #e6e4da; }
 .select-espace option { color: #2b3a26; background: #fff; }
+
+
+/* ===== Cartes de position (pick-map) : contrôles intégrés comme sur
+   la page Trouver — contrôleur de couches, 🎯 géolocalisation, 🔎 boite
+   de recherche intelligente avec menu déroulant de suggestions. ===== */
+.ctrl-recherche { background: #fff; }
+.recherche-boite { padding: 6px; position: relative; }
+.ctrl-recherche input.recherche-input {
+  width: 250px; max-width: 62vw; box-sizing: border-box;
+  padding: 0.32rem 0.55rem; border: 1px solid #c9d6bd;
+  border-radius: 6px; font: inherit; font-size: 0.88rem;
+}
+.recherche-liste {
+  position: absolute; top: calc(100% + 5px); left: 6px; z-index: 1200;
+  margin: 0; padding: 0.25rem; list-style: none;
+  min-width: 250px; max-width: 340px; max-height: 250px;
+  overflow-y: auto; background: #fff;
+  border: 1px solid #c9d6bd; border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+.recherche-liste li {
+  padding: 0.35rem 0.5rem; border-radius: 6px;
+  font-size: 0.82rem; cursor: pointer;
+}
+.recherche-liste li:hover { background: #e8f1dc; }
+/* Étiquettes des départements sur les cartes de saisie : visibles
+   seulement si la couche est active ET le zoom suffisant (classe
+   labels-dep-on posée par pick-map.js). */
+.leaflet-container:not(.labels-dep-on) .label-dep { display: none; }
+html.dark .ctrl-recherche { background: #26301f; }
+html.dark .ctrl-recherche input.recherche-input {
+  background: #2e3826 !important; color: #e6e4da !important;
+  border-color: #55624a !important;
+}
+html.dark .recherche-liste { background: #1d2617; border-color: #55624a; }
+html.dark .recherche-liste li:hover { background: #33402a; }

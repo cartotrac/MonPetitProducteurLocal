@@ -292,8 +292,9 @@
          (vos points existants y apparaissent avec leur symbole 📍🏪🎪) :</p>
       {{ points_geo|json_script:"points-carte" }}
       <div id="carte-point" data-pick-map data-lat-input="id_latitude"
-           data-lon-input="id_longitude" style="height: 320px; border-radius: 8px;
-"></div>
+           data-lon-input="id_longitude" data-adresse-input="id_adresse"
+           data-ville-input="id_ville" data-cp-input="id_code_postal"
+           style="height: 320px; border-radius: 8px; margin: 1rem 0 0.4rem;"></div>
       <button class="btn" type="submit">Créer le point</button>
     </form>
   </details>
