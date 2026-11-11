@@ -1,17 +1,16 @@
 {% comment %}
 Bloc « Mon profil » partagé (compte client et espace pro) : Prénom et
-Nom côte à côte, téléphone en dessous, à côté l'aperçu de la photo de
-profil externe, et en dessous sur toute la largeur la saisie de l'URL
-de la photo. L'e-mail, sensible (récupération de compte), se gère dans
-la section 🔐 Sécurité. Les deux blocs portent data-picker-custom :
-image-picker.js ne crée PAS son aperçu supplémentaire sous le champ
-URL — l'aperçu de la page (photo-picker.js) est seul.
+Nom côte à côte, alias et téléphone en dessous, à côté la photo de
+profil externe — l'aperçu ET la saisie de l'URL sont regroupés dans la
+colonne photo (lien direct, ou lien de partage Drive converti
+automatiquement, ou photo du compte Google en un clic). L'e-mail et
+l'identifiant de connexion, sensibles, se gèrent dans la section 🔐
+Sécurité. Le bloc URL porte data-picker-custom : image-picker.js ne
+crée PAS d'aperçu supplémentaire — l'aperçu de la page
+(photo-picker.js) est seul.
 {% endcomment %}
-<div class="profil-mise-en-page" data-picker-custom>
+<div class="profil-mise-en-page">
   <div class="profil-champs">
-    <div class="form-champ">{{ form.username.label_tag }} {{ form.username }}
-      {{ form.username.errors }}
-      <span class="helptext">{{ form.username.help_text }}</span></div>
     <div class="form-duo">
       <div class="form-champ">{{ form.prenom.label_tag }} {{ form.prenom }}
         {{ form.prenom.errors }}</div>
@@ -23,8 +22,9 @@ URL — l'aperçu de la page (photo-picker.js) est seul.
       <span class="helptext">{{ form.alias.help_text }}</span></div>
     <div class="form-champ">{{ form.telephone.label_tag }} {{ form.telephone }}
       {{ form.telephone.errors }}
-      <span class="helptext">L'e-mail, sensible (récupération de compte),
-        se modifie dans la section 🔐 Sécurité ci-dessous.</span></div>
+      <span class="helptext">Vos identifiants de connexion (e-mail,
+        identifiant) se modifient dans la section 🔐 Sécurité
+        ci-dessous.</span></div>
   </div>
   <div class="profil-photo">
     <div class="image-picker" data-photo-apercu="id_photo_externe">
@@ -34,12 +34,16 @@ URL — l'aperçu de la page (photo-picker.js) est seul.
         <div class="image-picker-erreur">❌ Image introuvable : lien direct requis (.jpg, .png, .webp…).</div>
       </div>
     </div>
+    <div class="profil-photo-url" data-picker-custom>
+      {{ form.photo_externe.label_tag }} {{ form.photo_externe }}
+      {{ form.photo_externe.errors }}
+      <span class="helptext">Lien direct (.jpg/.png/.webp) ou lien de
+        partage Drive — converti automatiquement. Rien n'est hébergé
+        sur le portail.</span>
+      <div class="photo-outils">
+        {% if photo_google %}<button type="button" class="btn btn-outline btn-mini" data-photo-google="{{ photo_google }}">🖼️ Ma photo Google</button>{% endif %}
+        <a class="btn btn-outline btn-mini" href="https://drive.google.com/drive/my-drive" target="_blank" rel="noopener">☁️ Drive</a>
+      </div>
+    </div>
   </div>
-</div>
-<div class="profil-photo-url" data-picker-custom>
-  {{ form.photo_externe.label_tag }} {{ form.photo_externe }}
-  {{ form.photo_externe.errors }}
-  <span class="helptext">Lien direct de l'image (Drive/Cloud : lien de
-    partage de l'image ou URL en .jpg/.png/.webp) — rien n'est hébergé
-    sur le portail.</span>
 </div>

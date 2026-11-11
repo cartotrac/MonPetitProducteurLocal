@@ -1,5 +1,6 @@
 /* Vérificateurs de saisie en direct : pastille ✓ / ✗ sous les
-   champs e-mail et mots de passe, pendant la frappe. Cibles (si
+   champs e-mail, identifiant et mots de passe, pendant la frappe.
+   Cibles (si
    présentes dans la page) : #id_email, #id_password1 et
    #id_password2 (inscriptions), #id_new_password1 et
    #id_new_password2 (section Sécurité). Aide visuelle uniquement :
@@ -97,8 +98,43 @@
     maj();
   }
 
+  /* Identifiant de connexion (section Sécurité) : format contrôlé
+     pendant la frappe, disponibilité vérifiée auprès du serveur avec
+     un léger délai — la décision finale reste à l'enregistrement. */
+  function initUsername() {
+    var input = champ("id_username");
+    if (!input || !input.dataset.urlDispo) { return; }
+    var el = indicateur(input);
+    var minuteur = null;
+    function majServeur() {
+      fetch(input.dataset.urlDispo + "?username=" +
+            encodeURIComponent((input.value || "").trim()),
+            { headers: { "X-Requested-With": "XMLHttpRequest" },
+              credentials: "same-origin" })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          majEtat(el, Boolean(d.disponible), d.message || "");
+        })
+        .catch(function () { vide(el); });
+    }
+    function maj() {
+      var v = (input.value || "").trim();
+      if (!v) { vide(el); return; }
+      if (!/^[\w.@+-]+$/i.test(v)) {
+        majEtat(el, false, "Lettres, chiffres et @/./+/-/_ uniquement");
+        return;
+      }
+      majEtat(el, true, "Vérification de la disponibilité…");
+      if (minuteur) { clearTimeout(minuteur); }
+      minuteur = setTimeout(majServeur, 350);
+    }
+    input.addEventListener("input", maj);
+    maj();
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     initEmail();
+    initUsername();
     initMotDePasse1();
     initMotDePasse2();
   });

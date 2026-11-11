@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Profil gérant — {{ exploitant.nom_espace }} — MonPetitProducteurLocal{% endblock %}
 {% block content %}
 <h1>🧑‍🌾 Profil gérant de {{ exploitant.nom_espace }}</h1>
@@ -15,16 +16,33 @@
     {% if form_gerant.non_field_errors %}
       <div class="flash warning">⚠️ Merci de corriger les champs indiqués ci-dessous.</div>
     {% endif %}
-    <div class="form-duo">
-      <div class="form-champ">{{ form_gerant.prenom.label_tag }} {{ form_gerant.prenom }}
-        {{ form_gerant.prenom.errors }}</div>
-      <div class="form-champ">{{ form_gerant.nom.label_tag }} {{ form_gerant.nom }}
-        {{ form_gerant.nom.errors }}</div>
+    <div class="profil-mise-en-page">
+      <div class="profil-champs">
+        <div class="form-duo">
+          <div class="form-champ">{{ form_gerant.prenom.label_tag }} {{ form_gerant.prenom }}
+            {{ form_gerant.prenom.errors }}</div>
+          <div class="form-champ">{{ form_gerant.nom.label_tag }} {{ form_gerant.nom }}
+            {{ form_gerant.nom.errors }}</div>
+        </div>
+        <div class="form-champ">{{ form_gerant.telephone.label_tag }} {{ form_gerant.telephone }}
+          {{ form_gerant.telephone.errors }}</div>
+      </div>
+      <div class="profil-photo">
+        <div class="image-picker" data-photo-apercu="id_photo_externe">
+          <div class="image-picker-cadre">
+            <img class="image-picker-img" alt="👤 Photo du gérant">
+            <div class="image-picker-placeholder">👤 Aucune photo</div>
+            <div class="image-picker-erreur">❌ Image introuvable : lien direct requis (.jpg, .png, .webp…).</div>
+          </div>
+        </div>
+        <div class="profil-photo-url" data-picker-custom>
+          {{ form_gerant.photo_externe.label_tag }} {{ form_gerant.photo_externe }}
+          {{ form_gerant.photo_externe.errors }}
+          <span class="helptext">Lien direct (.jpg/.png/.webp) ou lien de
+            partage Drive — converti automatiquement.</span>
+        </div>
+      </div>
     </div>
-    <div class="form-champ">{{ form_gerant.telephone.label_tag }} {{ form_gerant.telephone }}
-      {{ form_gerant.telephone.errors }}</div>
-    <div class="form-champ">{{ form_gerant.photo_externe.label_tag }} {{ form_gerant.photo_externe }}
-      {{ form_gerant.photo_externe.errors }}</div>
     <p class="muted">Compte du gérant : {{ gerant.username }} —
        {{ gerant.email }} (identifiants de connexion non modifiables ici).</p>
     <div class="save-bar">
@@ -34,4 +52,7 @@
   </form>
   </div>
 </section>
+{% endblock %}
+{% block extrajs %}
+<script src="{% static 'js/photo-picker.js' %}" defer></script>
 {% endblock %}

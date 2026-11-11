@@ -92,6 +92,10 @@ urlpatterns = [
          name="pub_rubrique"),
 
     # Espace client
+    # Vérification en direct de l'identifiant (section Sécurité,
+    # pages Mon profil) : disponibilité contrôlée pendant la frappe.
+    path("profil/identifiant-disponible/", views.identifiant_dispo,
+         name="identifiant_dispo"),
     path("profil/", views.profil_client, name="profil_client"),
     path("mes-producteurs/", views.mes_producteurs,
          name="mes_producteurs"),

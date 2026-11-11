@@ -2,7 +2,6 @@ from django import forms
 from django.contrib.auth.forms import (AuthenticationForm,
                                        UserCreationForm)
 from django.contrib.auth.models import User
-from django.contrib.auth.validators import UnicodeUsernameValidator
 
 from .models import (Annonce, Bulletin, Categorie, Exploitant, Produit,
                     ProfilClient, RetourUtilisateur, SemaineRecolte)
@@ -507,36 +506,22 @@ class ProfilExploitantForm(forms.ModelForm):
 class ProfilPersonnelForm(forms.Form):
     """Informations personnelles du compte individuel (client, maraîcher
     propriétaire ou membre d'une équipe) : prénom, nom, téléphone, photo
-    (lien externe). L'e-mail, donnée sensible (récupération du compte en
-    cas de mot de passe perdu), se gère dans la section 🔐 Sécurité."""
+    (lien externe). L'e-mail et l'identifiant de connexion, données
+    sensibles, se gèrent dans la section 🔐 Sécurité."""
 
     prenom = forms.CharField(label="Prénom", max_length=150, required=False)
     nom = forms.CharField(label="Nom", max_length=150, required=False)
     telephone = forms.CharField(label="Téléphone", max_length=20,
                                 required=False)
     photo_externe = forms.URLField(
-        label="Photo de profil externe (drive, cloud, réseau — rien "
-              "n'est hébergé sur le portail)", required=False)
+        label="Photo de profil (lien externe — rien n'est hébergé "
+              "sur le portail)", required=False)
     alias = forms.CharField(
         label="Alias affiché", max_length=80, required=False,
         help_text="S'il est renseigné, cet alias remplace votre nom "
                   "partout où il apparaît (salutation, commandes passées "
                   "en votre nom propre) — laissez vide pour garder votre "
                   "nom complet.")
-    username = forms.CharField(
-        label="Identifiant", max_length=150,
-        help_text="Nom affiché quand l'alias et le prénom/nom ne sont "
-                  "pas renseignés. Il ne sert PAS à la connexion : "
-                  "votre identifiant de connexion reste votre e-mail.")
-
-    def clean_username(self):
-        """L'identifiant doit rester unique et valide (lettres,
-        chiffres, @/./+/-/_ comme chez Django)."""
-        valeur = self.cleaned_data["username"].strip()
-        if valeur:
-            UnicodeUsernameValidator()(valeur)
-        return valeur
-
 
 class ProfilGerantForm(forms.Form):
     """Identité publique du GÉRANT de l'espace actif, éditée par le
@@ -549,8 +534,8 @@ class ProfilGerantForm(forms.Form):
     telephone = forms.CharField(label="Téléphone", max_length=20,
                                 required=False)
     photo_externe = forms.URLField(
-        label="Photo de profil externe (drive, cloud, réseau — rien "
-              "n'est hébergé sur le portail)", required=False)
+        label="Photo du gérant (lien externe — rien n'est hébergé "
+              "sur le portail)", required=False)
 
 
 class BulletinForm(forms.ModelForm):

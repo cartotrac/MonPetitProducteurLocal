@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
@@ -4047,21 +4048,12 @@ def order_ajuster(request, commande_id):
 
 def _enregistrer_infos_perso(request, redirect_vers, **redirect_kwargs):
     """Enregistre prenom / nom du compte courant, et son telephone dans
-    ProfilClient (commun clients et maraichers) — l'e-mail, sensible
-    (récupération de compte), se gère dans la section Sécurité."""
+    ProfilClient (commun clients et maraichers) — l'e-mail et
+    l'identifiant de connexion se gèrent dans la section Sécurité."""
     profil, _cree = ProfilClient.objects.get_or_create(user=request.user)
     form = ProfilPersonnelForm(request.POST)
     if form.is_valid():
         user = request.user
-        username = (form.cleaned_data.get("username") or "").strip()
-        if username and username.lower() != user.username.lower():
-            if User.objects.exclude(pk=user.pk).filter(
-                    username__iexact=username).exists():
-                form.add_error("username",
-                               "Cet identifiant est déjà utilisé par "
-                               "un autre compte.")
-                return form
-            user.username = username
         user.first_name = form.cleaned_data["prenom"]
         user.last_name = form.cleaned_data["nom"]
         user.save()
@@ -4112,9 +4104,10 @@ def _form_motdepasse(user):
 
 def _enregistrer_mot_de_passe(request, redirect_vers, **redirect_kwargs):
     """Section « Sécurité » des pages Mon profil : change le mot de
-    passe du compte courant — et enregistre l'e-mail si le champ a
-    été modifié (donnée sensible : elle sert à la récupération du
-    compte en cas de mot de passe perdu). La session reste ouverte
+    passe du compte courant — et enregistre l'e-mail et l'identifiant
+    de connexion si ces champs ont été modifiés (données sensibles :
+    l'e-mail sert à la récupération du compte en cas de mot de passe
+    perdu). La session reste ouverte
     (mise à jour du hachage de session après enregistrement).
     Retourne la redirection, ou le formulaire en erreur à
     re-présenter."""
@@ -4135,23 +4128,80 @@ def _enregistrer_mot_de_passe(request, redirect_vers, **redirect_kwargs):
             messages.error(request, "E-mail non enregistré : un autre "
                            "compte utilise déjà cette adresse.")
             return form
+    username = (request.POST.get("username") or "").strip()
+    username_change = bool(username) and username != request.user.username
+    if username_change:
+        try:
+            UnicodeUsernameValidator()(username)
+        except ValidationError:
+            messages.error(request, "Identifiant non enregistré : "
+                           "lettres, chiffres et @/./+/-/_ uniquement.")
+            return form
+        if User.objects.exclude(pk=request.user.pk).filter(
+                username__iexact=username).exists():
+            messages.error(request, "Identifiant non enregistré : cet "
+                           "identifiant est déjà utilisé par un autre "
+                           "compte.")
+            return form
     if form.is_valid():
-        if email_change:
-            request.user.email = email
-            request.user.save(update_fields=["email"])
-            # Les snapshots e-mail des commandes et paniers suivent le
-            # compte (contacts producteur), comme sur le profil.
-            Commande.objects.filter(client=request.user).update(
-                email_client=email)
-            Panier.objects.filter(client=request.user).update(
-                email_client=email)
+        if email_change or username_change:
+            if email_change:
+                request.user.email = email
+                # Les snapshots e-mail des commandes et paniers suivent
+                # le compte (contacts producteur), comme sur le profil.
+                Commande.objects.filter(client=request.user).update(
+                    email_client=email)
+                Panier.objects.filter(client=request.user).update(
+                    email_client=email)
+            if username_change:
+                request.user.username = username
+            request.user.save(update_fields=["email", "username"])
         form.save()
         update_session_auth_hash(request, form.user)
         messages.success(
             request, "Votre mot de passe a été modifié."
-            + (" E-mail mis à jour." if email_change else ""))
+            + (" E-mail mis à jour." if email_change else "")
+            + (" Identifiant mis à jour." if username_change else ""))
         return redirect(redirect_vers, **redirect_kwargs)
     return form
+
+
+def _photo_google(user):
+    """Photo de profil du compte Google connecté (flux « Continuer
+    avec Google »), proposée en un clic sur la page Mon profil.
+    L'image reste servie par Google — rien n'est hébergé par le
+    portail."""
+    try:
+        compte = user.socialaccount_set.first()
+        if compte:
+            return (compte.extra_data or {}).get("picture") or ""
+    except Exception:
+        pass
+    return ""
+
+
+@login_required
+def identifiant_dispo(request):
+    """Vérification en direct de l'identifiant de connexion (section
+    🔐 Sécurité des pages Mon profil) : disponibilité contrôlée
+    pendant la frappe, avant la soumission — la décision finale reste
+    au moment de l'enregistrement (concurrence possible)."""
+    valeur = (request.GET.get("username") or "").strip()
+    if not valeur:
+        return JsonResponse({"disponible": False, "message": ""})
+    try:
+        UnicodeUsernameValidator()(valeur)
+    except ValidationError:
+        return JsonResponse({
+            "disponible": False,
+            "message": "Lettres, chiffres et @/./+/-/_ uniquement."})
+    pris = (User.objects.exclude(pk=request.user.pk)
+            .filter(username__iexact=valeur).exists())
+    return JsonResponse({
+        "disponible": not pris,
+        "message": ("Identifiant disponible." if not pris else
+                    "Cet identifiant est déjà utilisé par un autre "
+                    "compte.")})
 
 
 @login_required
@@ -4176,7 +4226,6 @@ def profil_client(request):
         form = ProfilPersonnelForm(initial={
             "prenom": request.user.first_name,
             "nom": request.user.last_name,
-            "username": request.user.username,
             "alias": profil.alias,
             "telephone": profil.telephone,
             "photo_externe": profil.photo_url,
@@ -4184,7 +4233,8 @@ def profil_client(request):
     if form_motdepasse is None:
         form_motdepasse = _form_motdepasse(request.user)
     return render(request, "portal/profil_client.html",
-                  {"form": form, "form_motdepasse": form_motdepasse})
+                  {"form": form, "form_motdepasse": form_motdepasse,
+             "photo_google": _photo_google(request.user)})
 
 
 def _admins_instance():
@@ -4453,7 +4503,6 @@ def param_rubrique(request, rubrique):
         form_profil = ProfilPersonnelForm(initial={
             "prenom": request.user.first_name,
             "nom": request.user.last_name,
-            "username": request.user.username,
             "alias": profil.alias,
             "telephone": profil.telephone,
             "photo_externe": profil.photo_url,
@@ -4464,6 +4513,7 @@ def param_rubrique(request, rubrique):
             "exploitant": exploitant,
             "form_profil": form_profil,
             "form_motdepasse": form_motdepasse,
+            "photo_google": _photo_google(request.user),
         })
 
     if rubrique == "gerant":
