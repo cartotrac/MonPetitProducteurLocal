@@ -46,7 +46,9 @@
       {% for ligne in carte.lignes.all %}
         <tr>
           <td class="muted">{{ forloop.counter }}</td>
-          <td>{% if ligne.emoji %}{{ ligne.emoji }} {% endif %}<strong>{{ ligne.nom }}</strong>{% if ligne.description %}<br><span class="muted">{{ ligne.description }}</span>{% endif %}</td>
+          <td>{% if ligne.produit and ligne.produit.illustration %}<img class="vignette-produit" src="{{ ligne.produit.illustration.url }}" alt="">{% endif %}{% if ligne.emoji %}{{ ligne.emoji }} {% endif %}<strong>{{ ligne.nom }}</strong>
+            {% if ligne.produit %}{% if ligne.produit.origine_standard %}<span class="origine-produit importe" title="Importé depuis la liste {{ ligne.produit.origine_standard.get_activite_display }}">📦</span>{% else %}<span class="origine-produit perso" title="Article créé par vous">✍️</span>{% endif %}{% if est_proprietaire or user.is_superuser %} <a class="btn btn-sm btn-outline" href="{% url 'portal:product_edit' ligne.produit.pk %}" title="Éditer l'article : libellé, prix de référence, illustration, descriptif">📝</a>{% endif %}{% endif %}
+            {% if ligne.description %}<br><span class="muted">{{ ligne.description }}</span>{% endif %}</td>
           <td>{{ ligne.section|default:"—" }}</td>
           <td>{% if ligne.prix_affiche %}{{ ligne.prix_affiche }} €{% else %}—{% endif %}</td>
           <td>
@@ -85,7 +87,7 @@
       <select id="produit_{{ carte.pk }}" name="produit_id">
         <option value="">— ou ligne libre ci-dessous —</option>
         {% for produit in produits %}
-          <option value="{{ produit.pk }}">{{ produit.nom }}{% if produit.categorie %} ({{ produit.categorie.nom }}){% endif %}</option>
+          <option value="{{ produit.pk }}">{{ produit.emoji }} {{ produit.nom }}{% if produit.categorie %} ({{ produit.categorie.nom }}){% endif %}</option>
         {% endfor %}
       </select>
       <label for="libre_{{ carte.pk }}">Ou ligne libre (plat, menu…)</label>

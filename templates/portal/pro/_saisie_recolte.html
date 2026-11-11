@@ -41,8 +41,11 @@ et retour="dashboard" (édition en ligne).
         <tbody>
         {% for row in rows %}
           <tr class="{% if row.reprise %}reprise{% endif %}">
-            <td>{% if row.produit.origine_standard and row.produit.origine_standard.emoji %}{{ row.produit.origine_standard.emoji }} {% endif %}{{ row.produit.nom }}
+            <td>{% if row.produit.illustration %}<img class="vignette-produit" src="{{ row.produit.illustration.url }}" alt="">{% endif %}{% if row.produit.emoji %}{{ row.produit.emoji }} {% elif row.produit.origine_standard and row.produit.origine_standard.emoji %}{{ row.produit.origine_standard.emoji }} {% endif %}{{ row.produit.nom }}
               <span class="muted">({{ row.produit.get_unite_vente_display }})</span>
+              {% if row.produit.origine_standard %}<span class="origine-produit importe" title="Importé depuis la liste {{ row.produit.origine_standard.get_activite_display }}">📦</span>{% else %}<span class="origine-produit perso" title="Article créé par vous">✍️</span>{% endif %}
+              {% if est_proprietaire or user.is_superuser %}<a class="btn btn-sm btn-outline" href="{% url 'portal:product_edit' row.produit.pk %}" title="Éditer l'article : libellé, prix de référence, illustration, descriptif">📝</a>{% endif %}
+              {% if row.produit.description %}<br><span class="muted">{{ row.produit.description|truncatechars:70 }}</span>{% endif %}
               {% if row.reprise %}<span class="badge badge-off">reprise</span>{% endif %}</td>
             <td><input type="number" step="{{ row.step }}" min="0" name="qty_{{ row.produit.pk }}"
                        value="{% if row.qty %}{{ row.qty|unlocalize }}{% endif %}"></td>
