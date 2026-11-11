@@ -23,7 +23,7 @@
   {% endif %}
   <section class="form-bloc">
     <h2>👤 Mon profil</h2>
-    <div class="profil-mise-en-page" data-picker-custom>
+    <div class="profil-mise-en-page">
       <div class="profil-champs">
         <div class="form-duo">
           <div class="form-champ">{{ form.first_name.label_tag }} {{ form.first_name }}
@@ -48,14 +48,17 @@
             <div class="image-picker-erreur">❌ Image introuvable : lien direct requis (.jpg, .png, .webp…).</div>
           </div>
         </div>
+        <div class="profil-photo-url" data-picker-custom>
+          {{ form.photo_externe.label_tag }} {{ form.photo_externe }}
+          {{ form.photo_externe.errors }}
+          <span class="helptext">Lien direct (.jpg/.png/.webp) ou lien de
+            partage Drive — converti automatiquement. Rien n'est hébergé
+            sur le portail.</span>
+          <div class="photo-outils">
+            <a class="btn btn-outline btn-mini" href="https://drive.google.com/drive/my-drive" target="_blank" rel="noopener">☁️ Drive</a>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="profil-photo-url" data-picker-custom>
-      {{ form.photo_externe.label_tag }} {{ form.photo_externe }}
-      {{ form.photo_externe.errors }}
-      <span class="helptext">Lien direct de l'image (Drive/Cloud : lien de
-        partage de l'image ou URL en .jpg/.png/.webp) — rien n'est hébergé
-        sur le portail.</span>
     </div>
     <div class="form-duo">
       <div class="form-champ">{{ form.password1.label_tag }} {{ form.password1 }}
