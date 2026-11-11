@@ -538,6 +538,21 @@ class ProfilPersonnelForm(forms.Form):
         return valeur
 
 
+class ProfilGerantForm(forms.Form):
+    """Identité publique du GÉRANT de l'espace actif, éditée par le
+    support depuis Paramètres → Profil gérant : prénom, nom, photo —
+    les informations affichées sur la vitrine (rubrique équipe).
+    Le gérant lui-même édite les mêmes champs depuis « Mon profil »."""
+
+    prenom = forms.CharField(label="Prénom", max_length=150, required=False)
+    nom = forms.CharField(label="Nom", max_length=150, required=False)
+    telephone = forms.CharField(label="Téléphone", max_length=20,
+                                required=False)
+    photo_externe = forms.URLField(
+        label="Photo de profil externe (drive, cloud, réseau — rien "
+              "n'est hébergé sur le portail)", required=False)
+
+
 class BulletinForm(forms.ModelForm):
     """Newsletter / bulletin diffusé aux clients d'une exploitation."""
 

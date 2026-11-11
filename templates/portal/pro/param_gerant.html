@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Profil gérant — {{ exploitant.nom_espace }} — MonPetitProducteurLocal{% endblock %}
+{% block content %}
+<h1>🧑‍🌾 Profil gérant de {{ exploitant.nom_espace }}</h1>
+<p class="muted">Identité publique du gérant de cet espace, affichée sur
+   la vitrine (rubrique « {{ exploitant.libelle_equipe }} ») : nom affiché
+   et photo. Page réservée au support : le gérant lui-même édite ces
+   informations depuis son propre « Mon profil ».</p>
+
+<section class="harvest-bloc">
+  <div class="card">
+  <form method="post" class="form">
+    {% csrf_token %}
+    <input type="hidden" name="section" value="gerant">
+    {% if form_gerant.non_field_errors %}
+      <div class="flash warning">⚠️ Merci de corriger les champs indiqués ci-dessous.</div>
+    {% endif %}
+    <div class="form-duo">
+      <div class="form-champ">{{ form_gerant.prenom.label_tag }} {{ form_gerant.prenom }}
+        {{ form_gerant.prenom.errors }}</div>
+      <div class="form-champ">{{ form_gerant.nom.label_tag }} {{ form_gerant.nom }}
+        {{ form_gerant.nom.errors }}</div>
+    </div>
+    <div class="form-champ">{{ form_gerant.telephone.label_tag }} {{ form_gerant.telephone }}
+      {{ form_gerant.telephone.errors }}</div>
+    <div class="form-champ">{{ form_gerant.photo_externe.label_tag }} {{ form_gerant.photo_externe }}
+      {{ form_gerant.photo_externe.errors }}</div>
+    <p class="muted">Compte du gérant : {{ gerant.username }} —
+       {{ gerant.email }} (identifiants de connexion non modifiables ici).</p>
+    <div class="save-bar">
+      <button class="btn" type="submit">💾 Enregistrer le profil gérant</button>
+      <a class="btn btn-outline" href="{% url 'portal:dashboard' %}">Annuler</a>
+    </div>
+  </form>
+  </div>
+</section>
+{% endblock %}

@@ -27,7 +27,7 @@ from django.utils import timezone
 from .forms import (AnnonceForm, BulletinForm, InscriptionClientForm,
                     InscriptionExploitantForm, InscriptionFermeSeuleForm,
                     MessagerieForm, ProduitForm, ProfilExploitantForm,
-                    ProfilPersonnelForm)
+                    ProfilGerantForm, ProfilPersonnelForm)
 from .marches import identifier_marches
 from .meteo import meteo_synthese
 from .models import (Annonce, Bulletin, Carte, Categorie, Commande,
@@ -4298,11 +4298,13 @@ def parametres(request):
 @exploitant_requis
 def param_rubrique(request, rubrique):
     """Rubriques indépendantes du menu Paramètres : « Mon profil »
-    (compte individuel, tout compte rattaché), « Mon espace »
-    (vitrine publique) et « Messagerie » — ces deux dernières
-    réservées au gérant de l'espace et au support (SMTP d'envoi des
-    e-mails, passerelle SMS). Chaque page s'enregistre séparément."""
-    if rubrique not in ("profil", "espace", "messagerie"):
+    (compte individuel, tout compte rattaché), « Profil gérant »
+    (identité publique du gérant de l'espace — support uniquement),
+    « Mon espace » (vitrine publique) et « Messagerie » — ces deux
+    dernières réservées au gérant de l'espace et au support (SMTP
+    d'envoi des e-mails, passerelle SMS). Chaque page s'enregistre
+    séparément."""
+    if rubrique not in ("profil", "gerant", "espace", "messagerie"):
         return redirect("portal:param_rubrique", rubrique="profil")
     exploitant = exploitant_actif(request)
     vitrine, _cree = ParametresVitrine.objects.get_or_create(
@@ -4311,8 +4313,11 @@ def param_rubrique(request, rubrique):
                        or request.user.is_superuser)
     if rubrique in ("espace", "messagerie") and not est_proprietaire:
         return redirect("portal:param_rubrique", rubrique="profil")
+    if rubrique == "gerant" and not request.user.is_superuser:
+        return redirect("portal:param_rubrique", rubrique="profil")
     messagerie = vitrine.messagerie or {}
     form_motdepasse = None
+    form_gerant = None
 
     if request.method == "POST":
         section = request.POST.get("section", "")
@@ -4358,6 +4363,25 @@ def param_rubrique(request, rubrique):
             if not hasattr(resultat, "is_valid"):
                 return resultat
             form_motdepasse = resultat
+
+        elif section == "gerant" and rubrique == "gerant":
+            form_gerant = ProfilGerantForm(request.POST)
+            if form_gerant.is_valid():
+                gerant = exploitant.user
+                gerant.first_name = form_gerant.cleaned_data["prenom"]
+                gerant.last_name = form_gerant.cleaned_data["nom"]
+                gerant.save(update_fields=["first_name", "last_name"])
+                profil_gerant, _cree = (
+                    ProfilClient.objects.get_or_create(user=gerant))
+                profil_gerant.telephone = form_gerant.cleaned_data[
+                    "telephone"]
+                profil_gerant.photo_url = form_gerant.cleaned_data[
+                    "photo_externe"]
+                profil_gerant.save()
+                messages.success(
+                    request, "Profil du gérant mis à jour — la vitrine "
+                    "affiche ces informations immédiatement.")
+                return redirect("portal:param_rubrique", rubrique="gerant")
 
         elif section == "messagerie" and rubrique == "messagerie":
             form_messagerie = MessagerieForm(request.POST)
@@ -4440,6 +4464,23 @@ def param_rubrique(request, rubrique):
             "exploitant": exploitant,
             "form_profil": form_profil,
             "form_motdepasse": form_motdepasse,
+        })
+
+    if rubrique == "gerant":
+        gerant = exploitant.user
+        if form_gerant is None:
+            profil_gerant, _cree = ProfilClient.objects.get_or_create(
+                user=gerant)
+            form_gerant = ProfilGerantForm(initial={
+                "prenom": gerant.first_name,
+                "nom": gerant.last_name,
+                "telephone": profil_gerant.telephone,
+                "photo_externe": profil_gerant.photo_url,
+            })
+        return render(request, "portal/pro/param_gerant.html", {
+            "exploitant": exploitant,
+            "gerant": gerant,
+            "form_gerant": form_gerant,
         })
 
     if rubrique == "espace":
