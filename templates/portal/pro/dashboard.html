@@ -50,7 +50,9 @@
   {% if est_proprietaire %}
     <a class="btn btn-outline" href="{% url 'portal:catalogue_standard' %}">📚 Importer des produits types</a>
   {% endif %}
-  <a class="btn btn-outline" href="{% url 'portal:product_list' %}">📚 Catalogue</a>
+  {% if est_proprietaire or user.is_superuser %}
+    <a class="btn btn-outline" href="{% url 'portal:product_list' %}">📚 Catalogue</a>
+  {% endif %}
   <a class="btn btn-outline" href="{% url 'portal:mes_producteurs' %}">⭐ Mes favoris</a>
   <a class="btn btn-outline" href="{% url 'portal:clients_suivi' %}">👤 Mes clients</a>
   <a class="btn btn-outline" href="{% url 'portal:points_manage' %}">📍 Points & créneaux</a>
@@ -80,101 +82,80 @@
      <a href="{% url 'portal:ventes' %}">gérer les ventes</a></p>
 </details>
 
-<details id="produits" class="bloc-replie" open>
-  <summary class="summary-avec-actions"><h2>📚 Catalogue <span class="muted aide-replier">({{ nb_produits }})</span></h2>
-    <a class="btn btn-outline btn-sm" href="{% url 'portal:product_list' %}" title="Libellés, prix, unités, ajout de produits">✏️ Activer l'édition</a>
-  </summary>
-  {% if not paires %}
-    <p class="muted">Aucun produit pour l'instant — créez vos catégories
-       ci-dessous puis <a href="{% url 'portal:product_list' %}">ajoutez vos
-       {{ exploitant.vocab.articles }}</a> (ou <a href="{% url 'portal:catalogue_standard' %}">importez
-       le catalogue de produits types</a>).</p>
-  {% endif %}
-  <form method="post" action="{% url 'portal:product_quick_edit' %}" id="form-produits">
-      {% csrf_token %}
-      <div id="bloc-produits" class="edition">
-        {% for cat, liste in paires %}
-          <details class="cat-bloc">
-            <summary><h3 class="cat-titre" data-cat="{{ cat.pk }}" data-nom="{{ cat.nom|default:'Sans catégorie' }}">{{ cat.nom|default:"Sans catégorie" }}
-              <span class="muted">— {{ liste|length }} article{{ liste|length|pluralize }}</span></h3></summary>
-            {% if cat.pk %}
-              <span class="edit cat-outils">
-                <input type="text" name="nom_cat_{{ cat.pk }}" value="{{ cat.nom }}" maxlength="80" size="16">
-                <button type="submit" name="action" value="categorie_renommer:{{ cat.pk }}" class="btn btn-sm" title="Renommer la catégorie">✏️</button>
-                <button type="submit" name="mouvement" value="categorie:{{ cat.pk }}:haut" class="btn btn-sm" title="Catégorie vers le haut">▲</button>
-                <button type="submit" name="mouvement" value="categorie:{{ cat.pk }}:bas" class="btn btn-sm" title="Catégorie vers le bas">▼</button>
-                <button type="submit" name="action" value="categorie_supprimer:{{ cat.pk }}"
-                        onclick="if(!confirm('Supprimer la catégorie « {{ cat.nom }} » ? Les produits deviennent « sans catégorie » (aucun produit supprimé).'))event.preventDefault();"
-                        class="btn btn-sm btn-danger" title="Supprimer la catégorie (les produits sont conservés)">🗑</button>
-              </span>
-            {% endif %}
-          <table class="table table-produits">
-            <thead><tr><th>Produit</th><th>Catégorie</th></tr></thead>
-            <tbody>
-              {% for produit in liste %}
-                <tr draggable="true" data-pk="{{ produit.pk }}" title="Glissez-déposez cette ligne sur le titre d'une catégorie pour la déplacer">
-                  <td>{% if produit.emoji %}{{ produit.emoji }} {% endif %}{{ produit.nom }}</td>
-                  <td>
-                    <select name="categorie_cible_{{ produit.pk }}">
-                      <option value="" {% if produit.categorie is None %}selected{% endif %}>— sans catégorie —</option>
-                      {% for c in categories %}
-                        <option value="{{ c.pk }}" {% if produit.categorie_id == c.pk %}selected{% endif %}>{{ c.nom }}</option>
-                      {% endfor %}
-                    </select>
-                    <button type="submit" name="appliquer_categorie" value="{{ produit.pk }}" class="btn btn-sm" title="Déplacer dans la catégorie choisie">⇄</button>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-          </details>
-        {% endfor %}
-        <div class="edit card">
-          <h3>➕ Ajouter une catégorie</h3>
-          <div class="form-row">
-            <label>Nom <input type="text" name="nouvelle_categorie" placeholder="Ex : Fruits" maxlength="80"></label>
-            <button type="submit" name="action" value="categorie_ajouter" class="btn">➕ Créer</button>
-          </div>
-        </div>
-      </div>
-    </form>
-    <p class="muted">Ici : créer, renommer, réordonner ou supprimer les
-       catégories, et déplacer les produits d'une catégorie à l'autre :
-       glissez-déposez une ligne sur le titre d'une catégorie
-       (ou choisissez-la dans la liste puis ⇄).
-       L'édition complète des produits (libellé, unité, prix, ordre, ajout,
-       retrait en lot) se fait sur la page
-       <a href="{% url 'portal:product_list' %}">Catalogue</a> du menu
-       « Publications ».</p>
-</details>
 
+<details id="catalogue" class="bloc-replie" open>
+  <summary class="summary-avec-actions"><h2>📚 Catalogue <span class="muted aide-replier">({{ nb_produits }} {{ exploitant.vocab.article }}{{ nb_produits|pluralize }})</span></h2>
+    <a class="btn btn-outline btn-sm" href="{% url 'portal:product_list' %}">✏️ Gérer</a></summary>
+  <p class="muted">Vos {{ exploitant.vocab.articles }} personnalisés — importés des listes de
+     référence ou créés par vos soins, avec leurs catégories — alimentent les
+     publications saisonnières et la boutique fixe.
+     <a href="{% url 'portal:product_list' %}">Gérer le catalogue</a> ·
+     <a href="{% url 'portal:categories_manage' %}">Catégories</a> ·
+     <a href="{% url 'portal:catalogue_standard' %}">Importer des produits types</a></p>
+</details>
 
 <details id="recoltes" class="bloc-replie" open>
-  <summary><h2>🧺 {{ exploitant.vocab.recoltes_titre }} <span class="muted aide-replier">(vue calendaire hebdomadaire — cliquez pour replier/déplier)</span></h2></summary>
-  <div class="cal-semaines">
+  <summary><h2>🗓️ {{ exploitant.vocab.recoltes_titre }} <span class="muted aide-replier">(ligne de publication — cliquez pour replier/déplier)</span></h2></summary>
+  {% if est_proprietaire or user.is_superuser %}
+  <form method="post" action="{% url 'portal:frequence_publication' %}" class="inline-form freq-form">
+    {% csrf_token %}
+    <label class="muted">Fréquence de publication
+      <select name="frequence" onchange="this.form.submit()">
+        <option value="HEBDO" {% if exploitant.frequence_publication == 'HEBDO' %}selected{% endif %}>Hebdomadaire</option>
+        <option value="QUINZAINE" {% if exploitant.frequence_publication == 'QUINZAINE' %}selected{% endif %}>Tous les quinze jours</option>
+        <option value="MENSUEL" {% if exploitant.frequence_publication == 'MENSUEL' %}selected{% endif %}>Mensuelle</option>
+      </select></label>
+    <noscript><button class="btn btn-sm" type="submit">Appliquer</button></noscript>
+  </form>
+  {% endif %}
+  <div class="timeline-pubs">
     {% for s in calendrier %}
-      {% if s.semaine %}
-        <a class="cal-semaine {% if s.passe %}passe{% endif %} cal-{{ s.etat }}"
-           href="{% url 'portal:harvest_manage' s.semaine.pk %}">
-          <span class="cal-dates">{{ s.lundi|date:"d/m" }} → {{ s.dimanche|date:"d/m/Y" }}</span><br>
-          {% if s.semaine.publiee %}
-            <span class="badge badge-ok cal-etat">publiée</span>
-          {% else %}
-            <span class="badge badge-off cal-etat">brouillon</span>
-          {% endif %}
-          <span class="muted">{{ s.nb_lignes }} produit{{ s.nb_lignes|pluralize }}</span>
-        </a>
-      {% else %}
-        <a class="cal-semaine {% if s.passe %}passe{% endif %} cal-{{ s.etat }}"
-           href="{% url 'portal:harvest_new' %}">
-          <span class="cal-dates">{{ s.lundi|date:"d/m" }} → {{ s.dimanche|date:"d/m/Y" }}</span><br>
-          <span class="cal-etat muted">➕ créer le {{ exploitant.vocab.recolte }}</span>
-        </a>
-      {% endif %}
+      <a class="timeline-periode {% if s.passe %}passe{% endif %} cal-{{ s.etat }}{% if s.semaine and publication_choisie and s.semaine.pk == publication_choisie.pk %} choisie{% endif %}"
+         href="{% if s.semaine %}{% url 'portal:dashboard' %}?publication={{ s.semaine.pk }}{% else %}{% url 'portal:dashboard' %}?lundi={{ s.lundi|date:'Y-m-d' }}{% endif %}">
+        <span class="cal-dates">{{ s.lundi|date:"d/m" }} → {{ s.fin|date:"d/m/Y" }}</span>
+        {% if s.semaine %}
+          {% if s.semaine.publiee %}<span class="badge badge-ok cal-etat">publiée</span>
+          {% else %}<span class="badge badge-off cal-etat">brouillon</span>{% endif %}
+          <span class="muted">{{ s.nb_lignes }} {{ exploitant.vocab.article }}{{ s.nb_lignes|pluralize }}</span>
+        {% else %}
+          <span class="cal-etat muted">➕ créer</span>
+        {% endif %}
+      </a>
     {% endfor %}
   </div>
-  <p><a href="{% url 'portal:harvest_list' %}">Voir tout — {{ exploitant.vocab.recoltes|capfirst }} →</a></p>
+  <p class="muted">Cliquez sur une période pour l'éditer ci-dessous, ou
+     <a href="{% url 'portal:harvest_list' %}">voir toutes les {{ exploitant.vocab.recoltes }}</a>.</p>
+
+  {% if publication_choisie or lundi_edition %}
+  <div class="zone-edition-pub card" id="edition-publication">
+    <h3>{% if publication_choisie %}{{ exploitant.vocab.recolte|capfirst }} du {{ publication_choisie.lundi|date:"d/m/Y" }}{% if publication_choisie.publiee %} <span class="badge badge-ok">publiée</span>{% else %} <span class="badge badge-off">brouillon</span>{% endif %}{% else %}Nouvelle {{ exploitant.vocab.recolte }} — période du {{ lundi_edition|date:"d/m/Y" }}{% endif %}
+      <a class="btn btn-outline btn-sm" href="{% url 'portal:dashboard' %}">✖ Refermer</a></h3>
+    {% if edition_source %}<p class="muted">💡 Les valeurs marquées « reprise » viennent de la publication
+       du {{ edition_source.lundi|date:"d/m/Y" }} : modifiez uniquement ce qui change.</p>{% endif %}
+    {% with semaine=publication_choisie paires=edition_paires source=edition_source lundi_defaut=edition_lundi_defaut retour="dashboard" %}
+      {% include "portal/pro/_saisie_recolte.html" %}
+    {% endwith %}
+  </div>
+  {% endif %}
 </details>
+
+{% if exploitant.a_carte_boutique %}
+<details id="boutique" class="bloc-replie" open>
+  <summary class="summary-avec-actions"><h2>🧾 {{ exploitant.titre_carte_boutique }} <span class="muted aide-replier">— produits fixes · {{ nb_cartes }} version{{ nb_cartes|pluralize }}</span></h2>
+    <a class="btn btn-outline btn-sm" href="{% url 'portal:cartes_manage' %}">✏️ Gérer</a></summary>
+  {% if carte_active %}
+    <p><strong>{{ carte_active.nom }}</strong> <span class="badge badge-ok">publiée</span> —
+       {{ carte_active.nb_lignes }} ligne{{ carte_active.nb_lignes|pluralize }} affichées en vitrine.</p>
+  {% else %}
+    <p class="muted">Aucune version publiée : la vitrine affiche uniquement
+       vos publications saisonnières pour l'instant.</p>
+  {% endif %}
+  <p class="muted">Vos {{ exploitant.vocab.articles }} fixes (produits permanents, plats, menus) :
+     composez des versions successives — brouillon, publication, archivage et republication —
+     la vitrine affiche la version publiée <em>en plus</em> de la saisonnière.
+     <a href="{% url 'portal:cartes_manage' %}">Gérer les versions</a></p>
+</details>
+{% endif %}
 
 <details id="points" class="bloc-replie" open>
   <summary><h2>📍 {{ exploitant.vocab.points }} &amp; {{ exploitant.vocab.creneaux }} <span class="muted aide-replier">(cliquez pour replier/déplier)</span></h2></summary>
@@ -195,71 +176,16 @@
   <iframe class="apercu-vitrine" src="{% url 'portal:producer_detail' exploitant.slug %}?apercu=1"
           title="Aperçu de la vitrine publique" loading="lazy"></iframe>
 </details>
-</div>
 {% endblock %}
 {% block extrajs %}
 <script>
-/* Depuis le bandeau « Gestion » ou une ancre (#produits…), la rubrique
+/* Depuis le bandeau « Gestion » ou une ancre (#recoltes…), la rubrique
    ciblée du dashboard se déplie automatiquement. */
 (function () {
   if (!location.hash) { return; }
   var cible = document.querySelector(
     "details" + location.hash.replace(/[^\w-]/g, ""));
   if (cible) { cible.open = true; cible.scrollIntoView(); }
-})();
-</script>
-<script>
-/* Glisser-déposer des produits entre catégories : chaque ligne de la
-   rubrique « Mes produits » est déplaçable sur le titre d'une catégorie
-   (ou « Sans catégorie ») ; la ligne est réaffectée côté serveur comme
-   avec le ⇄ (même action « appliquer_categorie »). */
-(function () {
-  function init() {
-    var dragged = null;
-    document.querySelectorAll(
-        "#bloc-produits tbody tr").forEach(function (tr) {
-      tr.addEventListener("dragstart", function () {
-        dragged = this;
-        this.classList.add("drag-en-cours");
-      });
-      tr.addEventListener("dragend", function () {
-        this.classList.remove("drag-en-cours");
-      });
-    });
-    document.querySelectorAll(
-        "#bloc-produits h3.cat-titre").forEach(function (h3) {
-      h3.addEventListener("dragover", function (e) {
-        e.preventDefault();
-        this.classList.add("drop-sur");
-      });
-      h3.addEventListener("dragleave", function () {
-        this.classList.remove("drop-sur");
-      });
-      h3.addEventListener("drop", function (e) {
-        e.preventDefault();
-        this.classList.remove("drop-sur");
-        if (!dragged) { return; }
-        var pk = dragged.dataset.pk,
-            cat = h3.dataset.cat || "";
-        dragged = null;
-        if (!pk) { return; }
-        var select = document.querySelector(
-          "#form-produits select[name='categorie_cible_" + pk + "']");
-        if (!select || select.value === cat) { return; }
-        if (!confirm("Déplacer ce produit vers « " +
-                     (h3.dataset.nom || "Sans catégorie") + " » ?")) {
-          return;
-        }
-        select.value = cat;
-        var bouton = document.querySelector(
-          "#form-produits button[name='appliquer_categorie']" +
-          "[value='" + pk + "']");
-        if (bouton) { bouton.click(); }
-      });
-    });
-  }
-  if (document.readyState !== "loading") { init(); }
-  else { document.addEventListener("DOMContentLoaded", init); }
 })();
 </script>
 {% endblock %}

@@ -127,6 +127,11 @@ class Exploitant(models.Model):
     }
     ACTIVITES_AVEC_SPECIALITE = frozenset(SPECIALITES_PAR_ACTIVITE)
 
+    class FrequencePublication(models.TextChoices):
+        HEBDO = "HEBDO", "Hebdomadaire"
+        QUINZAINE = "QUINZAINE", "Tous les quinze jours"
+        MENSUEL = "MENSUEL", "Mensuelle"
+
     class ModeFonctionnement(models.TextChoices):
         RECOLTE = "RECOLTE", "Récoltes hebdomadaires (paniers)"
         BOUTIQUE = "BOUTIQUE", "Boutique / stock à date"
@@ -193,6 +198,15 @@ class Exploitant(models.Model):
         help_text=("Récoltes : la semaine se publie et se commande en "
                    "paniers. Boutique : un stock de produits à date est "
                    "vendu en direct aux points de vente."))
+    # Cadence des publications saisonnières (ligne de publication du
+    # dashboard) : hebdomadaire par défaut, quinzaine ou mensuelle.
+    frequence_publication = models.CharField(
+        "Fréquence de publication", max_length=10,
+        choices=FrequencePublication.choices,
+        default=FrequencePublication.HEBDO,
+        help_text=("Cadence des publications saisonnières diffusées aux "
+                   "clients : la ligne de publication du dashboard suit "
+                   "cette fréquence."))
     creee_le = models.DateTimeField(auto_now_add=True)
 
     class Meta:

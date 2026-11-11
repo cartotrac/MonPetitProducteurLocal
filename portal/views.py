@@ -1210,30 +1210,63 @@ def _phrases_livraison(exploitant):
 
 
 def _calendrier_recoltes(exploitant):
-    """Vue calendaire hebdomadaire des récoltes (dashboard) : les 8
-    prochaines semaines, chacune reliée à sa semaine de récolte si elle
-    existe (publiée ou brouillon), sinon à la création."""
+    """Ligne chronologique des publications saisonnières (dashboard),
+    au rythme de la FRÉQUENCE de publication de l'espace : périodes
+    hebdomadaires, de quinzaine ou mensuelles. Chaque période part
+    d'un lundi, la ligne démarre juste avant la période courante et
+    chaque période est reliée à sa publication (publiée ou brouillon)
+    ou à la création."""
     aujourd_hui = timezone.localdate()
     lundi_courant = aujourd_hui - datetime.timedelta(
         days=aujourd_hui.weekday())
+
+    def premier_lundi_du_mois(date_courante):
+        debut = date_courante.replace(day=1)
+        return debut + datetime.timedelta(
+            days=(7 - debut.weekday()) % 7)
+
+    freq = exploitant.frequence_publication
+    duree = 7
+    if freq == Exploitant.FrequencePublication.MENSUEL:
+        duree = 31
+        courant = premier_lundi_du_mois(aujourd_hui)
+        if courant > aujourd_hui:
+            courant = premier_lundi_du_mois(
+                aujourd_hui - datetime.timedelta(days=31))
+        debuts = [premier_lundi_du_mois(
+            courant - datetime.timedelta(days=31))]
+        for _ in range(4):
+            debuts.append(premier_lundi_du_mois(
+                debuts[-1] + datetime.timedelta(days=31)))
+    elif freq == Exploitant.FrequencePublication.QUINZAINE:
+        duree = 14
+        debuts = [lundi_courant + datetime.timedelta(days=14 * i)
+                  for i in range(-1, 5)]
+    else:
+        debuts = [lundi_courant + datetime.timedelta(weeks=i)
+                  for i in range(8)]
+
     semaines = (SemaineRecolte.objects
                 .filter(exploitant=exploitant,
-                        lundi__gte=lundi_courant
-                        - datetime.timedelta(days=7))
+                        lundi__gte=debuts[0]
+                        - datetime.timedelta(days=7),
+                        lundi__lte=debuts[-1])
                 .annotate(nb_lignes=Count("lignes")))
     par_lundi = {s.lundi: s for s in semaines}
     calendrier = []
-    for i in range(8):
-        lundi = lundi_courant + datetime.timedelta(weeks=i)
+    for i, lundi in enumerate(debuts):
         s = par_lundi.get(lundi)
+        fin = (debuts[i + 1] - datetime.timedelta(days=1)
+               if i + 1 < len(debuts)
+               else lundi + datetime.timedelta(days=duree - 1))
         calendrier.append({
             "lundi": lundi,
-            "dimanche": lundi + datetime.timedelta(days=6),
+            "fin": fin,
             "semaine": s,
             "nb_lignes": s.nb_lignes if s else 0,
             "passe": lundi < lundi_courant,
-            # Code couleur calendrier : bleu passé, vert semaine
-            # courante, orange à venir (dashboard + vitrine publique).
+            # Code couleur : bleu passé, vert période courante,
+            # orange à venir (dashboard + vitrine publique).
             "etat": ("passe" if lundi < lundi_courant
                      else "courante" if lundi == lundi_courant
                      else "avenir"),
@@ -1241,13 +1274,75 @@ def _calendrier_recoltes(exploitant):
     return calendrier
 
 
+def _edition_recolte(exploitant, semaine, lundi_defaut):
+    """Données de la zone d'édition d'une publication saisonnière :
+    lignes par catégorie, valeurs préremplies depuis la publication
+    précédente (marquées « reprise »), prix de RÉFÉRENCE du catalogue
+    en secours. Sert au dashboard (édition en ligne sous la ligne de
+    publication) et à la page de saisie."""
+    reference = semaine.lundi if semaine else lundi_defaut
+    source = (SemaineRecolte.objects
+              .filter(exploitant=exploitant, lundi__lt=reference)
+              .order_by("-lundi").first())
+    valeurs = {}
+    if semaine:
+        for l in semaine.lignes.select_related("produit"):
+            valeurs[l.produit_id] = (l.quantite_estimee, l.prix_unitaire,
+                                     False)
+    if source and source.pk != (semaine.pk if semaine else None):
+        for l in source.lignes.select_related("produit"):
+            if l.produit_id not in valeurs:
+                valeurs[l.produit_id] = (l.quantite_estimee,
+                                         l.prix_unitaire, True)
+    produits = (exploitant.produits.filter(actif=True)
+                .select_related("categorie", "origine_standard")
+                .order_by("categorie__position", "categorie__nom", "nom"))
+    groupes, ordre = {}, []
+    for p in produits:
+        nom_cat = p.categorie.nom if p.categorie else "Sans catégorie"
+        if nom_cat not in groupes:
+            groupes[nom_cat] = []
+            ordre.append(nom_cat)
+        v = valeurs.get(p.pk)
+        prix_affiche = (v[1] if v and v[1] is not None else None) or p.prix
+        groupes[nom_cat].append({
+            "produit": p,
+            "qty": v[0] if v else None,
+            "price": prix_affiche,
+            "reprise": bool(v and v[2]),
+            "step": "0.01" if p.unite_vente == "KG" else "1",
+        })
+    return [(nom, groupes[nom]) for nom in ordre], source
+
+
+@login_required
+@exploitant_requis
+@proprietaire_requis
+def frequence_publication(request):
+    """Fréquence des publications saisonnières (sélecteur de la
+    ligne de publication du dashboard) : hebdomadaire, quinzaine ou
+    mensuelle — gérant et support uniquement."""
+    if request.method == "POST":
+        freq = request.POST.get("frequence", "").strip()
+        if freq in Exploitant.FrequencePublication.values:
+            exploitant = exploitant_actif(request)
+            exploitant.frequence_publication = freq
+            exploitant.save(update_fields=["frequence_publication"])
+            messages.success(request, "Fréquence de publication mise à jour.")
+        else:
+            messages.error(request, "Fréquence inconnue.")
+    return redirect("portal:dashboard")
+
+
 @login_required
 @exploitant_requis
 def dashboard(request):
-    """Page centrale du maraîcher : rubriques à gauche, aperçu de la
-    vitrine publique en direct à droite, hero météo et bandeau des
-    créneaux de livraison (jour + horaires). Produits rangés par
-    catégorie, éditables sur place (libellé, unité, prix)."""
+    """Page centrale de l'espace pro : ventes en tête, puis la
+    ligne chronologique des publications saisonnières (fréquence
+    variable, édition en ligne de la période choisie) et la rubrique
+    boutique / produits fixes ; aperçu de la vitrine en direct. Le
+    catalogue d'articles se gère depuis sa page dédiée (gérant et
+    support), plus aucune édition de produits ici."""
     exploitant = exploitant_actif(request)
     if espace_actif(request) is None and exploitant is not None:
         # Accès direct au dashboard depuis le mode Localien : on
@@ -1257,30 +1352,56 @@ def dashboard(request):
                 .select_related("categorie", "origine_standard")
                 .order_by("categorie__position", "categorie__nom",
                           "position", "nom"))
-    groupes, ordre = {}, []
-    for p in produits:
-        cat = p.categorie
-        if cat not in groupes:
-            groupes[cat] = []
-            ordre.append(cat)
-        groupes[cat].append(p)
-    paires = [(cat, groupes[cat]) for cat in ordre]
+
+    # Période choisie sur la ligne chronologique : ?publication=<pk>
+    # ouvre l'édition d'une publication existante ; ?lundi=AAAA-MM-JJ
+    # prépare la création d'une nouvelle période.
+    publication = None
+    lundi_edition = None
+    pk = request.GET.get("publication", "").strip()
+    if pk.isdigit():
+        publication = (SemaineRecolte.objects
+                       .filter(exploitant=exploitant, pk=pk).first())
+    if publication is None:
+        brut = request.GET.get("lundi", "").strip()
+        try:
+            lundi_edition = (datetime.date.fromisoformat(brut)
+                            if brut else None)
+        except ValueError:
+            lundi_edition = None
+        if lundi_edition is not None:
+            publication = (SemaineRecolte.objects
+                           .filter(exploitant=exploitant,
+                                   lundi=lundi_edition).first())
+    if publication is not None:
+        lundi_edition = publication.lundi
+    edition_paires, edition_source = None, None
+    if publication is not None or lundi_edition is not None:
+        edition_paires, edition_source = _edition_recolte(
+            exploitant, publication,
+            lundi_edition or timezone.localdate())
+
+    carte_active, nb_cartes = None, 0
+    if exploitant.a_carte_boutique:
+        cartes = exploitant.cartes.annotate(nb_lignes=Count("lignes"))
+        nb_cartes = cartes.count()
+        carte_active = next(
+            (c for c in cartes if c.statut == Carte.Statut.ACTIVE), None)
+
     return render(request, "portal/pro/dashboard.html", {
         "exploitant": exploitant,
         "est_proprietaire": hasattr(request.user, "exploitant"),
-        "paires": paires,
         "nb_produits": len(produits),
-        "categories": list(Categorie.objects.filter(exploitant=exploitant)
-                           .order_by("position", "nom")),
-        "unite_choices": Produit.Unite.choices,
         "meteo": meteo_synthese(exploitant),
-        "semaine": SemaineRecolte.objects.filter(exploitant=exploitant)
-                   .order_by("-lundi").first(),
-        "semaines": list(SemaineRecolte.objects
-                         .filter(exploitant=exploitant)
-                         .annotate(nb_lignes=Count("lignes"))
-                         .order_by("-lundi")[:6]),
         "calendrier": _calendrier_recoltes(exploitant),
+        "publication_choisie": publication,
+        "lundi_edition": lundi_edition,
+        "edition_paires": edition_paires,
+        "edition_source": edition_source,
+        "edition_lundi_defaut": (publication.lundi if publication
+                                 else lundi_edition),
+        "carte_active": carte_active,
+        "nb_cartes": nb_cartes,
         "points": exploitant.points_livraison.all(),
         "creneaux": exploitant.creneaux.select_related("point_livraison"),
         "phrases_livraison": _phrases_livraison(exploitant),
@@ -1290,7 +1411,6 @@ def dashboard(request):
         "paniers_en_cours": exploitant.paniers
                             .exclude(statut=Panier.Statut.RECU).count(),
     })
-
 
 @login_required
 @exploitant_requis
@@ -1764,6 +1884,9 @@ def harvest_manage(request, semaine_id=None, nouvelle=False):
         messages.success(request, "Récolte du "
                          + semaine.lundi.strftime("%d/%m/%Y")
                          + " enregistrée.")
+        if request.POST.get("retour") == "dashboard":
+            return redirect("portal:dashboard"
+                            + "?publication=" + str(semaine.pk))
         return redirect("portal:harvest_list")
 
     # ---- Pré-remplissage : semaine source des valeurs reprises ----

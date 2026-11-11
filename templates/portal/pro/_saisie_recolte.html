@@ -1,0 +1,69 @@
+{% comment %}
+Zone de saisie d'une publication saisonnière, partagée entre la page
+de saisie (harvest_form.html) et le dashboard (édition en ligne sous
+la ligne de publication). Attend : paires, semaine (ou None),
+lundi_defaut, source ; variables optionnelles : autres (page seule)
+et retour="dashboard" (édition en ligne).
+{% endcomment %}
+<form method="post" class="form harvest-form"{% if retour %} action="{% if semaine %}{% url 'portal:harvest_manage' semaine.pk %}{% else %}{% url 'portal:harvest_new' %}{% endif %}"{% endif %}>
+  {% csrf_token %}
+  {% if retour %}<input type="hidden" name="retour" value="{{ retour }}">{% endif %}
+  <div class="card param-card">
+    <div class="form-row">
+      <label>Semaine du <input type="date" name="lundi" value="{{ lundi_defaut|date:'Y-m-d' }}"></label>
+      <label class="checkbox"><input type="checkbox" name="publiee" {% if not semaine or semaine.publiee %}checked{% endif %}>
+        Publiée aux clients</label>
+    </div>
+    <p class="muted">Modifiez la date pour déplacer cette publication vers
+      une autre période (impossible si une publication y existe déjà).</p>
+    <label>Note de la période
+      <input type="text" name="note" value="{{ semaine.note|default:'' }}"
+             placeholder="Ex : premières tomates de la saison !"></label>
+    {% if autres and not retour %}
+      <div class="form-row">
+        <span class="muted">Reprendre les valeurs d'une autre publication :</span>
+        <select id="copier-select">
+          {% for s in autres %}
+            <option value="{{ s.pk }}">Semaine du {{ s.lundi|date:"d/m/Y" }}</option>
+          {% endfor %}
+        </select>
+        <button class="btn btn-sm btn-outline" type="button"
+                onclick="window.location='?copier=' + document.getElementById('copier-select').value;">↩️ Recharger</button>
+      </div>
+    {% endif %}
+  </div>
+
+  {% for nom, rows in paires %}
+    <section class="harvest-cat">
+      <h3>{{ nom }} <span class="muted">({{ rows|length }})</span></h3>
+      <table class="table">
+        <thead><tr><th>Produit</th><th>Quantité estimée</th><th>Prix unitaire (€)</th></tr></thead>
+        <tbody>
+        {% for row in rows %}
+          <tr class="{% if row.reprise %}reprise{% endif %}">
+            <td>{% if row.produit.origine_standard and row.produit.origine_standard.emoji %}{{ row.produit.origine_standard.emoji }} {% endif %}{{ row.produit.nom }}
+              <span class="muted">({{ row.produit.get_unite_vente_display }})</span>
+              {% if row.reprise %}<span class="badge badge-off">reprise</span>{% endif %}</td>
+            <td><input type="number" step="{{ row.step }}" min="0" name="qty_{{ row.produit.pk }}"
+                       value="{% if row.qty %}{{ row.qty|unlocalize }}{% endif %}"></td>
+            <td><input type="number" step="0.01" min="0" name="price_{{ row.produit.pk }}"
+                       value="{% if row.price %}{{ row.price|unlocalize }}{% endif %}"></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% empty %}
+    <p class="muted">Ajoutez d'abord des {{ exploitant_courant.vocab.articles }} à votre catalogue
+      (par exemple via « Importer des produits types »).</p>
+  {% endfor %}
+
+  <div class="save-bar">
+    <button class="btn btn-lg" type="submit">💾 Enregistrer la {{ exploitant_courant.vocab.recolte }}</button>
+    {% if retour %}
+      <a class="btn btn-outline" href="{% url 'portal:dashboard' %}">Annuler</a>
+    {% else %}
+      <a class="btn btn-outline" href="{% url 'portal:harvest_list' %}">Annuler</a>
+    {% endif %}
+  </div>
+</form>

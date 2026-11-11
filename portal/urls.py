@@ -64,6 +64,8 @@ urlpatterns = [
          name="catalogue_copier"),
     path("categories/", views.categories_manage, name="categories_manage"),
     path("espace-recolte/", views.harvest_list, name="harvest_list"),
+    path("espace-recolte/frequence/", views.frequence_publication,
+         name="frequence_publication"),
     path("espace-recolte/nouvelle/", views.harvest_manage,
          {"nouvelle": True}, name="harvest_new"),
     path("espace-recolte/<int:semaine_id>/", views.harvest_manage,

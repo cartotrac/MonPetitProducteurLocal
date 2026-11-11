@@ -2055,3 +2055,30 @@ html.dark .retour-onglet.actif { background: #8fae76; color: #1a2314; }
   white-space: nowrap;
   cursor: pointer;
 }
+
+
+/* ---- Ligne chronologique des publications saisonnières (dashboard,
+        Lot 2) : périodes à fréquence variable ; cliquer sur une
+        période révèle la zone d'édition en dessous. ---- */
+.timeline-pubs { display: flex; gap: 0.55rem; overflow-x: auto;
+                 padding: 0.4rem 0.2rem 0.7rem; }
+.timeline-periode { flex: none; min-width: 8.2rem;
+                    border: 2px solid #d8d3c4; border-radius: 12px;
+                    padding: 0.55rem 0.65rem; text-decoration: none;
+                    color: inherit; background: #fff;
+                    display: flex; flex-direction: column; gap: 0.3rem; }
+.timeline-periode:hover { border-color: #4e6b3a; }
+.timeline-periode.passe { opacity: 0.62; }
+.timeline-periode.cal-courante { border-color: #2e7d32; }
+.timeline-periode.cal-avenir { border-color: #f5a623; }
+.timeline-periode.choisie { box-shadow: 0 0 0 3px rgba(78, 107, 58, 0.3); }
+.timeline-periode .cal-dates { font-weight: 700; white-space: nowrap; }
+html.dark .timeline-periode { background: #232620;
+                             border-color: #4a4f44; color: #e6e4da; }
+html.dark .timeline-periode.cal-courante { border-color: #8fd694; }
+html.dark .timeline-periode.cal-avenir { border-color: #f5c518; }
+.freq-form { margin: 0.3rem 0 0.2rem; }
+.freq-form select { margin-left: 0.4rem; }
+.zone-edition-pub { margin-top: 0.8rem; padding: 0.8rem; }
+.zone-edition-pub h3 { display: flex; gap: 0.6rem; align-items: center;
+                       flex-wrap: wrap; margin-top: 0; }
