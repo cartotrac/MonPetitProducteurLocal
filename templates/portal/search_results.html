@@ -25,6 +25,9 @@
       <div id="carte-recherche" class="map-canvas" data-mode="{% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% elif visu == "tout" %}tout{% else %}producteurs{% endif %}" data-zone="{{ dept }}" data-csrf="{{ csrf_token }}"></div>
       {{ carte_data|json_script:"donnees-carte" }}
       {{ home_carte|json_script:"home-carte" }}
+      {{ graph_locaux|json_script:"stats-serie-locaux" }}
+      {{ graph_restauration|json_script:"stats-serie-restauration" }}
+      {{ graph_marches|json_script:"stats-serie-marches" }}
       {% if resultats_vides %}
       <p class="muted">{% if visu == "marches" %}Aucun marché ou boutique identifié dans ces résultats :
          les producteurs n'ont pas encore déclaré de stand de marché ou de
@@ -238,7 +241,6 @@ window.mpplSoumettre = function (form) {
     }
   } catch (e) {}
 })();
-})();
 </script>
 
 
@@ -364,7 +366,6 @@ window.mpplSoumettre = function (form) {
     return div;
   };
   ctrl.addTo(carte);
-})();
 })();
 </script>
 {% endblock %}
