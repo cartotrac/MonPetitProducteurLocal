@@ -65,7 +65,7 @@
     <div class="filtre-multi-menu">
       <button type="button" class="filtre-tout-decocher">✕ Tout décocher</button>
       {# Mode All-in-1 : activités regroupées par catégorie thématique. #}
-      {% if visu == "tout" %}<div class="filtre-groupe-titre">🥬 Producteurs</div>{% endif %}
+      {% if visu == "tout" %}<div class="filtre-groupe-titre">🚜🥬 Producteurs</div>{% endif %}
       {% for code, libelle in activites %}
         {% if code != "FOODTRUCK" and code != "TRAITEUR" and code != "RESTAURANT" %}
         <label class="filtre-multi-choix"><input type="checkbox" name="activite" value="{{ code }}"{% if code in activite_choisie %} checked{% endif %}> {{ libelle }}</label>
@@ -184,7 +184,7 @@
 </div>
 {% if page_obj.paginator.num_pages > 1 %}
 <div class="pagination-barre">
-  <span class="pagination-info">{{ nb_resultats }} producteur{{ nb_resultats|pluralize }} trouvé{{ nb_resultats|pluralize }} — page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
+  <span class="pagination-info">{% if visu == "marches" %}{{ nb_resultats }} marché{{ nb_resultats|pluralize }} &amp; boutique{{ nb_resultats|pluralize }} identifié{{ nb_resultats|pluralize }}{% else %}{{ nb_resultats }} producteur{{ nb_resultats|pluralize }} trouvé{{ nb_resultats|pluralize }}{% endif %} — page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
   <nav class="pagination-liens" aria-label="Pages de résultats">
     {% if page_obj.has_previous %}
       <a class="btn btn-outline btn-sm pagination-lien" href="?{{ query_pages }}{% if query_pages %}&amp;{% endif %}page={{ page_obj.previous_page_number }}" title="Page précédente">←</a>

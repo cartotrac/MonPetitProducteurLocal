@@ -205,7 +205,7 @@
         <div class="stats-chart" data-role="chart"></div>
         <p class="muted">Cliquez à nouveau ou ailleurs pour fermer.</p>
       </div></span>{% endif %}
-        {% if salutation.stats.pros and request.resolver_match.url_name == "producer_search" %}<span class="stats-item"><span class="badge badge-ab bloc-session-stat" data-stats="segments" role="button" tabindex="0" title="Détail par famille de métier — cliquez pour les courbes 📈">{{ salutation.stats.locaux }} producteurs 🚜🥬 · présents sur {{ salutation.stats.marches|add:salutation.stats.boutiques }} marchés 🎪 &amp; boutiques 🏪 · et {{ salutation.stats.restauration }} restaurants 🍽️ et camions 🚚</span><div class="stats-pop" data-serie="locaux,restauration,marches">
+        {% if salutation.stats.pros and request.resolver_match.url_name == "producer_search" %}<span class="stats-item"><span class="badge badge-ab bloc-session-stat" data-stats="segments" role="button" tabindex="0" title="Détail par famille de métier — cliquez pour les courbes 📈">{{ salutation.stats.locaux }} 🚜🥬 · présents sur {{ salutation.stats.marches|add:salutation.stats.boutiques }} marchés 🎪 &amp; boutiques 🏪 · et {{ salutation.stats.restauration }} 🍽️🚚</span><div class="stats-pop" data-serie="locaux,restauration,marches">
         <strong>📈 Détail par famille de métier</strong>
         <div class="stats-options">
           <select class="stats-opt" data-opt="periode" title="Période affichée">

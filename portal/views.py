@@ -571,7 +571,8 @@ def producer_search(request):
         "url": m["url"],
         "nb_producteurs": m["nb_producteurs"],
         "horaires_txt": m["horaires_txt"][:4],
-    } for m in marches]
+    } for m in marches
+        if m["latitude"] and m["longitude"]]
         if (visu_marches or visu == "tout") else [])
     if visu_marches:
         carte_data = marches_carte
@@ -637,7 +638,11 @@ def producer_search(request):
         par_page = 25
     if par_page not in (10, 25, 50, 100):
         par_page = 25
-    paginator = Paginator(exploitants, par_page)
+    # Mode marches : les vignettes affichées sont les marchés et
+    # boutiques — pagination et décompte du bas de page suivent
+    # CETTE liste, pas le total des exploitants.
+    paginator = Paginator(marches if visu_marches else exploitants,
+                           par_page)
     page_obj = paginator.get_page(request.GET.get("page", 1))
     # Paramètres de l'URL courante (hors pagination) : les liens de
     # page et le sélecteur « par page » conservent ainsi les filtres
@@ -681,7 +686,7 @@ def producer_search(request):
         "visu": visu,
         "demo": demo,
         "home_carte": home_carte,
-        "marches": marches,
+        "marches": page_obj if visu_marches else marches,
         "resultats_vides": not carte_data,
         "nb_pros": nb_pros,
         "nb_producteurs_locaux": nb_producteurs_locaux,

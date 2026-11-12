@@ -273,7 +273,7 @@ legend.onAdd = function () {
        producteurs, restauration, puis marchés & boutiques (tous
        dénombrés dans l'emprise, comme les autres modes). */
     var groupesLegend = [
-      { titre: "🥬 Producteurs",
+      { titre: "🚜🥬 Producteurs",
         cles: activitesDuMode().filter(function (cle) {
           return ACTIVITES_RESTAURATION.indexOf(cle) < 0; }) },
       { titre: "🍽️ Restauration",
