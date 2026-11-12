@@ -1,12 +1,13 @@
-<h2>🚜 Votre espace pro en bref</h2>
+<h2>{{ exploitant_courant.emoji_vitrine }} Votre espace {{ exploitant_courant.nom_espace }} en bref</h2>
+<p class="muted">Aide adaptée à votre métier : {{ exploitant_courant.get_activite_display }}{% if exploitant_courant.specialite %} — {{ exploitant_courant.get_specialite_display }}{% endif %}.</p>
 <h3>🥕 Produits</h3>
 <ul>
   <li>Créer, modifier, <strong>édition rapide</strong> en ligne</li>
   <li><strong>Catalogue standard</strong> à copier pour démarrer ; catégories et unités (kg, pièce, botte…)</li>
 </ul>
-<h3>🧺 Récoltes</h3>
+<h3>{{ exploitant_courant.vocab.recoltes_emoji|default:"🧺" }} {{ exploitant_courant.vocab.recoltes|default:"Récoltes"|capfirst }}</h3>
 <ul>
-  <li>Semaines de récolte : constitution et publication selon le rythme choisi (quotidien, hebdo…)</li>
+  <li>Semaines selon le rythme choisi (quotidien, hebdo…) : constitution et publication</li>
 </ul>
 <h3>🧾 Ventes</h3>
 <ul>
@@ -23,18 +24,25 @@
 </ul>
 <h3>✉️ Publications</h3>
 <ul>
-  <li>Newsletter de récolte, annonces ponctuelles — diffusion e-mail aux clients (messagerie SMTP propre configurable)</li>
+  <li>Newsletter de {{ exploitant_courant.vocab.recoltes|default:"récolte" }}, annonces ponctuelles — diffusion e-mail aux clients (messagerie SMTP propre configurable)</li>
 </ul>
 <h3>⚙️ Paramètres</h3>
 <ul>
-  <li>Fiche selon votre métier (🚜 Ma ferme, 🚚 Mon foodtruck, 🥗 Ma boutique), profil, messagerie, visibilité, rythme de publication</li>
+  <li><strong>{{ exploitant_courant.titre_fiche|default:"Ma fiche" }}</strong> selon votre métier, profil, messagerie, visibilité, rythme de publication</li>
   <li>👥 Équipe : membres de l'exploitation</li>
 </ul>
 <h3>🔄 Cycle d'un panier</h3>
 <p class="aide-statuts">NOUVELLE → VALIDEE → PREPARATION → PRET → LIVRÉ (marqué par vous) → RECU (confirmé par le client)</p>
-<h3>💡 Selon votre métier</h3>
+<h3>💡 Votre métier sur le portail</h3>
 <ul>
-  <li>🚚 Foodtruck : votre <strong>spécialité</strong> s'affiche sur la fiche publique</li>
-  <li>🥗 Traiteur / 🏪 boutique : votre <strong>carte</strong> se gère dans Gestion → Ma carte / boutique</li>
-  <li>🚜 Ferme / maraîcher : vocabulaire et paniers adaptés à la récolte</li>
+{% if exploitant_courant.a_carte_boutique %}
+  <li>🧾 Votre <strong>{{ exploitant_courant.titre_carte_boutique|default:"carte" }}</strong> se gère dans Publications</li>
+{% endif %}
+{% if exploitant_courant.activite == "FOODTRUCK" %}
+  <li>🚚 Votre <strong>spécialité</strong> s'affiche sur la fiche publique ; pensez à déclarer vos <strong>emplacements &amp; horaires</strong> pour apparaître sur la carte du mode restauration</li>
+{% elif exploitant_courant.activite == "TRAITEUR" or exploitant_courant.activite == "RESTAURANT" %}
+  <li>🍽️ Votre <strong>carte</strong> et vos <strong>horaires</strong> s'affichent sur la fiche publique ; pensez à géolocaliser vos points pour apparaître sur la carte du mode restauration</li>
+{% else %}
+  <li>🚜 Vocabulaire et paniers adaptés à la {{ exploitant_courant.vocab.recoltes|default:"récolte" }} ; pensez à déclarer vos stands de <strong>marchés 🎪</strong> et <strong>boutiques 🏪</strong> pour apparaître sur la carte du mode marchés &amp; boutiques</li>
+{% endif %}
 </ul>
