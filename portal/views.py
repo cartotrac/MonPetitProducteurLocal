@@ -399,13 +399,18 @@ def producer_search(request):
         if type_marche_choisi:
             marches = [m for m in marches
                        if m["type"] in type_marche_choisi]
-            # Mode All-in-1 : filtrer sur les marchés/boutiques ne
-            # garde QUE ces entités — sur la carte comme dans les
-            # vignettes. Les producteurs qui les alimentent restent
-            # accessibles depuis la fiche générée de chaque marché
-            # ou boutique (lien « Voir la fiche » des popups).
-            if visu == "tout":
+        # Mode All-in-1, filtres HYBRIDES : les activités filtrent
+        # les producteurs et la restauration, « Marchés & boutiques »
+        # filtre les marchés et boutiques. Chaque famille cochée
+        # SEULE masque l'autre univers ; cochées ENSEMBLE, les
+        # résultats s'AJOUTENT — producteurs sélectionnés +
+        # marchés/boutiques sélectionnés sur la même carte.
+        if visu == "tout":
+            filtres_pro = bool(activite_choisie or mode_choisi)
+            if type_marche_choisi and not filtres_pro:
                 exploitants = []
+            if filtres_pro and not type_marche_choisi:
+                marches = []
     # Dénombrements affichés à côté du titre : producteurs visibles,
     # clients inscrits (comptes non pro), visiteurs (sessions anonymes),
     # + photo quotidienne pour l'historique / tendance des badges.

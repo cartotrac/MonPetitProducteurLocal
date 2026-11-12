@@ -2267,3 +2267,32 @@ html.dark .mode-carte a.mode-actif { background: #7cb342; color: #1d2617; }
 }
 .nav-gauche .bascule-demo:hover { background: rgba(255, 255, 255, 0.3); }
 .nav-gauche .bascule-demo .bascule-icone { font-size: 1.05rem; }
+
+
+/* ===== Espacement réduit entre la carte et la barre de filtres ===== */
+.map-section { margin-bottom: 0.45rem !important; }
+.search-bar { margin-top: 0.4rem !important; }
+
+/* ===== Filtres ACTIFS : pastilles sur la carte (colonne de droite,
+       sous les modes) — un clic retire le filtre. ===== */
+.ctrl-filtres-actifs {
+  display: flex; flex-direction: column; gap: 3px;
+  background: #fff; border: 1px solid #c9c4b4; border-radius: 8px;
+  padding: 4px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  max-width: 250px;
+}
+.ctrl-filtres-actifs button.pastille-filtre-carte {
+  background: #eef6e6; border: 1px solid #9dbb8e; border-radius: 999px;
+  font-size: 0.76rem; padding: 0.16rem 0.55rem; cursor: pointer;
+  text-align: left; color: #23430f; line-height: 1.35;
+}
+.ctrl-filtres-actifs button.pastille-filtre-carte:hover {
+  background: #ffe3e3; border-color: #d98c8c; color: #6b1f1f;
+}
+html.dark .ctrl-filtres-actifs { background: #232820; border-color: #4e5c3d; }
+html.dark .ctrl-filtres-actifs button.pastille-filtre-carte {
+  background: #2f3a26; border-color: #55624a; color: #d6e2c8;
+}
+html.dark .ctrl-filtres-actifs button.pastille-filtre-carte:hover {
+  background: #4a2a2a; border-color: #8c5a5a; color: #f0c8c8;
+}

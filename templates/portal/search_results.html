@@ -22,11 +22,10 @@
 <section class="map-section">
   <div class="map-canvas-wrap{% if visu == "restauration" %} visu-restauration{% elif visu == "marches" %} visu-marches{% endif %}">
     <h2 class="map-titre">🗺️ {% if visu == "restauration" %}Restaurants, traiteurs &amp; foodtrucks trouvés{% elif visu == "marches" %}Marchés &amp; boutiques identifiés{% elif visu == "tout" %}Tous les professionnels, marchés &amp; boutiques trouvés{% else %}Producteurs trouvés{% endif %}{% if carte_data %} ({{ carte_data|length }}){% endif %}</h2>
-    {% if carte_data %}
       <div id="carte-recherche" class="map-canvas" data-mode="{% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% elif visu == "tout" %}tout{% else %}producteurs{% endif %}" data-zone="{{ dept }}" data-csrf="{{ csrf_token }}"></div>
       {{ carte_data|json_script:"donnees-carte" }}
       {{ home_carte|json_script:"home-carte" }}
-    {% else %}
+      {% if resultats_vides %}
       <p class="muted">{% if visu == "marches" %}Aucun marché ou boutique identifié dans ces résultats :
          les producteurs n'ont pas encore déclaré de stand de marché ou de
          point de vente géolocalisé.{% else %}Aucun producteur géolocalisé dans ces résultats :
@@ -216,10 +215,16 @@
    (mode depuis la carte, filtres, bascule démo, recherche) enregistre
    la position avant rechargement, puis elle est restaurée — la page
    ne remonte plus en haut à chaque interaction. */
+/* Le point de repère n'est plus le haut de la page mais la CARTE :
+   on enregistre la distance entre le haut de la carte et le haut de
+   la fenêtre, puis on la restitue — la carte reste en place quand
+   le contenu au-dessus change (mode, filtres). */
 window.mpplSoumettre = function (form) {
   try {
-    sessionStorage.setItem("mppl_scroll_recherche",
-                          window.scrollX + "," + window.scrollY);
+    var cible = document.querySelector(".map-canvas-wrap");
+    var delta = cible
+      ? window.scrollY - cible.getBoundingClientRect().top : 0;
+    sessionStorage.setItem("mppl_scroll_recherche", "delta:" + delta);
   } catch (e) {}
   form.submit();
 };
@@ -228,8 +233,17 @@ window.mpplSoumettre = function (form) {
     var p = sessionStorage.getItem("mppl_scroll_recherche");
     if (p) {
       sessionStorage.removeItem("mppl_scroll_recherche");
-      var xy = p.split(",");
-      window.scrollTo(parseInt(xy[0], 10) || 0, parseInt(xy[1], 10) || 0);
+      var cible = document.querySelector(".map-canvas-wrap");
+      if (p.indexOf("delta:") === 0 && cible) {
+        var delta = parseInt(p.slice(6), 10) || 0;
+        var y = cible.getBoundingClientRect().top + window.scrollY
+              + delta;
+        window.scrollTo(0, Math.max(0, y));
+      } else {
+        var xy = p.split(",");
+        window.scrollTo(parseInt(xy[0], 10) || 0,
+                        parseInt(xy[1], 10) || 0);
+      }
     }
   } catch (e) {}
 })();
@@ -316,8 +330,56 @@ window.mpplSoumettre = function (form) {
   });
 })();
 </script>
-{% if carte_data %}
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="{% static 'js/search-map.js' %}"></script>
-{% endif %}
+
+<script>
+/* Filtres ACTIFS : pastilles posées sur la carte, sous la colonne
+   des modes (à droite). Un clic retire le filtre et relance la
+   recherche. Visibles seulement s'il y a au moins un filtre actif. */
+(function () {
+  var form = document.querySelector(".search-bar");
+  if (!form || typeof L === "undefined" || typeof carte === "undefined") {
+    return;
+  }
+  var pastilles = [];
+  form.querySelectorAll("input[type=checkbox]").forEach(function (c) {
+    if (!c.checked) { return; }
+    var lab = c.closest("label");
+    var texte = lab ? lab.textContent.replace(/\s+/g, " ").trim()
+                    : c.value;
+    pastilles.push({ etiquette: texte,
+                    retirer: function () { c.checked = false; } });
+  });
+  [["q", "🔎"], ["dept", "📍"]].forEach(function (paire) {
+    var champ = form.querySelector('input[name="' + paire[0] + '"]');
+    if (champ && champ.value.trim()) {
+      pastilles.push({
+        etiquette: paire[1] + " " + champ.value.trim(),
+        retirer: function () { champ.value = ""; }
+      });
+    }
+  });
+  if (!pastilles.length) { return; }
+  var ctrl = L.control({ position: "topright" });
+  ctrl.onAdd = function () {
+    var div = L.DomUtil.create("div", "ctrl-filtres-actifs");
+    L.DomEvent.disableClickPropagation(div);
+    pastilles.forEach(function (f) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "pastille-filtre-carte";
+      b.textContent = "✕ " + f.etiquette;
+      b.title = "Retirer ce filtre";
+      b.addEventListener("click", function () {
+        f.retirer();
+        window.mpplSoumettre(form);
+      });
+      div.appendChild(b);
+    });
+    return div;
+  };
+  ctrl.addTo(carte);
+})();
+</script>
 {% endblock %}
