@@ -2255,18 +2255,25 @@ html.dark .mode-carte a.mode-actif { background: #7cb342; color: #1d2617; }
 }
 
 
-/* ===== Bascule Démo / Réel : bouton compact dans l'en-tête, à gauche
-       du logo, uniquement sur la page Trouver (temporaire, bêta v1). ===== */
+/* ===== Bascule Démo / Réel : pastille ronde SUPERPOSÉE au logo de
+       l'en-tête (badge en coin haut-droit de la pièce), uniquement sur
+       la page Trouver (temporaire, bêta v1) — plus aucun décalage du
+       bandeau, rendu identique sur mobile. ===== */
+.nav-gauche { position: relative; }
 .nav-gauche .bascule-demo {
+  position: absolute; left: 22px; top: -5px; z-index: 30;
   display: inline-flex; align-items: center; justify-content: center;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  border-radius: 8px; cursor: pointer; flex: none;
-  padding: 0.28rem 0.5rem; font-size: 1.05rem; line-height: 1;
-  margin-right: 0.2rem;
+  background: rgba(21, 29, 17, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 50%; cursor: pointer; flex: none;
+  padding: 0.02rem 0.28rem; font-size: 0.85rem; line-height: 1.2;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
-.nav-gauche .bascule-demo:hover { background: rgba(255, 255, 255, 0.3); }
-.nav-gauche .bascule-demo .bascule-icone { font-size: 1.05rem; }
+.nav-gauche .bascule-demo:hover { background: #2e7d32; }
+.nav-gauche .bascule-demo .bascule-icone { font-size: 0.85rem; }
+.nav-gauche .bascule-demo:focus-visible {
+  outline: 2px solid #fff; outline-offset: 1px;
+}
 
 
 /* ===== Espacement réduit entre la carte et la barre de filtres ===== */
