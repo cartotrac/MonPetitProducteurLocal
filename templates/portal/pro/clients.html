@@ -11,6 +11,22 @@
   {% if q %}<a class="btn btn-outline btn-sm" href="{% url 'portal:clients_suivi' %}">Tout voir</a>{% endif %}
 </form>
 
+<details class="bloc-replie">
+  <summary><h2>📥 Importer ma liste de clients (CSV)</h2>
+    <span class="aide-replier">reprendre mes contacts historiques</span></summary>
+  <form method="post" enctype="multipart/form-data"
+        action="{% url 'portal:clients_import_csv' %}" class="inline-form">
+    {% csrf_token %}
+    <input type="file" name="fichier" accept=".csv,text/csv" required>
+    <button class="btn btn-sm" type="submit">Importer</button>
+    <a class="btn btn-outline btn-sm" href="{% url 'portal:clients_modele_csv' %}">📄 Modèle CSV</a>
+  </form>
+  <p class="muted">Colonnes « nom ; email ; téléphone » (séparateur point-virgule,
+     l'en-tête est optionnel). Un client dont l'e-mail correspond à un compte
+     Localien est rattaché automatiquement (badge « compte ») ; les lignes sans
+     nom ni contact et les doublons sont ignorés.</p>
+</details>
+
 <table class="table">
   <thead>
     <tr><th>Client</th><th>Contact</th><th>Commandes</th><th>Paniers</th>
@@ -19,7 +35,7 @@
   <tbody>
   {% for e in rows %}
     <tr>
-      <td>{{ e.nom }}{% if e.client_id %} <span class="badge">compte</span>{% endif %}</td>
+      <td>{{ e.nom }}{% if e.client_id %} <span class="badge">compte</span>{% endif %}{% if e.importe %} <span class="badge">importé</span>{% endif %}</td>
       <td class="muted">{% if e.email %}✉️ {{ e.email }}{% endif %}{% if e.telephone %}<br>📞 {{ e.telephone }}{% endif %}</td>
       <td>{{ e.nb_commandes }}</td>
       <td>{{ e.nb_paniers }}</td>

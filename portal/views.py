@@ -31,8 +31,9 @@ from .forms import (AnnonceForm, BulletinForm, InscriptionClientForm,
                     ProfilGerantForm, ProfilPersonnelForm)
 from .marches import identifier_marches
 from .meteo import meteo_synthese
-from .models import (Annonce, Bulletin, Carte, Categorie, Commande,
-                    CreneauLivraison, Exploitant, Favori, LigneCarte,
+from .models import (Annonce, Bulletin, Carte, Categorie, ClientImporte,
+                    Commande, CreneauLivraison, Exploitant, Favori,
+                    LigneCarte,
                     LigneCommande, LignePanier, LigneRecolte,
                     MembreExploitation, Panier,
                     ParametresVitrine, PointLivraison, PreferenceContact,
@@ -2804,6 +2805,7 @@ def clients_suivi(request):
                 "client_id": client_id,
                 "nb_commandes": 0, "nb_paniers": 0,
                 "total": Decimal("0"), "derniere": None,
+                "importe": False,
             }
         return registre[cle]
 
@@ -2821,6 +2823,33 @@ def clients_suivi(request):
         if not e["derniere"] or p.date_livraison > e["derniere"]:
             e["derniere"] = p.date_livraison
 
+    # Clients importés en CSV : ils rejoignent le registre même sans
+    # commande — fusion par e-mail (ou nom) si une entrée existe déjà.
+    for imp in exploitant.clients_importes.all():
+        cle = None
+        for k, e in registre.items():
+            if (imp.email and e["email"]
+                    and e["email"].lower() == imp.email.lower()):
+                cle = k
+                break
+            if not imp.email and e["nom"].lower() == (imp.nom or "").lower():
+                cle = k
+                break
+        if cle is None:
+            cle = "i:%s|%s" % ((imp.nom or "").lower(),
+                              (imp.email or "").lower())
+            registre[cle] = {
+                "nom": imp.nom, "email": imp.email or "",
+                "telephone": imp.telephone or "",
+                "client_id": imp.client_id,
+                "nb_commandes": 0, "nb_paniers": 0,
+                "total": Decimal("0"), "derniere": None,
+                "importe": False,
+            }
+        e = registre[cle]
+        e["importe"] = True
+        if imp.client_id and not e["client_id"]:
+            e["client_id"] = imp.client_id
     canaux = {pc.client_id: pc for pc in
               PreferenceContact.objects.filter(exploitant=exploitant)}
     rows = []
@@ -2835,6 +2864,101 @@ def clients_suivi(request):
                 or q in e["telephone"].lower()]
     return render(request, "portal/pro/clients.html",
                   {"rows": rows, "q": request.GET.get("q", "")})
+
+
+@login_required
+@exploitant_requis
+def clients_modele_csv(request):
+    """Modèle CSV de l'import clients : nom ; e-mail ; téléphone —
+    une ligne d'en-tête et un exemple. UTF-8 avec BOM pour une
+    ouverture propre dans Excel, séparateur point-virgule."""
+    reponse = HttpResponse(content_type="text/csv; charset=utf-8")
+    reponse["Content-Disposition"] = 'attachment; filename="clients_modele.csv"'
+    reponse.write("\ufeff")
+    writer = csv.writer(reponse, delimiter=";")
+    writer.writerow(["nom", "email", "telephone"])
+    writer.writerow(["Marie Dupont", "marie.dupont@example.fr",
+                     "06 12 34 56 78"])
+    return reponse
+
+
+@login_required
+@exploitant_requis
+def clients_import_csv(request):
+    """Import du fichier CSV de clients (nom ; e-mail ; téléphone) :
+    chaque ligne rejoint le suivi « Mes clients » même sans commande.
+    Rattachement AUTOMATIQUE au compte Localien dont l'e-mail
+    correspond (badge « compte ») ; e-mails invalides, lignes sans
+    nom ni contact et doublons ignorés — compte-rendu détaillé."""
+    exploitant = exploitant_actif(request)
+    if request.method != "POST":
+        return redirect("portal:clients_suivi")
+    fichier = request.FILES.get("fichier")
+    if not fichier:
+        messages.error(request, "Aucun fichier reçu : choisissez un "
+                       "fichier CSV (le modèle est téléchargeable).")
+        return redirect("portal:clients_suivi")
+    brut = fichier.read()
+    try:
+        contenu = brut.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        try:
+            contenu = brut.decode("latin-1")
+        except Exception:
+            messages.error(request, "Encodage non reconnu : "
+                           "réenregistrez le fichier en UTF-8.")
+            return redirect("portal:clients_suivi")
+    lignes = [l for l in csv.reader(io.StringIO(contenu), delimiter=";")
+              if any(c.strip() for c in l)]
+    if not lignes:
+        messages.error(request, "Le fichier est vide.")
+        return redirect("portal:clients_suivi")
+    # Ligne d'en-tête optionnelle (nom ; email ; téléphone)
+    if lignes[0] and lignes[0][0].strip().lower() in ("nom", "client",
+                                                      "name"):
+        lignes = lignes[1:]
+    existants = {}
+    for c in exploitant.clients_importes.all():
+        existants[(c.email or "").lower() or c.nom.lower()] = True
+    crees, rattaches, doublons, ignores, invalides = 0, 0, 0, 0, []
+    for num, ligne in enumerate(lignes, 1):
+        champs = (list(ligne) + ["", "", ""])[:3]
+        nom = champs[0].strip()[:150]
+        email = champs[1].strip()[:254]
+        tel = champs[2].strip()[:20]
+        if not nom or (not email and not tel):
+            ignores += 1
+            continue
+        if email:
+            try:
+                validate_email(email)
+            except ValidationError:
+                invalides.append(f"ligne {num}")
+                continue
+        cle = (email or nom).lower()
+        if cle in existants:
+            doublons += 1
+            continue
+        compte = (User.objects.filter(email__iexact=email).first()
+                  if email else None)
+        if compte is not None and compte.pk == request.user.pk:
+            compte = None  # le pro n'est pas son propre client
+        ClientImporte.objects.create(
+            exploitant=exploitant, nom=nom, email=email,
+            telephone=tel, client=compte)
+        existants[cle] = True
+        crees += 1
+        if compte is not None:
+            rattaches += 1
+    message = (f"📥 Import terminé : {crees} client(s) ajouté(s), "
+               f"{rattaches} rattaché(s) à un compte Localien, "
+               f"{doublons} déjà connu(s), {ignores} ignoré(s).")
+    if invalides:
+        message += " E-mails invalides : " + ", ".join(invalides) + "."
+        messages.warning(request, message)
+    else:
+        messages.success(request, message)
+    return redirect("portal:clients_suivi")
 
 
 def _latlon(brut):

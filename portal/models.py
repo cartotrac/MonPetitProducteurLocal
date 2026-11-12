@@ -1461,6 +1461,35 @@ class Favori(models.Model):
                 f" ({self.user.username})")
 
 
+class ClientImporte(models.Model):
+    """Client importé en masse par l'exploitant (fichier CSV) : le
+    suivi « Mes clients » part des contacts historiques de l'espace,
+    AVANT même une première commande passée sur le portail. Le
+    rattachement à un compte Localien est automatique quand l'e-mail
+    correspond ; sinon le client reste un simple contact."""
+
+    exploitant = models.ForeignKey(Exploitant, on_delete=models.CASCADE,
+                                   related_name="clients_importes")
+    client = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="clients_importes_chez",
+        verbose_name="Compte Localien rattaché",
+        help_text="Renseigné automatiquement à l'import si un compte "
+                  "utilise cet e-mail.")
+    nom = models.CharField("Nom du client", max_length=150)
+    email = models.EmailField("E-mail", blank=True)
+    telephone = models.CharField("Téléphone", max_length=20, blank=True)
+    ajoute_le = models.DateTimeField("Importé le", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Client importé"
+        verbose_name_plural = "Clients importés"
+        ordering = ["nom"]
+
+    def __str__(self):
+        return f"{self.nom} (importé — {self.exploitant.nom_espace})"
+
+
 class Visiteur(models.Model):
     """Compteur d'audience minimaliste et RGPD-friendly : une ligne par
     session anonyme (clé de session, aucune donnée personnelle),
