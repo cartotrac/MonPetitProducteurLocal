@@ -501,7 +501,7 @@ modeCtrl.onAdd = function () {
         form.appendChild(cache);
       }
       cache.value = m.cle === "producteurs" ? "" : m.cle;
-      form.submit();
+      window.mpplSoumettre ? window.mpplSoumettre(form) : form.submit();
     });
     div.appendChild(btn);
   });

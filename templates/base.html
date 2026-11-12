@@ -26,6 +26,11 @@
 <header class="site-header">
   <nav class="nav container">
     <div class="nav-gauche">
+      {% if request.resolver_match.url_name == "producer_search" and not request.GET.apercu %}
+      <button type="button" id="bascule-demo" class="bascule-demo bascule-demo-nav{% if demo %} actif{% endif %}" title="{% if demo %}🎃 Comptes de démonstration AFFICHÉS — cliquer pour ne voir que les vrais producteurs (bascule temporaire, phase bêta-test v1){% else %}🧡 Résultats réels — cliquer pour afficher AUSSI les comptes de démonstration (bascule temporaire, phase bêta-test v1){% endif %}" aria-pressed="{% if demo %}true{% else %}false{% endif %}" aria-label="Bascule Démo / Réel : afficher ou masquer les comptes de démonstration (temporaire, bêta-test v1)">
+        <span class="bascule-icone">{% if demo %}🎃{% else %}🧡{% endif %}</span>
+      </button>
+      {% endif %}
       <a class="brand" href="{% url 'portal:home' %}" id="brand-accueil"><img class="brand-logo" src="{% static 'img/logo.svg' %}" alt="Logo MonPetitProducteurLocal" width="30" height="30"> MonPetitProducteurLocal{% if mode_pro %}<span class="brand-demo-badge" title="Instance de démonstration">DÉMO</span>{% endif %}</a>
       <button class="btn-darkmode" type="button" id="btn-darkmode" title="Basculer en mode sombre" aria-label="Basculer en mode sombre">🌙</button>
       {% if user.is_authenticated and nb_espaces_pro %}

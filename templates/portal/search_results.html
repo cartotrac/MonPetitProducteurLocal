@@ -9,10 +9,7 @@
 <div class="entete-chercher">
   <div class="titre-recherche">
     <h1 title="{% if visu == "restauration" %}🍽️ Mode restaurants, traiteurs &amp; foodtrucks{% elif visu == "marches" %}🎪 Mode marchés &amp; boutiques de producteurs — identifiés à partir des points et créneaux déclarés{% elif visu == "tout" %}🌍 Mode producteurs, restauration, marchés &amp; boutiques réunis sur la même carte{% else %}🚜🥬 Mode exploitations &amp; producteurs locaux{% endif %}">{% if visu == "restauration" %}🔍🍽️ Trouver un Restaurant, Traiteur ou Foodtruck autour de moi !{% elif visu == "marches" %}🔍🎪 Trouver mes Producteurs en Boutique ou sur les Marchés locaux !{% elif visu == "tout" %}🔍🌍 Tout l'univers du local : producteurs, restauration, marchés &amp; boutiques réunis !{% else %}🔍🚜🥬 Trouver mon Producteur local !{% endif %}</h1>
-    <button type="button" id="bascule-demo" class="bascule-demo{% if demo %} actif{% endif %}" title="{% if demo %}Démo{% else %}Réel{% endif %}" aria-pressed="{% if demo %}true{% else %}false{% endif %}" aria-label="Bascule Démo / Réel : afficher ou masquer les comptes de démonstration">
-      <span class="bascule-piste"><span class="bascule-curseur"></span></span>
-      <span class="bascule-icone">{% if demo %}🎃{% else %}🧡{% endif %}</span>
-    </button>
+    
   </div>
   
 
@@ -215,32 +212,29 @@
 {% endblock %}
 {% block extrajs %}
 <script>
-/* Bascule des 3 modes de visualisation (boutons au-dessus du titre de
-   la carte) : le formulaire de recherche est re-soumis avec le mode
-   choisi — titre, filtres, carte, légende et vignettes s'adaptent. */
+/* Position de défilement CONSERVÉE : tout re-soumission du formulaire
+   (mode depuis la carte, filtres, bascule démo, recherche) enregistre
+   la position avant rechargement, puis elle est restaurée — la page
+   ne remonte plus en haut à chaque interaction. */
+window.mpplSoumettre = function (form) {
+  try {
+    sessionStorage.setItem("mppl_scroll_recherche",
+                          window.scrollX + "," + window.scrollY);
+  } catch (e) {}
+  form.submit();
+};
 (function () {
-  var form = document.querySelector(".search-bar");
-  if (!form) { return; }
-  document.querySelectorAll(
-    ".mode-choix-entete .mode-bouton").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      var cache = form.querySelector('input[name="visu"]');
-      if (!cache) { return; }
-      cache.value = btn.getAttribute("data-visu") || "";
-      /* Changement de mode : on retire les filtres attributaires
-         actifs (activités, modes de production, types marché) —
-         l'emprise spatiale (recherche texte, département) est
-         conservée : la carte et les vignettes suivent. */
-      form.querySelectorAll(
-        'input[name="activite"], input[name="mode"], ' +
-        'input[name="type_marche"]').forEach(function (caseFiltre) {
-        caseFiltre.checked = false;
-      });
-      form.submit();
-    });
-  });
+  try {
+    var p = sessionStorage.getItem("mppl_scroll_recherche");
+    if (p) {
+      sessionStorage.removeItem("mppl_scroll_recherche");
+      var xy = p.split(",");
+      window.scrollTo(parseInt(xy[0], 10) || 0, parseInt(xy[1], 10) || 0);
+    }
+  } catch (e) {}
 })();
 </script>
+
 
 <script>
 /* Bascule 🎃 Démo / 🧡 Réel : filtre les comptes fictifs de
@@ -255,7 +249,7 @@
     var cache = form.querySelector('input[name="demo"]');
     if (!cache) { return; }
     cache.value = (cache.value === "1") ? "0" : "1";
-    form.submit();
+    window.mpplSoumettre(form);
   });
 })();
 </script>
@@ -311,13 +305,13 @@
   var form = document.querySelector(".search-bar");
   if (!form) { return; }
   form.querySelectorAll("input[type=checkbox]").forEach(function (caseFiltre) {
-    caseFiltre.addEventListener("change", function () { form.submit(); });
+    caseFiltre.addEventListener("change", function () { window.mpplSoumettre(form); });
   });
   ["q", "dept"].forEach(function (nom) {
     var champ = form.querySelector('input[name="' + nom + '"]');
     if (!champ) { return; }
     champ.addEventListener("blur", function () {
-      if (champ.value.trim() !== champ.defaultValue) { form.submit(); }
+      if (champ.value.trim() !== champ.defaultValue) { window.mpplSoumettre(form); }
     });
   });
 })();

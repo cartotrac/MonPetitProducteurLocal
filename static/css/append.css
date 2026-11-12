@@ -2253,3 +2253,17 @@ html.dark .mode-carte a.mode-actif { background: #7cb342; color: #1d2617; }
   margin: 0 auto 0.6rem !important; text-align: center;
   white-space: normal;
 }
+
+
+/* ===== Bascule Démo / Réel : bouton compact dans l'en-tête, à gauche
+       du logo, uniquement sur la page Trouver (temporaire, bêta v1). ===== */
+.nav-gauche .bascule-demo {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 8px; cursor: pointer; flex: none;
+  padding: 0.28rem 0.5rem; font-size: 1.05rem; line-height: 1;
+  margin-right: 0.2rem;
+}
+.nav-gauche .bascule-demo:hover { background: rgba(255, 255, 255, 0.3); }
+.nav-gauche .bascule-demo .bascule-icone { font-size: 1.05rem; }
