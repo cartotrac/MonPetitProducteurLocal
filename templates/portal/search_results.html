@@ -222,14 +222,43 @@
    (mode, filtres, démo), la page se cale sur le TITRE DE LA CARTE —
    toujours exactement au même endroit, aucune dérive possible d'un
    clic à l'autre, quel que soit le contenu au-dessus de la carte. */
-window.mpplSoumettre = function (form) {
+/* Emprise de la carte (centre + zoom) conservée d'un rechargement
+   à l'autre : les filtres d'activité et la bascule Démo/Réel ne
+   recadrent PLUS la carte (le bouton de cadrage général reste
+   disponible). Seuls un changement de mode ou une NOUVELLE zone
+   saisie recadrent : garderVue = false. */
+window.mpplGarderVue = function () {
+  try {
+    if (window.carte && window.carte.getCenter) {
+      var c = window.carte.getCenter();
+      sessionStorage.setItem("mppl_vue_carte",
+        c.lat.toFixed(5) + "," + c.lng.toFixed(5) + "," +
+        window.carte.getZoom());
+    }
+  } catch (e) {}
+};
+window.mpplSoumettre = function (form, garderVue) {
   try {
     sessionStorage.setItem("mppl_scroll_recherche", "carte");
+    if (garderVue === false) {
+      sessionStorage.removeItem("mppl_vue_carte");
+    } else {
+      window.mpplGarderVue();
+    }
   } catch (e) {}
   form.submit();
 };
 (function () {
   try {
+    /* Bascule Démo/Réel : position EXACTE de la page restituée. */
+    var ex = sessionStorage.getItem("mppl_scroll_exact");
+    if (ex) {
+      sessionStorage.removeItem("mppl_scroll_exact");
+      var xy = ex.split(",");
+      window.scrollTo(parseInt(xy[0], 10) || 0,
+                       parseInt(xy[1], 10) || 0);
+      return;
+    }
     var p = sessionStorage.getItem("mppl_scroll_recherche");
     if (p) {
       sessionStorage.removeItem("mppl_scroll_recherche");
@@ -257,7 +286,15 @@ window.mpplSoumettre = function (form) {
     var cache = form.querySelector('input[name="demo"]');
     if (!cache) { return; }
     cache.value = (cache.value === "1") ? "0" : "1";
-    window.mpplSoumettre(form);
+    /* La bascule ne change NI la position de la page NI l'emprise
+       de la carte : mêmes filtres, même mode — seuls les chiffres
+       changent. */
+    try {
+      sessionStorage.setItem("mppl_scroll_exact",
+                            window.scrollX + "," + window.scrollY);
+    } catch (e) {}
+    window.mpplGarderVue();
+    form.submit();
   });
 })();
 </script>
@@ -319,7 +356,11 @@ window.mpplSoumettre = function (form) {
     var champ = form.querySelector('input[name="' + nom + '"]');
     if (!champ) { return; }
     champ.addEventListener("blur", function () {
-      if (champ.value.trim() !== champ.defaultValue) { window.mpplSoumettre(form); }
+      if (champ.value.trim() !== champ.defaultValue) {
+        /* Nouvelle zone saisie : la carte recadre dessus —
+           l'emprise enregistrée est écartée (garderVue false). */
+        window.mpplSoumettre(form, nom !== "dept");
+      }
     });
   });
 })();
@@ -360,7 +401,7 @@ window.mpplSoumettre = function (form) {
         var champ = form.querySelector('input[name="' + nom + '"]');
         if (champ) { champ.value = ""; }
       });
-      window.mpplSoumettre(form);
+      window.mpplSoumettre(form, false);
     });
     div.appendChild(b);
     return div;

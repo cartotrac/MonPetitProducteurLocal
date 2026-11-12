@@ -456,12 +456,10 @@ function majEmprise() {
 }
 carte.on("moveend zoomend", majEmprise);
 
-// Cadrer la carte sur les résultats
-if (exploitants.length) {
-  var bornes = [];
-  exploitants.forEach(function (e) { bornes.push([e.latitude, e.longitude]); });
-  carte.fitBounds(bornes, { padding: [30, 30], maxZoom: 12 });
-}
+/* Plus de cadrage AUTOMATIQUE sur les résultats au chargement :
+   la carte s'ouvre sur la France (ou la zone saisie) et l'emprise
+   enregistrée est restaurée — le bouton de cadrage général reste
+   disponible pour recadrer à la demande (retour Julien). */
 carte.whenReady(majEmprise);
 
 /* ----------------------------------------------- géolocalisation (cible) */
@@ -509,7 +507,7 @@ modeCtrl.onAdd = function () {
       form.querySelectorAll(
         'input[name="activite"], input[name="type_marche"]').forEach(
         function (caseFiltre) { caseFiltre.checked = false; });
-      window.mpplSoumettre ? window.mpplSoumettre(form) : form.submit();
+      window.mpplSoumettre ? window.mpplSoumettre(form, false) : form.submit();
     });
     div.appendChild(btn);
   });
@@ -600,6 +598,19 @@ modeCtrl.addTo(carte);
    le jeu de résultats côté serveur : ce sont l'emprise de la carte
    et majEmprise() qui masquent les vignettes hors zone. */
 (function () {
+  /* Emprise enregistrée avant re-soumission (filtres, bascule
+     Démo/Réel) : on la RESTAURE et on saute le cadrage sur la
+     zone saisie — l'utilisateur n'a pas demandé à recadrer. */
+  try {
+    var vue = sessionStorage.getItem("mppl_vue_carte");
+    if (vue) {
+      sessionStorage.removeItem("mppl_vue_carte");
+      var compo = vue.split(",");
+      carte.setView([parseFloat(compo[0]), parseFloat(compo[1])],
+                    parseInt(compo[2], 10) || 6);
+      return;
+    }
+  } catch (e) {}
   var zone = ((blocCarte.getAttribute("data-zone") || "")).trim();
   if (!zone) { return; }
   function normalise(t) {

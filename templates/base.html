@@ -142,10 +142,6 @@
             <option value="barres">Barres</option>
             <option value="courbe" selected>Courbe</option>
           </select>
-          <select class="stats-opt" data-opt="valeurs" title="Valeurs du jour ou cumulées">
-            <option value="jour" selected>Par jour</option>
-            <option value="cumul">Cumulé</option>
-          </select>
         </div>
         <div class="stats-lecture">
           <span class="stats-tendance" data-role="tendance"></span>
@@ -166,10 +162,6 @@
           <select class="stats-opt" data-opt="affichage" title="Barres ou courbe">
             <option value="barres">Barres</option>
             <option value="courbe" selected>Courbe</option>
-          </select>
-          <select class="stats-opt" data-opt="valeurs" title="Valeurs du jour ou cumulées">
-            <option value="jour" selected>Par jour</option>
-            <option value="cumul">Cumulé</option>
           </select>
         </div>
         <div class="stats-lecture">
@@ -192,10 +184,6 @@
             <option value="barres">Barres</option>
             <option value="courbe" selected>Courbe</option>
           </select>
-          <select class="stats-opt" data-opt="valeurs" title="Valeurs du jour ou cumulées">
-            <option value="jour" selected>Par jour</option>
-            <option value="cumul">Cumulé</option>
-          </select>
         </div>
         <div class="stats-lecture">
           <span class="stats-tendance" data-role="tendance"></span>
@@ -216,10 +204,6 @@
           <select class="stats-opt" data-opt="affichage" title="Barres ou courbe">
             <option value="barres">Barres</option>
             <option value="courbe" selected>Courbe</option>
-          </select>
-          <select class="stats-opt" data-opt="valeurs" title="Valeurs du jour ou cumulées">
-            <option value="jour" selected>Par jour</option>
-            <option value="cumul">Cumulé</option>
           </select>
         </div>
         <div class="stats-lecture">
@@ -666,12 +650,12 @@
           return (i * pasM).toFixed(2) + "," +
                  (40 - 36 * (p.valeur || 0) / maxM).toFixed(2);
         }).join(" ");
-        svg += '<polyline stroke="' + COULEURS[s.cle] +
+        svg += '<polyline style="stroke:' + COULEURS[s.cle] +
                '" fill="none" points="' + ligne + '"/>';
         s.points.forEach(function (p, i) {
           svg += '<circle cx="' + (i * pasM).toFixed(2) + '" cy="' +
                  (40 - 36 * (p.valeur || 0) / maxM).toFixed(2) +
-                 '" r="1.4" fill="' + COULEURS[s.cle] + '">' +
+                 '" r="1.4" style="fill:' + COULEURS[s.cle] + '">' +
                  "<title>" + p.jour + " : " + (p.valeur || 0) +
                  "</title></circle>";
         });

@@ -205,12 +205,27 @@ def instance_contexte(request):
             # la série des pros suit le champ nb_producteurs des
             # statistiques quotidiennes.
             try:
+                # Sur la page Trouver, la bascule 🎃 Démo / 🧡 Réel
+                # s'applique AUSSI aux vignettes du bloc session :
+                # mêmes décomptes que la page (champs « _reels » des
+                # statistiques quotidiennes en mode Réel). Ailleurs,
+                # les totaux du portail (démo incluse) restent.
+                demo_page = (
+                    request.resolver_match is not None
+                    and request.resolver_match.url_name
+                    == "producer_search")
+                demo_actif = (
+                    request.GET.get("demo", "1") != "0"
+                    if demo_page else True)
                 tous_visibles = Exploitant.objects.filter(visible=True)
+                if not demo_actif:
+                    tous_visibles = tous_visibles.exclude(est_demo=True)
                 actifs_restauration = (
                     Exploitant.Activite.FOODTRUCK,
                     Exploitant.Activite.TRAITEUR,
                     Exploitant.Activite.RESTAURANT)
-                marches_tous = identifier_marches(inclure_demo=True)
+                marches_tous = identifier_marches(
+                    inclure_demo=demo_actif)
                 nb_marches = sum(
                     1 for m in marches_tous if m["est_marche"])
                 salutation["stats"].update({
@@ -222,7 +237,8 @@ def instance_contexte(request):
                     "marches": nb_marches,
                     "boutiques": len(marches_tous) - nb_marches,
                     "serie_pros": _serie_communaute(
-                        "nb_producteurs", lignes_stats),
+                        "nb_producteurs" if demo_actif
+                        else "nb_pros_reels", lignes_stats),
                 })
             except Exception:
                 pass
