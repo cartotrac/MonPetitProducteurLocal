@@ -180,7 +180,7 @@
         <div class="stats-chart" data-role="chart"></div>
         <p class="muted">Cliquez à nouveau ou ailleurs pour fermer.</p>
       </div></span>{% endif %}
-        {% if salutation.stats %}{% if salutation.stats %}<span class="stats-item"><span class="badge badge-activite bloc-session-stat" data-stats="producteurs" role="button" tabindex="0" title="Professionnels inscrits — cliquez pour l'historique">🤝 Communauté de {{ salutation.stats.pros }} utilisateur{{ salutation.stats.pros|pluralize }} pro</span><div class="stats-pop" data-serie="producteurs">
+        {% if salutation.stats.pros %}<span class="stats-item"><span class="badge badge-activite bloc-session-stat" data-stats="producteurs" role="button" tabindex="0" title="Professionnels inscrits — cliquez pour l'historique">🤝 Communauté de {{ salutation.stats.pros }} utilisateur{{ salutation.stats.pros|pluralize }} pro</span><div class="stats-pop" data-serie="producteurs">
         <strong>📈 Historique des professionnels inscrits</strong>
         <div class="stats-options">
           <select class="stats-opt" data-opt="periode" title="Période affichée">
@@ -204,8 +204,8 @@
         </div>
         <div class="stats-chart" data-role="chart"></div>
         <p class="muted">Cliquez à nouveau ou ailleurs pour fermer.</p>
-      </div></span>{% endif %}{% endif %}
-        {% if salutation.stats %}<span class="stats-item"><span class="badge badge-ab">{{ salutation.stats.locaux }} producteurs 🚜🥬 · présents sur {{ salutation.stats.marches|add:salutation.stats.boutiques }} marchés 🎪 &amp; boutiques 🏪 · et {{ salutation.stats.restauration }} restaurants 🍽️ et camions 🚚</span></span>{% endif %}
+      </div></span>{% endif %}
+        {% if salutation.stats.pros %}<span class="stats-item"><span class="badge badge-ab">{{ salutation.stats.locaux }} producteurs 🚜🥬 · présents sur {{ salutation.stats.marches|add:salutation.stats.boutiques }} marchés 🎪 &amp; boutiques 🏪 · et {{ salutation.stats.restauration }} restaurants 🍽️ et camions 🚚</span></span>{% endif %}
       </div>
     </button>
     <div class="bloc-session-corps" id="bloc-session-corps">
