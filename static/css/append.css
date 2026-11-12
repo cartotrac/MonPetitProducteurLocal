@@ -2243,3 +2243,13 @@ html.dark .mode-carte a.mode-actif { background: #7cb342; color: #1d2617; }
 /* ===== Bouton de session flottant : tout en haut à droite quand le
        bandeau a disparu, séparé des autres actions flottantes. ===== */
 .session-flottante { top: 8px; right: 10px; z-index: 1300; }
+
+
+/* ===== Titre de la carte : EN-TÊTE au-dessus du canvas, tous écrans
+       (plus de superposition en grand écran — retour Julien). ===== */
+.map-canvas-wrap .map-titre {
+  position: static !important; transform: none !important;
+  display: block; width: auto !important;
+  margin: 0 auto 0.6rem !important; text-align: center;
+  white-space: normal;
+}
