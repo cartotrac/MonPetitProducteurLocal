@@ -86,10 +86,10 @@
 
 <section class="map-section">
   <div class="mode-choix mode-choix-entete" role="group" aria-label="Mode de visualisation">
-    <button type="button" data-visu="" class="mode-bouton producteurs{% if not visu %} actif{% endif %}" title="Exploitations et productions locales : maraîchers, éleveurs, fromageries…">🥬 Producteurs</button>
-    <button type="button" data-visu="restauration" class="mode-bouton restauration{% if visu == "restauration" %} actif{% endif %}" title="Repas : restaurants, traiteurs et emplacements de foodtrucks">🍽️ Restauration &amp; Foodtrucks</button>
-    <button type="button" data-visu="marches" class="mode-bouton marches{% if visu == "marches" %} actif{% endif %}" title="Marchés et boutiques où retrouver les producteurs locaux">🎪 Marchés &amp; Boutiques</button>
-    <button type="button" data-visu="tout" class="mode-bouton tout{% if visu == "tout" %} actif{% endif %}" title="Tout afficher : producteurs, restauration, marchés &amp; boutiques sur la même carte">🌍 All-in-1</button>
+    <button type="button" data-visu="" class="mode-bouton producteurs{% if not visu %} actif{% endif %}" title="Exploitations et productions locales : maraîchers, éleveurs, fromageries…" data-libelle="🥬 Producteurs" aria-label="Producteurs">🥬</button>
+    <button type="button" data-visu="restauration" class="mode-bouton restauration{% if visu == "restauration" %} actif{% endif %}" title="Repas : restaurants, traiteurs et emplacements de foodtrucks" data-libelle="🍽️ Restauration &amp; Foodtrucks" aria-label="Restauration &amp; Foodtrucks">🍽️🚚</button>
+    <button type="button" data-visu="marches" class="mode-bouton marches{% if visu == "marches" %} actif{% endif %}" title="Marchés et boutiques où retrouver les producteurs locaux" data-libelle="🎪 Marchés &amp; Boutiques" aria-label="Marchés &amp; Boutiques">🎪🏪</button>
+    <button type="button" data-visu="tout" class="mode-bouton tout{% if visu == "tout" %} actif{% endif %}" title="Tout afficher : producteurs, restauration, marchés &amp; boutiques sur la même carte" data-libelle="🌍 All-in-1" aria-label="All-in-1">🌍</button>
   </div>
   <div class="map-canvas-wrap{% if visu == "restauration" %} visu-restauration{% elif visu == "marches" %} visu-marches{% endif %}">
     <h2 class="map-titre">🗺️ {% if visu == "restauration" %}Restaurants, traiteurs &amp; foodtrucks trouvés{% elif visu == "marches" %}Marchés &amp; boutiques identifiés{% elif visu == "tout" %}Tous les professionnels, marchés &amp; boutiques trouvés{% else %}Producteurs trouvés{% endif %}{% if carte_data %} ({{ carte_data|length }}){% endif %}</h2>

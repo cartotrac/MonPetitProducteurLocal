@@ -629,3 +629,94 @@ geolocCtrl.addTo(carte);
     }
   });
 })();
+
+/* ---- Boîte 🔎 de saisie d'adresse intelligente (page recherche) :
+   mêmes suggestions Nominatim que la page Paramètres (pick-map.js) —
+   la carte zoome sur le lieu choisi, sans marqueur ni champs à
+   remplir. Placée AU-DESSUS des boutons de zoom. ---- */
+(function () {
+  var conteneur = null;
+  var ctrl = L.control({ position: "topleft" });
+  ctrl.onAdd = function () {
+    var div = L.DomUtil.create("div",
+      "leaflet-bar leaflet-control ctrl-recherche");
+    var boite = L.DomUtil.create("div", "recherche-boite", div);
+    var input = L.DomUtil.create("input", "recherche-input", boite);
+    var liste = L.DomUtil.create("ul", "recherche-liste", boite);
+    input.type = "search";
+    input.placeholder = "🔎 Commune, adresse, département…";
+    input.setAttribute("aria-label",
+      "Rechercher un lieu : la carte zoome dessus");
+    liste.hidden = true;
+    L.DomEvent.disableClickPropagation(div);
+    L.DomEvent.disableScrollPropagation(div);
+
+    var minuteur = null, sequence = 0;
+    function cacher() { liste.hidden = true; liste.innerHTML = ""; }
+    function chercher(q, cb) {
+      var n = ++sequence;
+      fetch("https://nominatim.openstreetmap.org/search" +
+            "?format=json&limit=6&addressdetails=0&q=" +
+            encodeURIComponent(q))
+        .then(function (r) { return r.json(); })
+        .then(function (res) { if (n === sequence) { cb(res || []); } })
+        .catch(function () { if (n === sequence) { cb([]); } });
+    }
+    function choisir(res) {
+      cacher();
+      var libelle = (res.display_name || "").split(",")[0];
+      if (libelle) { input.value = libelle; }
+      var lat = parseFloat(res.lat), lon = parseFloat(res.lon);
+      if (isNaN(lat) || isNaN(lon)) { return; }
+      if (res.boundingbox && res.boundingbox.length === 4) {
+        carte.fitBounds(L.latLngBounds(
+          [[+res.boundingbox[0], +res.boundingbox[2]],
+           [+res.boundingbox[1], +res.boundingbox[3]]]),
+          { padding: [20, 20] });
+      } else {
+        carte.setView([lat, lon], 12);
+      }
+    }
+    function suggestions(res) {
+      liste.innerHTML = "";
+      res.forEach(function (r) {
+        var li = document.createElement("li");
+        li.textContent = r.display_name || "";
+        li.addEventListener("click", function () { choisir(r); });
+        liste.appendChild(li);
+      });
+      liste.hidden = !res.length;
+    }
+    input.addEventListener("input", function () {
+      var q = input.value.trim();
+      clearTimeout(minuteur);
+      if (q.length < 3) { cacher(); return; }
+      minuteur = setTimeout(function () { chercher(q, suggestions); }, 350);
+    });
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { cacher(); input.blur(); return; }
+      if (e.key !== "Enter") { return; }
+      e.preventDefault();
+      var q = input.value.trim();
+      if (!q) { return; }
+      clearTimeout(minuteur);
+      var premier = !liste.hidden && liste.querySelector("li");
+      if (premier) { premier.click(); }
+      else { chercher(q, function (res) {
+        if (res.length) { choisir(res[0]); } else { cacher(); }
+      }); }
+    });
+    document.addEventListener("click", function (e) {
+      if (!boite.contains(e.target)) { cacher(); }
+    });
+    conteneur = div;
+    return div;
+  };
+  ctrl.addTo(carte);
+  /* En tête de colonne : la boîte passe au-dessus des boutons de
+     zoom et du contrôle de couches. */
+  var coin = document.querySelector("#carte-recherche .leaflet-top.leaflet-left");
+  if (coin && conteneur && conteneur.parentNode === coin) {
+    coin.insertBefore(conteneur, coin.firstChild);
+  }
+})();

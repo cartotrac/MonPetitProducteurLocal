@@ -58,9 +58,9 @@
       <a href="{% url 'portal:producer_search' %}" class="nav-chercher {% if request.path == '/recherche/' %}nav-actif{% endif %}" title="Trouver mes producteurs locaux" aria-label="Trouver mes producteurs locaux"><span class="nav-chercher-icone"><span class="nav-chercher-colis">🧺</span><span class="nav-chercher-loupe">🔍</span></span></a>
       {% if user.is_authenticated %}
         {% if mode_pro %}
-          <a href="{% url 'portal:dashboard' %}" class="{% if request.path == '/espace-pro/' %}nav-actif{% endif %}">Dashboard</a>
+          <a href="{% url 'portal:dashboard' %}" title="Dashboard" aria-label="Dashboard" data-libelle="Dashboard" class="nav-icone{% if request.path == '/espace-pro/' %} nav-actif{% endif %}">📊</a>
           <div class="nav-gestion">
-            <a class="nav-gestion-titre{% if '/clients' in request.path or '/espace-ventes' in request.path or '/espace-commandes' in request.path or '/espace-paniers' in request.path or '/points-livraison' in request.path or '/mes-producteurs' in request.path %} nav-actif{% endif %}" href="{% url 'portal:ventes' %}">Gestion ▾</a>
+            <a class="nav-gestion-titre{% if '/clients' in request.path or '/espace-ventes' in request.path or '/espace-commandes' in request.path or '/espace-paniers' in request.path or '/points-livraison' in request.path or '/mes-producteurs' in request.path %} nav-actif{% endif %}" href="{% url 'portal:ventes' %}" title="Gestion : clients, ventes, modalités, favoris" aria-label="Gestion" data-libelle="Gestion">🗂️</a>
             <div class="nav-gestion-menu">
               <a href="{% url 'portal:clients_suivi' %}">👤 Mes clients</a>
               <a href="{% url 'portal:ventes' %}">🧾 Ventes</a>
@@ -69,7 +69,7 @@
             </div>
           </div>
           <div class="nav-gestion">
-            <a class="nav-gestion-titre{% if '/espace-produits' in request.path or '/espace-recolte' in request.path or '/mes-cartes' in request.path or '/publications/' in request.path %} nav-actif{% endif %}" href="{% url 'portal:harvest_list' %}">Publications ▾</a>
+            <a class="nav-gestion-titre{% if '/espace-produits' in request.path or '/espace-recolte' in request.path or '/mes-cartes' in request.path or '/publications/' in request.path %} nav-actif{% endif %}" href="{% url 'portal:harvest_list' %}" title="Publications : catalogue, récoltes, newsletter, annonces" aria-label="Publications" data-libelle="Publications">📢</a>
             <div class="nav-gestion-menu">
               {% if est_proprietaire or user.is_superuser %}<a href="{% url 'portal:product_list' %}">📚 Catalogue</a>{% endif %}
               <a href="{% url 'portal:harvest_list' %}">{% if exploitant_courant %}{{ exploitant_courant.vocab.recoltes_emoji }} {{ exploitant_courant.vocab.recoltes|capfirst }}{% else %}🧺 Récoltes{% endif %}</a>
@@ -81,7 +81,7 @@
             </div>
           </div>
           <div class="nav-gestion">
-            <a class="nav-gestion-titre{% if '/parametres/' in request.path or '/equipe/' in request.path %} nav-actif{% endif %}" href="{% url 'portal:param_rubrique' 'profil' %}">Paramètres ▾</a>
+            <a class="nav-gestion-titre{% if '/parametres/' in request.path or '/equipe/' in request.path %} nav-actif{% endif %}" href="{% url 'portal:param_rubrique' 'profil' %}" title="Paramètres : profil, espace, équipe, messagerie" aria-label="Paramètres" data-libelle="Paramètres">⚙️</a>
             <div class="nav-gestion-menu">
               <a href="{% url 'portal:param_rubrique' 'profil' %}">👤 Mon profil</a>
               {% if user.is_superuser %}<a href="{% url 'portal:param_rubrique' 'gerant' %}">🧑‍🌾 Profil gérant</a>{% endif %}
@@ -116,31 +116,15 @@
   {% if salutation and not request.GET.apercu %}
   <div class="bloc-session {% if courriel_a_verifier %}flash warning bloc-session-alerte{% else %}salutation-chercheur{% endif %}" id="bloc-session">
     <button type="button" class="bloc-session-entete" id="bloc-session-entete" aria-expanded="true">
-      {% if salutation.stats %}<span class="stats-item"><span class="badge badge-ab bloc-session-stat" data-stats="clients" role="button" tabindex="0" title="Clients Localien inscrits — cliquez pour l'historique">👥 {{ salutation.stats.clients }} client{{ salutation.stats.clients|pluralize }} inscrit{{ salutation.stats.clients|pluralize }}</span><div class="stats-pop" data-serie="clients">
-        <strong>📈 Historique des clients inscrits</strong>
-        <div class="stats-options">
-          <select class="stats-opt" data-opt="periode" title="Période affichée">
-            <option value="7">7 jours</option>
-            <option value="30" selected>30 jours</option>
-            <option value="90">90 jours</option>
-          </select>
-          <select class="stats-opt" data-opt="affichage" title="Barres ou courbe">
-            <option value="barres">Barres</option>
-            <option value="courbe" selected>Courbe</option>
-          </select>
-          <select class="stats-opt" data-opt="valeurs" title="Valeurs du jour ou cumulées">
-            <option value="jour" selected>Par jour</option>
-            <option value="cumul">Cumulé</option>
-          </select>
-        </div>
-        <div class="stats-lecture">
-          <span class="stats-tendance" data-role="tendance"></span>
-          <span class="stats-pct" data-role="pct"></span>
-          <span class="stats-mini" data-role="mini"></span>
-        </div>
-        <div class="stats-chart" data-role="chart"></div>
-        <p class="muted">Cliquez à nouveau ou ailleurs pour fermer.</p>
-      </div></span>{% endif %}      {% if salutation.stats %}<span class="stats-item"><span class="badge badge-demo bloc-session-stat" data-stats="visiteurs" role="button" tabindex="0" title="Visites du portail (sessions distinctes) — cliquez pour l'historique">👀 {{ salutation.stats.visiteurs }} visiteur{{ salutation.stats.visiteurs|pluralize }}</span><div class="stats-pop" data-serie="visiteurs">
+      
+      {% if salutation.ambassadeur %}<span class="badge-ambassadeur badge-ambassadeur-{{ salutation.ambassadeur.format }}" title="Ambassadeur du portail — merci !">{{ salutation.ambassadeur.libelle }}</span>{% endif %}
+      <span>👋 Ravi de vous retrouver aujourd'hui, <strong>{{ salutation.nom }}</strong> !</span>
+      {% if salutation.role_complet %}<span class="badge badge-activite">{{ salutation.role_complet }}</span>
+      {% else %}<span class="badge badge-activite">🧺 Client Localien</span>{% endif %}
+      {% if courriel_a_verifier %}<span class="bloc-session-etat">📬 E-mail à vérifier</span>{% endif %}
+      <span class="bloc-session-chevron" aria-hidden="true">▾</span>
+      <div class="bloc-session-stats">
+        {% if salutation.stats %}<span class="stats-item"><span class="badge badge-demo bloc-session-stat" data-stats="visiteurs" role="button" tabindex="0" title="Visites du portail (sessions distinctes) — cliquez pour l'historique">👀 {{ salutation.stats.visiteurs }} visiteur{{ salutation.stats.visiteurs|pluralize }}</span><div class="stats-pop" data-serie="visiteurs">
         <strong>📈 Historique des visites</strong>
         <div class="stats-options">
           <select class="stats-opt" data-opt="periode" title="Période affichée">
@@ -165,12 +149,32 @@
         <div class="stats-chart" data-role="chart"></div>
         <p class="muted">Cliquez à nouveau ou ailleurs pour fermer.</p>
       </div></span>{% endif %}
-      {% if salutation.ambassadeur %}<span class="badge-ambassadeur badge-ambassadeur-{{ salutation.ambassadeur.format }}" title="Ambassadeur du portail — merci !">{{ salutation.ambassadeur.libelle }}</span>{% endif %}
-      <span>👋 Ravi de vous retrouver aujourd'hui, <strong>{{ salutation.nom }}</strong> !</span>
-      {% if salutation.role_complet %}<span class="badge badge-activite">{{ salutation.role_complet }}</span>
-      {% else %}<span class="badge badge-activite">🧺 Client Localien</span>{% endif %}
-      {% if courriel_a_verifier %}<span class="bloc-session-etat">📬 E-mail à vérifier</span>{% endif %}
-      <span class="bloc-session-chevron" aria-hidden="true">▾</span>
+        {% if salutation.stats %}<span class="stats-item"><span class="badge badge-ab bloc-session-stat" data-stats="clients" role="button" tabindex="0" title="Clients Localien inscrits — cliquez pour l'historique">👥 {{ salutation.stats.clients }} client{{ salutation.stats.clients|pluralize }} inscrit{{ salutation.stats.clients|pluralize }}</span><div class="stats-pop" data-serie="clients">
+        <strong>📈 Historique des clients inscrits</strong>
+        <div class="stats-options">
+          <select class="stats-opt" data-opt="periode" title="Période affichée">
+            <option value="7">7 jours</option>
+            <option value="30" selected>30 jours</option>
+            <option value="90">90 jours</option>
+          </select>
+          <select class="stats-opt" data-opt="affichage" title="Barres ou courbe">
+            <option value="barres">Barres</option>
+            <option value="courbe" selected>Courbe</option>
+          </select>
+          <select class="stats-opt" data-opt="valeurs" title="Valeurs du jour ou cumulées">
+            <option value="jour" selected>Par jour</option>
+            <option value="cumul">Cumulé</option>
+          </select>
+        </div>
+        <div class="stats-lecture">
+          <span class="stats-tendance" data-role="tendance"></span>
+          <span class="stats-pct" data-role="pct"></span>
+          <span class="stats-mini" data-role="mini"></span>
+        </div>
+        <div class="stats-chart" data-role="chart"></div>
+        <p class="muted">Cliquez à nouveau ou ailleurs pour fermer.</p>
+      </div></span>{% endif %}
+      </div>
     </button>
     <div class="bloc-session-corps" id="bloc-session-corps">
       {% if courriel_a_verifier %}
