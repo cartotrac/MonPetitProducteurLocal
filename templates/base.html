@@ -121,6 +121,7 @@
       <span>👋 Ravi de vous retrouver aujourd'hui, <strong>{{ salutation.nom }}</strong> !</span>
       {% if salutation.role_complet %}<span class="badge badge-activite">{{ salutation.role_complet }}</span>
       {% else %}<span class="badge badge-activite">🧺 Client Localien</span>{% endif %}
+      <span class="bloc-session-avis-titre" data-ouvrir-retour role="button" tabindex="0" title="Donner mon avis" aria-label="Donner mon avis">📣</span>
       {% if courriel_a_verifier %}<span class="bloc-session-etat">📬 E-mail à vérifier</span>{% endif %}
       <span class="bloc-session-chevron" aria-hidden="true">▾</span>
       <div class="bloc-session-stats">
@@ -772,7 +773,10 @@
   if (!dlg) { return; }
   document.querySelectorAll("[data-ouvrir-retour]").forEach(
     function (b) {
-      b.addEventListener("click", function () {
+      b.addEventListener("click", function (evt) {
+        /* Icône 📣 du titre du bloc session : ouvrir la fenêtre sans
+           replier/déplier le bloc (le clic ne remonte pas au bouton). */
+        evt.stopPropagation();
         var onglet = (b.dataset.ongletRetour === "dev")
           ? document.querySelector('.retour-onglet[data-onglet="dev"]')
           : null;

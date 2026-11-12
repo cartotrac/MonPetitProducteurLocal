@@ -138,7 +138,7 @@ class Exploitant(models.Model):
 
     # Visuel de chaque activité (vignettes, badges, popups de carte)
     ACTIVITE_EMOJIS = {"MARAICHER": "🥬", "ARBORICULTEUR": "🍎",
-                       "ELEVEUR": "🐄", "FROMAGER": "🧀",
+                       "ELEVEUR": "🚜", "FROMAGER": "🧀",
                        "APICULTEUR": "🍯", "MICRO_BRASSEUR": "🍺",
                        "CONSERVERIE": "🥫", "FOODTRUCK": "🚚",
                        "TRAITEUR": "🥗", "RESTAURANT": "🍽️",
@@ -335,7 +335,7 @@ class Exploitant(models.Model):
     LIBELLES_FICHE = {
         "MARAICHER": ("🥬", "Ma ferme"),
         "ARBORICULTEUR": ("🍎", "Ma ferme"),
-        "ELEVEUR": ("🐄", "Ma ferme"),
+        "ELEVEUR": ("🚜", "Ma ferme"),
         "AUTRE": ("🌾", "Mon espace"),
         "FROMAGER": ("🧀", "Ma fromagerie"),
         "APICULTEUR": ("🍯", "Ma miellerie"),

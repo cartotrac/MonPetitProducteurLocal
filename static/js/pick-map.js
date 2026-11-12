@@ -128,6 +128,7 @@ function esc(t) {
 
   /* ---- Boite de recherche intelligente (menu déroulant) ---- */
   function initRecherche(carte, carteEl, appliquer, champs, aDesChamps) {
+    var conteneur = null;
     var PRECIS = ["place", "building", "amenity", "shop",
                   "office", "tourism", "leisure"];
     var ctrl = L.control({ position: "topleft" });
@@ -218,9 +219,17 @@ function esc(t) {
       document.addEventListener("click", function (e) {
         if (!boite.contains(e.target)) { cacher(); }
       });
+      conteneur = div;
       return div;
     };
     ctrl.addTo(carte);
+    /* En tête de colonne : la boîte passe AU-DESSUS des boutons de
+       zoom et du contrôle de couches. */
+    var coin = carte.getContainer().querySelector(
+      ".leaflet-top.leaflet-left");
+    if (coin && conteneur && conteneur.parentNode === coin) {
+      coin.insertBefore(conteneur, coin.firstChild);
+    }
   }
 
   function initCarte(carteEl) {

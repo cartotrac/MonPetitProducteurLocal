@@ -182,7 +182,7 @@ carte.whenReady(majCouleurs);
 var ACTIVITES = {
   "MARAICHER": "🥬 Maraîcher·ère",
   "ARBORICULTEUR": "🍎 Arboriculteur·rice",
-  "ELEVEUR": "🐄 Éleveur·euse",
+  "ELEVEUR": "🚜 Éleveur·euse",
   "FROMAGER": "🧀 Fromager·ère",
   "APICULTEUR": "🍯 Apiculteur·rice",
   "MICRO_BRASSEUR": "🍺 Micro-brasseur·euse",
