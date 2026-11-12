@@ -42,7 +42,16 @@ rm -rf portal/migrations
 
 echo "==> 2/7 Récupération du code"
 git pull
-git checkout -- portal/migrations 2>/dev/null || true
+# Restauration explicite depuis l'arbre GIT : HEAD nommé (pas
+# d'ambiguïté d'index) et ÉCHEC BRUYANT si le dossier migrations
+# n'est pas revenu — sinon migrate partirait sur des modèles sans
+# migration (0007 absent) sans rien dire.
+git checkout HEAD -- portal/migrations
+if [ ! -f portal/migrations/__init__.py ]; then
+  echo "   ERREUR : portal/migrations n'a pas été restauré par git." >&2
+  echo "   Vérifiez la branche (git status) puis relancez." >&2
+  exit 1
+fi
 
 echo "==> 3/7 Dépendances"
 venv/bin/pip install -q -r requirements.txt
