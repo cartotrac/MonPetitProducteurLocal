@@ -501,6 +501,14 @@ modeCtrl.onAdd = function () {
         form.appendChild(cache);
       }
       cache.value = m.cle === "producteurs" ? "" : m.cle;
+      /* Changement de mode : les filtres attributaires du mode
+         précédent (activités, types de marché) ne sont pas
+         transposables — on les RÉINITIALISE pour repartir d'une
+         carte propre ; l'emprise (recherche libre, zone) est
+         conservée. */
+      form.querySelectorAll(
+        'input[name="activite"], input[name="type_marche"]').forEach(
+        function (caseFiltre) { caseFiltre.checked = false; });
       window.mpplSoumettre ? window.mpplSoumettre(form) : form.submit();
     });
     div.appendChild(btn);

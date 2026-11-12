@@ -180,7 +180,7 @@
         <div class="stats-chart" data-role="chart"></div>
         <p class="muted">Cliquez à nouveau ou ailleurs pour fermer.</p>
       </div></span>{% endif %}
-        {% if salutation.stats.pros %}<span class="stats-item"><span class="badge badge-activite bloc-session-stat" data-stats="producteurs" role="button" tabindex="0" title="Professionnels inscrits — cliquez pour l'historique">🤝 Communauté de {{ salutation.stats.pros }} utilisateur{{ salutation.stats.pros|pluralize }} pro</span><div class="stats-pop" data-serie="producteurs">
+        {% if salutation.stats.pros and request.resolver_match.url_name == "producer_search" %}<span class="stats-item"><span class="badge badge-activite bloc-session-stat" data-stats="producteurs" role="button" tabindex="0" title="Professionnels inscrits — cliquez pour l'historique">🤝 Communauté de {{ salutation.stats.pros }} utilisateur{{ salutation.stats.pros|pluralize }} pro</span><div class="stats-pop" data-serie="producteurs">
         <strong>📈 Historique des professionnels inscrits</strong>
         <div class="stats-options">
           <select class="stats-opt" data-opt="periode" title="Période affichée">
@@ -205,7 +205,7 @@
         <div class="stats-chart" data-role="chart"></div>
         <p class="muted">Cliquez à nouveau ou ailleurs pour fermer.</p>
       </div></span>{% endif %}
-        {% if salutation.stats.pros %}<span class="stats-item"><span class="badge badge-ab">{{ salutation.stats.locaux }} producteurs 🚜🥬 · présents sur {{ salutation.stats.marches|add:salutation.stats.boutiques }} marchés 🎪 &amp; boutiques 🏪 · et {{ salutation.stats.restauration }} restaurants 🍽️ et camions 🚚</span></span>{% endif %}
+        {% if salutation.stats.pros and request.resolver_match.url_name == "producer_search" %}<span class="stats-item"><span class="badge badge-ab">{{ salutation.stats.locaux }} producteurs 🚜🥬 · présents sur {{ salutation.stats.marches|add:salutation.stats.boutiques }} marchés 🎪 &amp; boutiques 🏪 · et {{ salutation.stats.restauration }} restaurants 🍽️ et camions 🚚</span></span>{% endif %}
       </div>
     </button>
     <div class="bloc-session-corps" id="bloc-session-corps">
@@ -768,16 +768,16 @@
 <script>
 /* Bloc session (toutes les pages) : repliable, choix mémorisé dans
    le navigateur (localStorage mppl_bloc_session_replie) — le bloc
-   suit l'utilisateur de page en page, ouvert par défaut tant que
-   l'e-mail n'est pas vérifié. */
+   suit l'utilisateur de page en page, REPLIÉ par défaut : les
+   chiffres ne s'affichent qu'après un clic d'ouverture. */
 (function () {
   var bloc = document.getElementById("bloc-session");
   if (!bloc) { return; }
   var bouton = document.getElementById("bloc-session-entete");
-  var replie = false;
+  var replie = true;
   try {
-    replie = localStorage.getItem("mppl_bloc_session_replie") === "1";
-  } catch (e) { replie = false; }
+    replie = localStorage.getItem("mppl_bloc_session_replie") !== "0";
+  } catch (e) { replie = true; }
   function appliquer() {
     bloc.classList.toggle("bloc-session-replie", replie);
     bouton.setAttribute("aria-expanded", replie ? "false" : "true");

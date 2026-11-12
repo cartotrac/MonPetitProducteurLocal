@@ -358,6 +358,21 @@ def producer_search(request):
     visibles = Exploitant.objects.filter(visible=True)
     if not demo:
         visibles = visibles.exclude(est_demo=True)
+    # Filtre d'activité HÉRITÉ d'un autre mode de visualisation
+    # (bascule de mode depuis la carte alors que des cases étaient
+    # cochées dans le mode précédent) : les valeurs invisibles dans
+    # le mode courant sont IGNORÉES — sinon la recherche semble « ne
+    # rien faire » ou renvoie une carte vide (ex. TRAITEUR coché en
+    # restauration, persistant après un passage en producteurs).
+    visu_filtres = request.GET.get("visu", "").strip()
+    if visu_filtres == "restauration":
+        activite_choisie = [
+            a for a in activite_choisie
+            if a in ("FOODTRUCK", "TRAITEUR", "RESTAURANT")]
+    elif visu_filtres not in ("tout", "marches"):
+        activite_choisie = [
+            a for a in activite_choisie
+            if a not in ("FOODTRUCK", "TRAITEUR", "RESTAURANT")]
     # « dept » n'entre PAS dans le queryset : il pilote uniquement
     # le zoom cartographique (data-zone), la carte filtre ensuite
     # les vignettes par emprise.
