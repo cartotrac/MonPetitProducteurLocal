@@ -8,68 +8,13 @@
 {% block content %}
 <div class="entete-chercher">
   <div class="titre-recherche">
-    <h1 title="{% if visu == "restauration" %}🍽️ Mode restaurants, traiteurs &amp; foodtrucks{% elif visu == "marches" %}🎪 Mode marchés &amp; boutiques de producteurs — identifiés à partir des points et créneaux déclarés{% elif visu == "tout" %}🌍 Mode producteurs, restauration, marchés &amp; boutiques réunis sur la même carte{% else %}🥬 Mode exploitations &amp; producteurs locaux{% endif %}">{% if visu == "restauration" %}🔍🍽️ Trouver un Restaurant, Traiteur ou Foodtruck autour de moi !{% elif visu == "marches" %}🔍🎪 Trouver mes Producteurs en Boutique ou sur les Marchés locaux !{% elif visu == "tout" %}🔍🌍 Tout l'univers du local : producteurs, restauration, marchés &amp; boutiques réunis !{% else %}🔍🥬 Trouver mon Producteur local !{% endif %}</h1>
+    <h1 title="{% if visu == "restauration" %}🍽️ Mode restaurants, traiteurs &amp; foodtrucks{% elif visu == "marches" %}🎪 Mode marchés &amp; boutiques de producteurs — identifiés à partir des points et créneaux déclarés{% elif visu == "tout" %}🌍 Mode producteurs, restauration, marchés &amp; boutiques réunis sur la même carte{% else %}🚜🥬 Mode exploitations &amp; producteurs locaux{% endif %}">{% if visu == "restauration" %}🔍🍽️ Trouver un Restaurant, Traiteur ou Foodtruck autour de moi !{% elif visu == "marches" %}🔍🎪 Trouver mes Producteurs en Boutique ou sur les Marchés locaux !{% elif visu == "tout" %}🔍🌍 Tout l'univers du local : producteurs, restauration, marchés &amp; boutiques réunis !{% else %}🔍🚜🥬 Trouver mon Producteur local !{% endif %}</h1>
     <button type="button" id="bascule-demo" class="bascule-demo{% if demo %} actif{% endif %}" title="{% if demo %}Démo{% else %}Réel{% endif %}" aria-pressed="{% if demo %}true{% else %}false{% endif %}" aria-label="Bascule Démo / Réel : afficher ou masquer les comptes de démonstration">
       <span class="bascule-piste"><span class="bascule-curseur"></span></span>
       <span class="bascule-icone">{% if demo %}🎃{% else %}🧡{% endif %}</span>
     </button>
   </div>
-  <div class="stats-portail">
-    <span class="stats-item">
-      <button type="button" class="badge badge-activite" data-stats="producteurs">🤝 Communauté de {{ nb_pros }} utilisateur{{ nb_pros|pluralize }} pro</button>
-      <div class="stats-pop" data-serie="producteurs">
-        <strong>📈 Historique des professionnels inscrits</strong>
-        <div class="stats-options">
-          <select class="stats-opt" data-opt="periode" title="Période affichée">
-            <option value="7">7 jours</option>
-            <option value="30" selected>30 jours</option>
-            <option value="90">90 jours</option>
-          </select>
-          <select class="stats-opt" data-opt="affichage" title="Barres ou courbe">
-            <option value="barres">Barres</option>
-            <option value="courbe" selected>Courbe</option>
-          </select>
-          <select class="stats-opt" data-opt="valeurs" title="Valeurs du jour ou cumulées">
-            <option value="jour" selected>Par jour</option>
-            <option value="cumul">Cumulé</option>
-          </select>
-        </div>
-        <div class="stats-lecture">
-          <span class="stats-tendance" data-role="tendance"></span>
-          <span class="stats-pct" data-role="pct"></span>
-          <span class="stats-mini" data-role="mini"></span>
-        </div>
-        <div class="stats-chart" data-role="chart"></div>
-        <p class="muted">Cliquez à nouveau ou ailleurs pour fermer.</p>
-      </div>
-    </span>
-    <span class="stats-item">
-      {% if visu == "marches" %}<button type="button" class="badge badge-marche" data-stats="producteurs">{% with nb_mb=nb_marches|add:nb_boutiques %}🎪🏪 Avec {{ nb_mb }} marché{{ nb_mb|pluralize }} &amp; boutique{{ nb_mb|pluralize }} producteur{{ nb_mb|pluralize }}{% endwith %}</button>
-      {% elif visu == "restauration" %}<button type="button" class="badge badge-activite" data-stats="producteurs">{% with nb_resto=nb_traiteurs|add:nb_restaurants|add:nb_foodtrucks %}🍽️🚚 Dont {{ nb_resto }} pro en restauration{% endwith %}</button>
-      {% elif visu == "tout" %}<button type="button" class="badge badge-ab" data-stats="producteurs">{% with nb_resto=nb_traiteurs|add:nb_restaurants|add:nb_foodtrucks nb_mb=nb_marches|add:nb_boutiques %}🥬 {{ nb_producteurs_locaux }} producteur{{ nb_producteurs_locaux|pluralize }} · 🍽️🚚 {{ nb_resto }} pro restauration · 🎪🏪 {{ nb_mb }} marché{{ nb_mb|pluralize }} &amp; boutique{{ nb_mb|pluralize }}{% endwith %}</button>
-      {% else %}<button type="button" class="badge badge-ab" data-stats="producteurs">🥬 Dont {{ nb_producteurs_locaux }} {% if nb_producteurs_locaux > 1 %}producteurs locaux{% else %}producteur local{% endif %}</button>{% endif %}
-      <div class="stats-pop" data-serie="{% if visu == "marches" %}marches{% elif visu == "restauration" %}restauration{% elif visu == "tout" %}locaux,restauration,marches{% else %}locaux{% endif %}">
-        <strong>{% if visu == "marches" %}📈 Historique des marchés &amp; boutiques de producteurs{% elif visu == "restauration" %}📈 Historique des pros en restauration{% elif visu == "tout" %}📈 Historique par métier — une courbe par famille{% else %}📈 Historique des producteurs locaux{% endif %}</strong>
-        <div class="stats-options">
-          <select class="stats-opt" data-opt="periode" title="Période affichée">
-            <option value="7">7 jours</option>
-            <option value="30" selected>30 jours</option>
-            <option value="90">90 jours</option>
-          </select>
-          <select class="stats-opt" data-opt="affichage" title="Barres ou courbe">
-            <option value="barres">Barres</option>
-            <option value="courbe" selected>Courbe</option>
-          </select>
-          <select class="stats-opt" data-opt="valeurs" title="Valeurs du jour ou cumulées">
-            <option value="jour" selected>Par jour</option>
-            <option value="cumul">Cumulé</option>
-          </select>
-        </div>
-        <div class="stats-lecture">
-          <span class="stats-tendance" data-role="tendance"></span>
-          <span class="stats-pct" data-role="pct"></span>
-          <span class="stats-mini" data-role="mini"></span>
-        </div>
+  
         <div class="stats-chart" data-role="chart"></div>
         <p class="muted">Cliquez à nouveau ou ailleurs pour fermer.</p>
       </div>
@@ -85,12 +30,6 @@
 
 
 <section class="map-section">
-  <div class="mode-choix mode-choix-entete" role="group" aria-label="Mode de visualisation">
-    <button type="button" data-visu="" class="mode-bouton producteurs{% if not visu %} actif{% endif %}" title="Exploitations et productions locales : maraîchers, éleveurs, fromageries…" data-libelle="🥬 Producteurs" aria-label="Producteurs">🥬</button>
-    <button type="button" data-visu="restauration" class="mode-bouton restauration{% if visu == "restauration" %} actif{% endif %}" title="Repas : restaurants, traiteurs et emplacements de foodtrucks" data-libelle="🍽️ Restauration &amp; Foodtrucks" aria-label="Restauration &amp; Foodtrucks">🍽️🚚</button>
-    <button type="button" data-visu="marches" class="mode-bouton marches{% if visu == "marches" %} actif{% endif %}" title="Marchés et boutiques où retrouver les producteurs locaux" data-libelle="🎪 Marchés &amp; Boutiques" aria-label="Marchés &amp; Boutiques">🎪🏪</button>
-    <button type="button" data-visu="tout" class="mode-bouton tout{% if visu == "tout" %} actif{% endif %}" title="Tout afficher : producteurs, restauration, marchés &amp; boutiques sur la même carte" data-libelle="🌍 All-in-1" aria-label="All-in-1">🌍</button>
-  </div>
   <div class="map-canvas-wrap{% if visu == "restauration" %} visu-restauration{% elif visu == "marches" %} visu-marches{% endif %}">
     <h2 class="map-titre">🗺️ {% if visu == "restauration" %}Restaurants, traiteurs &amp; foodtrucks trouvés{% elif visu == "marches" %}Marchés &amp; boutiques identifiés{% elif visu == "tout" %}Tous les professionnels, marchés &amp; boutiques trouvés{% else %}Producteurs trouvés{% endif %}{% if carte_data %} ({{ carte_data|length }}){% endif %}</h2>
     {% if carte_data %}

@@ -14,6 +14,7 @@ from django.utils import timezone
 
 from django.contrib.auth.models import User
 
+from .marches import identifier_marches
 from .models import (Exploitant, StatistiqueQuotidienne, Visiteur,
                      espace_actif, espaces_pro, exploitant_actif,
                      exploitant_pour, nom_affiche)
@@ -196,6 +197,27 @@ def instance_contexte(request):
                 "nb_clients", lignes_stats)
             salutation["stats"]["serie_visiteurs"] = _serie_communaute(
                 "nb_visiteurs", lignes_stats)
+            # Communauté pro : vignettes 🤝 de la page Trouver
+            # rapatriées dans le bloc session — pros inscrits, familles
+            # de métiers et points de vente identifiés (marchés et
+            # boutiques de producteurs).
+            tous_visibles = Exploitant.objects.filter(visible=True)
+            actifs_restauration = (
+                Exploitant.Activite.FOODTRUCK,
+                Exploitant.Activite.TRAITEUR,
+                Exploitant.Activite.RESTAURANT)
+            marches_tous = identifier_marches(inclure_demo=True)
+            nb_marches = sum(1 for m in marches_tous if m["est_marche"])
+            salutation["stats"].update({
+                "pros": tous_visibles.count(),
+                "locaux": tous_visibles.exclude(
+                    activite__in=actifs_restauration).count(),
+                "restauration": tous_visibles.filter(
+                    activite__in=actifs_restauration).count(),
+                "marches": nb_marches,
+                "boutiques": len(marches_tous) - nb_marches,
+                "serie_pros": _serie_communaute("nb_pros", lignes_stats),
+            })
         except Exception:
             salutation["stats"] = None
     # Fenêtre « Donner mon avis » : disponible sur toutes les

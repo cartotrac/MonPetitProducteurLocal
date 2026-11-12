@@ -467,47 +467,47 @@ carte.whenReady(majEmprise);
 /* ----------------------------------------------- géolocalisation (cible) */
 /* Bouton « 🎯 Me géolocaliser » directement SUR la carte (haut droite),
    symbole seul avec info-bulle au survol. */
-/* Bascule de mode depuis la carte : le formulaire de recherche est
-   re-soumis avec le mode inverse — titre, filtres, légende et
-   marqueurs s'adaptent d'un coup. */
+/* Bascule DIRECTE de mode depuis la carte : une colonne d'icônes
+   à droite, SOUS le bouton 🎯 — un bouton par mode, le mode courant
+   surligné. Le formulaire de recherche est re-soumis avec le mode
+   choisi — titre, filtres, légende et marqueurs s'adaptent. */
 var modeCtrl = L.control({ position: "topright" });
 modeCtrl.onAdd = function () {
   var div = L.DomUtil.create("div", "leaflet-bar mode-carte");
-  var cible = modeCarte === "producteurs" ? "restauration"
-            : modeCarte === "restauration" ? "marches"
-            : modeCarte === "marches" ? "tout" : "producteurs";
-  var btn = document.createElement("a");
-  btn.href = "#";
-  btn.textContent = cible === "restauration" ? "🍽️"
-                  : cible === "marches" ? "🎪"
-                  : cible === "tout" ? "🌍" : "🥬";
-  btn.title = cible === "restauration"
-    ? "Basculer : restauration & foodtrucks"
-    : cible === "marches" ? "Basculer : marchés & boutiques"
-    : cible === "tout" ? "Basculer : All-in-1 — tout afficher"
-    : "Basculer : producteurs";
-  btn.setAttribute("aria-label", btn.title);
-  L.DomEvent.disableClickPropagation(div);
-  btn.addEventListener("click", function (evenement) {
-    evenement.preventDefault();
-    var form = document.querySelector(".search-bar");
-    if (!form) { return; }
-    var cache = form.querySelector('input[name="visu"]');
-    if (!cache) {
-      cache = document.createElement("input");
-      cache.type = "hidden";
-      cache.name = "visu";
-      form.appendChild(cache);
-    }
-    cache.value = cible === "restauration" ? "restauration"
-               : cible === "marches" ? "marches"
-               : cible === "tout" ? "tout" : "";
-    form.submit();
+  var MODES = [
+    { cle: "producteurs", icone: "🚜🥬",
+      titre: "Producteurs & exploitations locales" },
+    { cle: "restauration", icone: "🍽️🚚",
+      titre: "Restauration & foodtrucks" },
+    { cle: "marches", icone: "🎪🏪", titre: "Marchés & boutiques" },
+    { cle: "tout", icone: "🌍", titre: "All-in-1 — tout afficher" }
+  ];
+  MODES.forEach(function (m) {
+    var btn = document.createElement("a");
+    btn.href = "#";
+    btn.textContent = m.icone;
+    btn.title = "Basculer : " + m.titre;
+    btn.setAttribute("aria-label", btn.title);
+    if (modeCarte === m.cle) { btn.classList.add("mode-actif"); }
+    btn.addEventListener("click", function (evenement) {
+      evenement.preventDefault();
+      var form = document.querySelector(".search-bar");
+      if (!form) { return; }
+      var cache = form.querySelector('input[name="visu"]');
+      if (!cache) {
+        cache = document.createElement("input");
+        cache.type = "hidden";
+        cache.name = "visu";
+        form.appendChild(cache);
+      }
+      cache.value = m.cle === "producteurs" ? "" : m.cle;
+      form.submit();
+    });
+    div.appendChild(btn);
   });
-  div.appendChild(btn);
+  L.DomEvent.disableClickPropagation(div);
   return div;
 };
-modeCtrl.addTo(carte);
 
 var geolocCtrl = L.control({ position: "topright" });
 geolocCtrl.onAdd = function () {
@@ -582,6 +582,8 @@ geolocCtrl.onAdd = function () {
   return div;
 };
 geolocCtrl.addTo(carte);
+/* Colonne des modes SOUS le bouton de géolocalisation. */
+modeCtrl.addTo(carte);
 
 /* ------------------------------------------- zone spatiale (dept/région/CP) */
 /* Saisie intelligente : nom ou numéro de département, nom de région
