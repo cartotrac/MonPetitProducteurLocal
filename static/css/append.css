@@ -2256,12 +2256,13 @@ html.dark .mode-carte a.mode-actif { background: #7cb342; color: #1d2617; }
 
 
 /* ===== Bascule Démo / Réel : pastille ronde SUPERPOSÉE au logo de
-       l'en-tête (badge en coin haut-droit de la pièce), uniquement sur
-       la page Trouver (temporaire, bêta v1) — plus aucun décalage du
-       bandeau, rendu identique sur mobile. ===== */
+       l'en-tête (centrée sur la pièce, au-dessus du titre), uniquement
+       sur la page Trouver (temporaire, bêta v1) — plus aucun décalage
+       du bandeau, rendu identique sur mobile. ===== */
 .nav-gauche { position: relative; }
 .nav-gauche .bascule-demo {
-  position: absolute; left: 22px; top: -5px; z-index: 30;
+  position: absolute; left: 15px; top: -6px;
+  transform: translateX(-50%); z-index: 30;
   display: inline-flex; align-items: center; justify-content: center;
   background: rgba(21, 29, 17, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.65);
