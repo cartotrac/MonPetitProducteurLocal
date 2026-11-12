@@ -182,9 +182,9 @@
     <p>Aucun producteur ne correspond à votre recherche.</p>
   {% endfor %}
 </div>
-{% if page_obj.paginator.num_pages > 1 %}
 <div class="pagination-barre">
-  <span class="pagination-info">{% if visu == "marches" %}{{ nb_resultats }} marché{{ nb_resultats|pluralize }} &amp; boutique{{ nb_resultats|pluralize }} identifié{{ nb_resultats|pluralize }}{% else %}{{ nb_resultats }} producteur{{ nb_resultats|pluralize }} trouvé{{ nb_resultats|pluralize }}{% endif %} — page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
+  <span class="pagination-info">{% if nb_resultats %}{{ page_obj.start_index }}–{{ page_obj.end_index }} / {{ nb_resultats }}{% else %}0{% endif %} {% if visu == "restauration" %}restaurant{{ nb_resultats|pluralize }}, traiteur{{ nb_resultats|pluralize }} &amp; foodtruck{{ nb_resultats|pluralize }}{% elif visu == "marches" %}marché{{ nb_resultats|pluralize }} &amp; boutique{{ nb_resultats|pluralize }}{% elif visu == "tout" %}professionnel{{ nb_resultats|pluralize }} 🚜🥬 🍽️🚚{% else %}producteur{{ nb_resultats|pluralize }}{% endif %} affiché{{ nb_resultats|pluralize }} sur la carte — page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.paginator.num_pages > 1 %}
   <nav class="pagination-liens" aria-label="Pages de résultats">
     {% if page_obj.has_previous %}
       <a class="btn btn-outline btn-sm pagination-lien" href="?{{ query_pages }}{% if query_pages %}&amp;{% endif %}page={{ page_obj.previous_page_number }}" title="Page précédente">←</a>
@@ -198,6 +198,7 @@
       <a class="btn btn-outline btn-sm pagination-lien" href="?{{ query_pages }}{% if query_pages %}&amp;{% endif %}page={{ page_obj.next_page_number }}" title="Page suivante">→</a>
     {% endif %}
   </nav>
+  {% endif %}
   <form method="get" class="pagination-taille">
     {% for nom, valeur in filtres_get %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}
     <label for="id_par_page">Vignettes par page :</label>
@@ -209,7 +210,6 @@
     <noscript><button class="btn btn-sm" type="submit">OK</button></noscript>
   </form>
 </div>
-{% endif %}
 {% endif %}
 {% endblock %}
 {% block extrajs %}
