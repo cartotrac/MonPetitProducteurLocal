@@ -232,10 +232,19 @@ def export_donnees(request):
         "commandes": commandes, "paniers": paniers,
         "favoris": favoris, "preferences_contact": preferences,
     }
+    # Nom de fichier : AAAA-MM-JJ_RGPD_portail_mppl_<identifiant>_<mail>
+    def propre(s):
+        return re.sub(r"[^A-Za-z0-9._-]", "_", s or "")
+    date_jour = timezone.localtime(timezone.now()).strftime("%Y-%m-%d")
+    nom_fichier = (propre(date_jour) + "_RGPD_portail_mppl_"
+                   + propre(u.username) + "_"
+                   + propre((u.email or "").replace("@", "_chez_"))
+                   + ".json")
     reponse = HttpResponse(
         json.dumps(contenu, indent=2, ensure_ascii=False),
         content_type="application/json; charset=utf-8")
-    reponse["Content-Disposition"] = 'attachment; filename="mes_donnees.json"'
+    reponse["Content-Disposition"] = ('attachment; filename="'
+                                      + nom_fichier + '"')
     return reponse
 
 

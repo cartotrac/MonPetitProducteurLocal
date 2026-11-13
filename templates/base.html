@@ -65,7 +65,7 @@
         {% if mode_pro %}
           <a href="{% url 'portal:dashboard' %}" title="Dashboard" aria-label="Dashboard" data-libelle="Dashboard" class="nav-icone{% if request.path == '/espace-pro/' %} nav-actif{% endif %}">📊</a>
           <div class="nav-gestion">
-            <a class="nav-gestion-titre{% if '/clients' in request.path or '/espace-ventes' in request.path or '/espace-commandes' in request.path or '/espace-paniers' in request.path or '/points-livraison' in request.path or '/mes-producteurs' in request.path %} nav-actif{% endif %}" href="{% url 'portal:ventes' %}" title="Gestion : clients, ventes, modalités, favoris" aria-label="Gestion" data-libelle="Gestion">🗂️</a>
+            <a class="nav-gestion-titre{% if '/clients' in request.path or '/espace-ventes' in request.path or '/espace-commandes' in request.path or '/espace-paniers' in request.path or '/points-livraison' in request.path or '/mes-producteurs' in request.path %} nav-actif{% endif %}" href="{% url 'portal:clients_suivi' %}" title="Gestion : clients, ventes, modalités, favoris" aria-label="Gestion" data-libelle="Gestion">🗂️</a>
             <div class="nav-gestion-menu">
               <a href="{% url 'portal:clients_suivi' %}">👤 Mes clients</a>
               <a href="{% url 'portal:ventes' %}">🧾 Ventes</a>
@@ -74,7 +74,7 @@
             </div>
           </div>
           <div class="nav-gestion">
-            <a class="nav-gestion-titre{% if '/espace-produits' in request.path or '/espace-recolte' in request.path or '/mes-cartes' in request.path or '/publications/' in request.path %} nav-actif{% endif %}" href="{% url 'portal:harvest_list' %}" title="Publications : catalogue, récoltes, newsletter, annonces" aria-label="Publications" data-libelle="Publications">📢</a>
+            <a class="nav-gestion-titre{% if '/espace-produits' in request.path or '/espace-recolte' in request.path or '/mes-cartes' in request.path or '/publications/' in request.path %} nav-actif{% endif %}" {% if est_proprietaire or user.is_superuser %}href="{% url 'portal:product_list' %}"{% else %}href="{% url 'portal:harvest_list' %}"{% endif %} title="Publications : catalogue, récoltes, newsletter, annonces" aria-label="Publications" data-libelle="Publications">📢</a>
             <div class="nav-gestion-menu">
               {% if est_proprietaire or user.is_superuser %}<a href="{% url 'portal:product_list' %}">📚 Catalogue</a>{% endif %}
               <a href="{% url 'portal:harvest_list' %}">{% if exploitant_courant %}{{ exploitant_courant.vocab.recoltes_emoji }} {{ exploitant_courant.vocab.recoltes|capfirst }}{% else %}🧺 Récoltes{% endif %}</a>
