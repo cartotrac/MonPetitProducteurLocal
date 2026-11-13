@@ -79,6 +79,25 @@
      et auprès de chaque producteur pour les données de commande le
      concernant. Vous pouvez également modifier ou supprimer vos
      informations depuis votre page « Mon profil ».</p>
+  {% if user.is_authenticated %}
+  <p><a class="btn btn-outline btn-sm"
+        href="{% url 'portal:export_donnees' %}">📦 Exporter mes
+        données (JSON)</a></p>
+  <details class="bloc-replie">
+    <summary>🗑️ Supprimer mon compte (auto-service)</summary>
+    <form method="post" action="{% url 'portal:supprimer_compte' %}">
+      {% csrf_token %}
+      <p>Efface votre compte, votre profil, vos favoris et vos
+         préférences ; vos commandes passées restent chez les
+         producteurs, <strong>anonymisées</strong>. Action
+         <strong>irréversible</strong> — tapez
+         <strong>SUPPRIMER</strong> pour confirmer.</p>
+      <input type="text" name="confirmation" placeholder="SUPPRIMER"
+             autocomplete="off" required>
+      <button class="btn btn-sm" type="submit">Supprimer définitivement</button>
+    </form>
+  </details>
+  {% endif %}
 </section>
 
 <section class="harvest-bloc">

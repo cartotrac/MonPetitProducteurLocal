@@ -1,6 +1,7 @@
 import csv
 import datetime
 import io
+import json
 import re
 from decimal import Decimal, InvalidOperation
 from urllib.parse import parse_qsl, urlencode
@@ -9,7 +10,7 @@ import django.core.mail
 from django.conf import settings
 
 from django.contrib import messages
-from django.contrib.auth import login, update_session_auth_hash
+from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -189,6 +190,92 @@ def mentions_legales(request):
     hébergée par son opérateur, hébergeur technique AlwaysData."""
     return render(request, "portal/mentions.html",
                       {"retour_form": _retour_form_initial(request)})
+
+
+@login_required
+def export_donnees(request):
+    """RGPD — droit à la portabilité : téléchargement JSON de toutes
+    les données personnelles liées au compte (profil, commandes,
+    paniers, favoris, préférences de contact). Aucune donnée des
+    autres comptes n'y figure."""
+    u = request.user
+    profil = ProfilClient.objects.filter(user=u).first()
+    commandes = [{
+        "exploitant": c.exploitant.nom_espace,
+        "nom": c.nom_client, "date_livraison": str(c.date_livraison),
+        "statut": c.statut, "email": c.email_client,
+        "telephone": c.telephone_client,
+    } for c in u.commandes.order_by("date_livraison")]
+    paniers = [{
+        "exploitant": p.exploitant.nom_espace,
+        "nom": p.nom_client, "date_livraison": str(p.date_livraison),
+        "statut": p.statut, "total": str(p.total),
+    } for p in u.paniers.order_by("date_livraison")]
+    favoris = [{"espace": f.exploitant.nom_espace, "nature": f.nature}
+               for f in u.favoris.all()]
+    preferences = [{
+        "espace": pc.exploitant.nom_espace, "canal": pc.canal,
+        "veut_bulletin": pc.veut_bulletin, "veut_annonces": pc.veut_annonces,
+    } for pc in u.preferences_contact.all()]
+    contenu = {
+        "compte": {
+            "identifiant": u.username,
+            "email": u.email,
+            "prenom": u.first_name, "nom": u.last_name,
+            "date_inscription": str(u.date_joined),
+        },
+        "profil_client": (None if profil is None else {
+            "telephone": profil.telephone, "adresse": profil.adresse,
+            "ville": profil.ville, "code_postal": profil.code_postal,
+            "alias": profil.alias, "photo_url": profil.photo_url,
+        }),
+        "commandes": commandes, "paniers": paniers,
+        "favoris": favoris, "preferences_contact": preferences,
+    }
+    reponse = HttpResponse(
+        json.dumps(contenu, indent=2, ensure_ascii=False),
+        content_type="application/json; charset=utf-8")
+    reponse["Content-Disposition"] = 'attachment; filename="mes_donnees.json"'
+    return reponse
+
+
+@login_required
+def supprimer_compte(request):
+    """RGPD — droit à l'effacement, en auto-service : le compte CLIENT
+    (sans espace pro) est supprimé ; ses commandes et paniers sont
+    ANONYMISÉS chez chaque producteur (conservation comptable, sans
+    donnée personnelle) ; profil, favoris et préférences sont effacés.
+    Un compte qui gère un espace pro ne peut pas s'effacer ainsi :
+    l'exploitation doit rester joignable pour ses clients."""
+    if espaces_pro(request.user):
+        messages.error(request, "Votre compte gère un espace pro : "
+                       "contactez l'admin de l'instance pour sa "
+                       "suppression (les clients de l'espace doivent "
+                       "rester informés).")
+        return redirect("portal:profil_client")
+    if request.method != "POST":
+        return redirect("portal:confidentialite")
+    if request.POST.get("confirmation", "").strip().upper() != "SUPPRIMER":
+        messages.error(request, "Tapez SUPPRIMER dans le champ de "
+                       "confirmation pour valider.")
+        return redirect("portal:confidentialite")
+    u = request.user
+    with transaction.atomic():
+        u.commandes.update(
+            client=None, nom_client="Client supprimé (RGPD)",
+            email_client="", telephone_client="")
+        u.paniers.update(
+            client=None, nom_client="Client supprimé (RGPD)",
+            email_client="", telephone_client="")
+        ProfilClient.objects.filter(user=u).delete()
+        PreferenceContact.objects.filter(client=u).delete()
+        Favori.objects.filter(user=u).delete()
+        User.objects.filter(pk=u.pk).delete()
+    logout(request)
+    messages.success(request, "Votre compte est supprimé. Vos commandes "
+                     "passées sont conservées chez les producteurs, "
+                     "anonymisées. À bientôt !")
+    return redirect("portal:home")
 
 
 def politique_confidentialite(request):
