@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}MonPetitProducteurLocal{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}?v=12">
-  <link rel="stylesheet" href="{% static 'css/append.css' %}?v=23">
+  <link rel="stylesheet" href="{% static 'css/append.css' %}?v=24">
   <script>
   /* Mode sombre appliqué AVANT le premier rendu (dans le <head>) :
      sans cela, les boutons du bandeau s'affichent une fraction de
@@ -538,6 +538,127 @@
   });
 })();
 </script>
+{% endif %}
+
+{# ==================== MODALES DE CHOIX D'INSCRIPTION ==================== #}
+{% if not user.is_authenticated %}
+{# 1. Modale Localien #}
+<dialog id="dlg-choix-client" class="dialog-choix-inscription">
+  <div class="choix-inscription-card">
+    <button class="choix-inscription-fermer" type="button" data-fermer-dlg="dlg-choix-client" aria-label="Fermer">✕</button>
+    <div class="choix-inscription-header">
+      <span class="choix-icon">🧺</span>
+      <h2>Devenir Localien</h2>
+      <p>Choisissez votre mode de création de compte gratuit pour commander vos paniers et suivre vos producteurs.</p>
+    </div>
+    <div class="choix-inscription-options">
+      {% if google_connexion %}
+      <a class="btn-choix-oauth btn-choix-google" href="{% url 'portal:google_entree_client' %}">
+        <svg class="g-logo" width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C1.08 15.71 0 19.74 0 24s1.08 8.29 2.56 11.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        <span>Continuer en 1 clic avec Google</span>
+      </a>
+      {% endif %}
+
+      <button class="btn-choix-oauth btn-choix-meta btn-disabled" type="button" title="Connexion Meta / Facebook bientôt disponible" aria-disabled="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true">
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+        </svg>
+        <span>Continuer avec Meta</span>
+        <span class="meta-badge">Bientôt</span>
+      </button>
+
+      <a class="btn-choix-oauth btn-choix-email" href="{% url 'portal:register_client' %}">
+        <span class="email-icon">✉️</span>
+        <span>Avec un e-mail et un mot de passe</span>
+      </a>
+    </div>
+  </div>
+</dialog>
+
+{# 2. Modale Espace Pro #}
+<dialog id="dlg-choix-pro" class="dialog-choix-inscription">
+  <div class="choix-inscription-card">
+    <button class="choix-inscription-fermer" type="button" data-fermer-dlg="dlg-choix-pro" aria-label="Fermer">✕</button>
+    <div class="choix-inscription-header">
+      <span class="choix-icon">🧑‍🌾</span>
+      <h2>Créer mon Espace Pro</h2>
+      <p>Maraîchers, éleveurs, artisans, traiteurs, foodtrucks : activez votre vitrine locale et gérez vos ventes en direct.</p>
+    </div>
+    <div class="choix-inscription-options">
+      {% if google_connexion %}
+      <a class="btn-choix-oauth btn-choix-google" href="{% url 'portal:google_entree_pro' %}">
+        <svg class="g-logo" width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C1.08 15.71 0 19.74 0 24s1.08 8.29 2.56 11.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        <span>Créer mon compte Pro en 1 clic avec Google</span>
+      </a>
+      {% endif %}
+
+      <button class="btn-choix-oauth btn-choix-meta btn-disabled" type="button" title="Connexion Meta / Facebook bientôt disponible" aria-disabled="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true">
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+        </svg>
+        <span>Créer mon compte Pro avec Meta</span>
+        <span class="meta-badge">Bientôt</span>
+      </button>
+
+      <a class="btn-choix-oauth btn-choix-email" href="{% url 'portal:register_producer' %}">
+        <span class="email-icon">✉️</span>
+        <span>Avec un e-mail et un mot de passe</span>
+      </a>
+    </div>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  function connecterDlg(declencheurSelector, dlgId) {
+    var declencheurs = document.querySelectorAll(declencheurSelector);
+    var dlg = document.getElementById(dlgId);
+    if (!dlg || !declencheurs.length) return;
+
+    declencheurs.forEach(function (btn) {
+      btn.addEventListener("click", function (e) {
+        // Si c'est un clic avec modificateur (Ctrl/Cmd pour nouvel onglet), laisser faire le lien
+        if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+        e.preventDefault();
+        if (typeof dlg.showModal === "function") {
+          dlg.showModal();
+        } else {
+          window.location.href = btn.getAttribute("href");
+        }
+      });
+    });
+
+    dlg.addEventListener("click", function (e) {
+      if (e.target === dlg) { dlg.close(); }
+    });
+  }
+
+  // Intercepte les boutons/liens vers l'inscription client
+  connecterDlg('a[href*="inscription/client"]', "dlg-choix-client");
+  // Intercepte les boutons/liens vers l'inscription pro
+  connecterDlg('a[href*="inscription/exploitant"]', "dlg-choix-pro");
+
+  // Boutons de fermeture
+  document.querySelectorAll("[data-fermer-dlg]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var id = btn.getAttribute("data-fermer-dlg");
+      var dlg = document.getElementById(id);
+      if (dlg && typeof dlg.close === "function") { dlg.close(); }
+    });
+  });
+})();
+</script>
+{% endif %}
 {% endif %}
 
 {% if retour_form %}

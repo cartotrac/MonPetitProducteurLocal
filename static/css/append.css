@@ -4180,3 +4180,242 @@ html.dark .input-qte {
 html.dark .carte-inscription-aide {
   color: #aab599;
 }
+
+/* ==========================================================================
+   MODALE DE CHOIX D'INSCRIPTION & RESPONSIVE PROFIL GÉRANT
+   ========================================================================== */
+
+/* Responsive profil individuel gérant & Localien : passage en 1 colonne sous 820px */
+@media (max-width: 820px) {
+  .profil-mise-en-page {
+    grid-template-columns: 1fr !important;
+    gap: 1.2rem 0 !important;
+  }
+  .profil-photo {
+    flex-direction: column !important;
+    align-items: center !important;
+    padding-top: 1rem !important;
+    border-top: 1px dashed var(--border, #cce5c8);
+    margin-top: 0.8rem;
+    width: 100% !important;
+  }
+  .profil-photo .profil-photo-url {
+    width: 100% !important;
+    max-width: 380px;
+    margin: 0.5rem auto 0 !important;
+  }
+  .form-duo, .form-duo-ferme, .form-trio {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+}
+
+/* Modale de choix d'inscription (Localien / Espace Pro) */
+dialog.dialog-choix-inscription {
+  border: 1px solid var(--border, #cfd8c3);
+  border-radius: 20px;
+  padding: 0;
+  max-width: 490px;
+  width: 92vw;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+  background: var(--card, #ffffff);
+  color: inherit;
+  overflow: hidden;
+}
+
+dialog.dialog-choix-inscription::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+}
+
+.choix-inscription-card {
+  padding: 2.2rem 2rem 2rem;
+  position: relative;
+}
+
+.choix-inscription-header {
+  text-align: center;
+  margin-bottom: 1.6rem;
+}
+
+.choix-inscription-header .choix-icon {
+  font-size: 2.8rem;
+  line-height: 1;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.choix-inscription-header h2 {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--accent-dark, #2e5927);
+  margin: 0 0 0.4rem;
+}
+
+.choix-inscription-header p {
+  font-size: 0.88rem;
+  line-height: 1.4;
+  margin: 0;
+  color: var(--muted, #666);
+}
+
+.choix-inscription-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.btn-choix-oauth {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.85rem 1.1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  cursor: pointer;
+  border: 1px solid #dadce0;
+}
+
+.btn-choix-oauth:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-choix-google {
+  background: #ffffff;
+  color: #3c4043;
+}
+
+.btn-choix-google:hover {
+  background: #f8f9fa;
+  border-color: #4285f4;
+  color: #1a73e8;
+}
+
+.btn-choix-meta {
+  background: #ffffff;
+  color: #1877f2;
+  border-color: #cbd5e1;
+}
+
+.btn-choix-meta:hover {
+  background: #f0f7ff;
+  border-color: #1877f2;
+}
+
+.btn-choix-meta.btn-disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: #f8f9fa;
+  border-color: #e2e8f0;
+  color: #64748b;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.btn-choix-meta .meta-badge {
+  font-size: 0.72rem;
+  background: #e2e8f0;
+  color: #475569;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  margin-left: auto;
+  font-weight: 600;
+}
+
+.btn-choix-email {
+  background: var(--bg-alt, #f4faf2);
+  color: var(--accent-dark, #2e5927);
+  border: 1px solid var(--border, #cce5c8);
+}
+
+.btn-choix-email:hover {
+  background: #e6f4e3;
+  border-color: var(--accent, #4e6b3a);
+}
+
+.btn-choix-email .email-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.choix-inscription-fermer {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--muted, #888);
+  cursor: pointer;
+  padding: 0.3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.choix-inscription-fermer:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #111;
+}
+
+html.dark dialog.dialog-choix-inscription {
+  background: #232820;
+  border-color: #4e5c3d;
+  color: #e6e4da;
+}
+
+html.dark .choix-inscription-header h2 {
+  color: #c5e1a5;
+}
+
+html.dark .btn-choix-google {
+  background: #ffffff;
+  color: #3c4043;
+}
+
+html.dark .btn-choix-meta {
+  background: #283324;
+  color: #60a5fa;
+  border-color: #3e5036;
+}
+
+html.dark .btn-choix-meta.btn-disabled {
+  background: #1c221a;
+  color: #718096;
+  border-color: #2f3c2a;
+}
+
+html.dark .btn-choix-meta .meta-badge {
+  background: #2d3b28;
+  color: #a0aec0;
+}
+
+html.dark .btn-choix-email {
+  background: #2b3624;
+  color: #dcedc8;
+  border-color: #445638;
+}
+
+html.dark .btn-choix-email:hover {
+  background: #33422a;
+}
+
+html.dark .choix-inscription-fermer {
+  color: #aab599;
+}
+
+html.dark .choix-inscription-fermer:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
