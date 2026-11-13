@@ -364,7 +364,9 @@
         var lib = btnEdit.querySelector("span");
         if (lib) { lib.textContent = enEdition ? "Édition : actif" : "Édition : non"; }
         carteEl.classList.toggle("points-en-edition", enEdition);
-        if (btnNew) { btnNew.style.display = enEdition ? "" : "none"; }
+        /* display:"" ne suffit pas : la règle CSS par défaut
+           (.btn-points-nouveau { display:none) referait effet. */
+        if (btnNew) { btnNew.style.display = enEdition ? "block" : "none"; }
         if (!enEdition) {
           fermerToast();
           basculerCreation(false);
