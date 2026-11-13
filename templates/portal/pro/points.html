@@ -31,21 +31,22 @@
 </details>
 
 <section class="harvest-bloc">
-  <h2>🗓 Ma semaine type</h2>
+  <h2>🗓 Ma semaine type
+    <span class="jour-date">sem. {{ num_semaine }} · du {{ lundi_semaine|date:"d/m" }} au {{ dimanche_semaine|date:"d/m" }}</span></h2>
   {% if creneaux %}
     <div class="planning-scroll">
     <table class="table planning-semaine">
       <thead><tr>
-        {% for jour in planning %}<th{% if jour.aujourdhui %} class="col-aujourdhui"{% endif %}>{% if jour.aujourdhui %}📍 {% endif %}{{ jour.libelle }}</th>{% endfor %}
+        {% for jour in planning %}<th{% if jour.aujourdhui %} class="col-aujourdhui"{% endif %}>{% if jour.aujourdhui %}📍 {% endif %}{{ jour.libelle }} <span class="jour-date">{{ jour.date|date:"d/m" }}</span></th>{% endfor %}
       </tr></thead>
       <tbody><tr>
         {% for jour in planning %}
           <td{% if jour.aujourdhui %} class="col-aujourdhui"{% endif %}>
-            {% for creneau in jour.creneaux %}
+            {% for puce in jour.creneaux %}
               <div class="creneau-puce">
-                <span class="creneau-heures">{{ creneau.heure_debut|time:"H:i" }}–{{ creneau.heure_fin|time:"H:i" }}</span>
-                <span class="creneau-point">{% if creneau.point_livraison %}{{ creneau.point_livraison.emoji_type }} {{ creneau.point_livraison.nom }}{% else %}• sans point{% endif %}</span>
-                {% if creneau.frequence != 'H' %}<span class="creneau-freq">{{ creneau.get_frequence_display|lower }}</span>{% endif %}
+                <span class="creneau-heures">{{ puce.creneau.heure_debut|time:"H:i" }}–{{ puce.creneau.heure_fin|time:"H:i" }}</span>
+                <span class="creneau-point">{% if puce.creneau.point_livraison %}{{ puce.creneau.point_livraison.emoji_type }} {{ puce.creneau.point_livraison.nom }}{% else %}• sans point{% endif %}</span>
+                {% if puce.creneau.frequence != 'H' %}<span class="creneau-freq">{{ puce.freq_libelle }} · {{ puce.date_str }}</span>{% endif %}
               </div>
             {% empty %}
               <span class="jour-vide">—</span>
@@ -55,10 +56,39 @@
       </tr></tbody>
     </table>
     </div>
-    <p class="muted">Vos créneaux récurrents, triés par heure — la
-       colonne du jour est surlignée. Les clients ne peuvent choisir que
-       les dates tombant sur ces jours (et uniquement ceux du point
-       sélectionné).</p>
+    {% if planning_prochain_actif %}
+    <p class="sous-titre-semaine">➡️ Semaine prochaine
+       <span class="jour-date">sem. {{ num_semaine_prochaine }} · du {{ lundi_prochain|date:"d/m" }} au {{ dimanche_prochain|date:"d/m" }}</span>
+       — vos créneaux « une semaine sur deux » ou mensuels qui ne
+       tombent pas cette semaine :</p>
+    <div class="planning-scroll">
+    <table class="table planning-semaine planning-prochain">
+      <thead><tr>
+        {% for jour in planning_prochain %}<th>{{ jour.libelle }} <span class="jour-date">{{ jour.date|date:"d/m" }}</span></th>{% endfor %}
+      </tr></thead>
+      <tbody><tr>
+        {% for jour in planning_prochain %}
+          <td>
+            {% for puce in jour.creneaux %}
+              <div class="creneau-puce">
+                <span class="creneau-heures">{{ puce.creneau.heure_debut|time:"H:i" }}–{{ puce.creneau.heure_fin|time:"H:i" }}</span>
+                <span class="creneau-point">{% if puce.creneau.point_livraison %}{{ puce.creneau.point_livraison.emoji_type }} {{ puce.creneau.point_livraison.nom }}{% else %}• sans point{% endif %}</span>
+                <span class="creneau-freq">{{ puce.freq_libelle }} · {{ puce.date_str }}</span>
+              </div>
+            {% empty %}
+              <span class="jour-vide">—</span>
+            {% endfor %}
+          </td>
+        {% endfor %}
+      </tr></tbody>
+    </table>
+    </div>
+    {% endif %}
+    <p class="muted">Triés par heure, colonne du jour surlignée.
+       « Une semaine sur deux » suit les semaines ISO : paires ou
+       impaires, indiqué sur chaque créneau avec sa date. Les clients ne
+       peuvent choisir que les dates tombant sur ces jours (et uniquement
+       ceux du point sélectionné).</p>
   {% else %}
     <p class="card etat-vide"><span class="etat-vide-emoji">🗓</span>
        Aucun créneau : les clients se voient proposer tous les jours.
@@ -183,7 +213,7 @@
               <form method="post" class="inline">{% csrf_token %}
                 <input type="hidden" name="action" value="creneau_supprimer">
                 <input type="hidden" name="pk" value="{{ creneau.pk }}">
-                <button class="btn btn-sm btn-danger" type="submit">🗑</button>
+                <button class="btn btn-sm btn-danger" type="submit" title="Supprimer ce créneau">🗑</button>
               </form>
               <details class="creneau-edition">
                 <summary>✏️</summary>
@@ -249,10 +279,15 @@
           </form>
         </details>
       </div>
-      <form method="post" class="inline" onsubmit="return confirm('Supprimer le point « {{ point.nom }} » et ses créneaux ?');">{% csrf_token %}
+      <form method="post" class="inline btn-supprimer-point form-supprimer-point"
+            data-nom="{{ point.nom }}"
+            data-type="{{ point.emoji_type }} {{ point.get_type_point_display }}"
+            data-adresse="{{ point.adresse }}{% if point.adresse %}, {% endif %}{{ point.code_postal }} {{ point.ville }}"
+            data-creneaux="{{ point.nb_creneaux }}">{% csrf_token %}
         <input type="hidden" name="action" value="point_supprimer">
         <input type="hidden" name="pk" value="{{ point.pk }}">
-        <button class="btn btn-sm btn-danger" type="submit">🗑 Supprimer</button>
+        <button class="btn btn-sm btn-danger" type="submit"
+                title="Supprimer le point « {{ point.nom }} » ({{ point.get_type_point_display }})">🗑 Supprimer</button>
       </form>
     </div>
   {% empty %}
@@ -335,4 +370,5 @@
 {% block extrajs %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{% static 'js/carte-points.js' %}" defer></script>
+<script src="{% static 'js/suppressions-points.js' %}" defer></script>
 {% endblock %}

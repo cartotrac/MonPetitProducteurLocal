@@ -3646,17 +3646,69 @@ def points_manage(request):
     # hebdomadaire trié par heure (colonne du jour courant surlignée),
     # statistiques par point (créneaux, capacité, localisation) et
     # liens croisés carte ↔ fiches.
-    aujourdhui = timezone.localdate().isoweekday()
+    aujourdhui_dt = timezone.localdate()
+    aujourdhui = aujourdhui_dt.isoweekday()
+    lundi_semaine = (aujourdhui_dt
+                     - datetime.timedelta(days=aujourdhui_dt.weekday()))
+    dimanche_semaine = lundi_semaine + datetime.timedelta(days=6)
+    num_semaine = aujourdhui_dt.isocalendar()[1]
+    lundi_prochain = lundi_semaine + datetime.timedelta(days=7)
+    dimanche_prochain = lundi_prochain + datetime.timedelta(days=6)
+    num_semaine_prochaine = lundi_prochain.isocalendar()[1]
     creneaux_tous = list(
         exploitant.creneaux.select_related("point_livraison"))
-    planning = []
+
+    def _occurrence(creneau, lundi):
+        """Date de l'occurrence du créneau dans la semaine du lundi
+        donné, None s'il ne tombe pas cette semaine-là. « Une semaine
+        sur deux » suit les semaines ISO (paires) ; mensuel = premier
+        <jour> du mois."""
+        jour_date = lundi + datetime.timedelta(days=creneau.jour - 1)
+        if creneau.frequence == CreneauLivraison.Frequence.HEBDO:
+            return jour_date
+        if creneau.frequence == CreneauLivraison.Frequence.BIS:
+            return (jour_date
+                    if jour_date.isocalendar()[1] % 2 == 0 else None)
+        premier = jour_date.replace(day=1)
+        occ = premier + datetime.timedelta(
+            days=(creneau.jour - premier.isoweekday()) % 7)
+        if occ < lundi:
+            apres = premier.replace(day=28) + datetime.timedelta(days=4)
+            premier = apres.replace(day=1)
+            occ = premier + datetime.timedelta(
+                days=(creneau.jour - premier.isoweekday()) % 7)
+        fin = lundi + datetime.timedelta(days=6)
+        return occ if lundi <= occ <= fin else None
+
+    def _puce(c, occ):
+        return {
+            "creneau": c, "occ": occ,
+            "freq_libelle": c.get_frequence_display().lower(),
+            "date_str": occ.strftime("%d/%m") if occ else ""}
+
+    planning, planning_prochain = [], []
     for valeur, libelle in CreneauLivraison._meta.get_field("jour").choices:
+        date_jour = lundi_semaine + datetime.timedelta(days=valeur - 1)
+        cellule, cellule_prochaine = [], []
+        for c in creneaux_tous:
+            if c.jour != valeur:
+                continue
+            occ = _occurrence(c, lundi_semaine)
+            suivi = _occurrence(c, lundi_prochain)
+            if occ is not None:
+                cellule.append(_puce(c, occ))
+            elif suivi is not None:
+                cellule_prochaine.append(_puce(c, suivi))
         planning.append({
+            "valeur": valeur, "libelle": libelle, "date": date_jour,
+            "aujourdhui": (date_jour == aujourdhui_dt),
+            "creneaux": cellule})
+        planning_prochain.append({
             "valeur": valeur, "libelle": libelle,
-            "aujourdhui": (valeur == aujourdhui),
-            "creneaux": sorted(
-                (c for c in creneaux_tous if c.jour == valeur),
-                key=lambda c: (c.heure_debut, c.heure_fin))})
+            "date": date_jour + datetime.timedelta(days=7),
+            "creneaux": cellule_prochaine})
+    planning_prochain_actif = any(
+        j["creneaux"] for j in planning_prochain)
     points_liste = list(points)
     nb_points = len(points_liste)
     nb_localises = sum(1 for p in points_liste
@@ -3682,6 +3734,14 @@ def points_manage(request):
         "types_points": types_points,
         "est_foodtruck": est_foodtruck,
         "planning": planning,
+        "planning_prochain": planning_prochain,
+        "planning_prochain_actif": planning_prochain_actif,
+        "num_semaine": num_semaine,
+        "num_semaine_prochaine": num_semaine_prochaine,
+        "lundi_semaine": lundi_semaine,
+        "dimanche_semaine": dimanche_semaine,
+        "lundi_prochain": lundi_prochain,
+        "dimanche_prochain": dimanche_prochain,
         "nb_points": nb_points,
         "nb_localises": nb_localises,
         "nb_creneaux": nb_creneaux,

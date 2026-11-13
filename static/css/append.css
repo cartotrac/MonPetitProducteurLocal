@@ -2499,3 +2499,40 @@ a.badge:hover { filter: brightness(0.95); }
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.55); }
 }
+
+/* ===== Planning : dates et n° de semaine, rangée semaine prochaine ===== */
+.jour-date { display: inline-block; font-size: 0.72rem; font-weight: 400;
+  color: #55603f; margin-left: 0.25rem; }
+html.dark .jour-date { color: #aab599; }
+h2 .jour-date { font-size: 0.8rem; }
+.sous-titre-semaine { font-weight: 600; margin: 0.8rem 0 0.3rem;
+  color: #2c4a1a; }
+html.dark .sous-titre-semaine { color: #7cb342; }
+.planning-prochain .creneau-puce { border-style: dashed; opacity: 0.92; }
+
+/* ===== Suppressions : alignement, infobulles, annulation, récap ===== */
+.harvest-item { align-items: flex-start; }
+.btn-supprimer-point { align-self: flex-start; }
+.suppression-en-cours { opacity: 0.45; filter: grayscale(0.6);
+  transition: opacity 0.2s; }
+.toast-suppression { position: fixed; left: 50%; bottom: 18px;
+  transform: translateX(-50%); z-index: 2000;
+  display: flex; gap: 0.7rem; align-items: center;
+  background: #232620; color: #e6e4da; font-size: 0.88rem;
+  padding: 0.55rem 0.95rem; border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35); max-width: min(94vw, 34rem); }
+.toast-suppression[hidden] { display: none; }
+.toast-suppression button { border: 1px solid #7cb342; background: #2e7d32;
+  color: #fff; border-radius: 6px; padding: 0.25rem 0.7rem;
+  cursor: pointer; font-size: 0.82rem; font-weight: 600; flex: none; }
+.toast-suppression button:hover { filter: brightness(1.1); }
+dialog.dlg-suppression { border: 1px solid #cfd8c3; border-radius: 12px;
+  padding: 1rem 1.2rem; max-width: min(92vw, 26rem);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3); }
+dialog.dlg-suppression::backdrop { background: rgba(0, 0, 0, 0.45); }
+dialog.dlg-suppression h3 { margin-top: 0; }
+dialog.dlg-suppression ul { margin: 0.5rem 0; padding-left: 1.2rem; }
+dialog.dlg-suppression .dlg-actions { display: flex; gap: 0.5rem;
+  margin-top: 0.7rem; flex-wrap: wrap; }
+html.dark dialog.dlg-suppression { background: #232620; color: #e6e4da;
+  border-color: #4a4f44; }
