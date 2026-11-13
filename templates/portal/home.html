@@ -1,91 +1,348 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Producteurs locaux, restauration &amp; foodtrucks — MonPetitProducteurLocal{% endblock %}
+{% block title %}Producteurs locaux, marchés, restauration &amp; foodtrucks — MonPetitProducteurLocal{% endblock %}
 {% block content %}
 
-{# ---- Bandeau d'action ---- #}
-<section class="action-bar">
-  <a class="btn btn-lg" href="{% url 'portal:producer_search' %}">🔍 Trouver producteurs, marchés, restauration &amp; foodtrucks</a>
-  <a class="btn btn-outline btn-lg" href="{% url 'portal:register_producer' %}">🧑‍🌾 Je suis producteur — rejoindre le réseau</a>
-</section>
+{# ==================== HERO SECTION ==================== #}
+<section class="home-hero">
+  <div class="home-hero-badge">
+    <span class="home-hero-badge-dot"></span>
+    <span>Portail libre &amp; circuits courts du terroir</span>
+  </div>
 
-{# ---- Hero : portail, philosophie ---- #}
-<section class="hero">
-  <h1>Du champ à votre table, en circuit court</h1>
-  <p class="hero-lead">
-    MonPetitProducteurLocal met en relation les producteurs locaux indépendants —
-    maraîchers, arboriculteurs, éleveurs, fromagers, apiculteurs… — et désormais
-    aussi les restaurants, traiteurs et foodtrucks de votre territoire, avec leurs emplacements
-    du soir. Chaque pro reste maître de ses prix, de ses produits et de ses
-    clients : le portail est un outil au service des circuits courts, pas un
-    intermédiaire. Un bien commun, libre et réplicable.
+  <h1 class="home-hero-title">
+    Du champ à votre table, le meilleur de vos <span class="home-hero-highlight">producteurs &amp; artisans locaux</span>
+  </h1>
+
+  <p class="home-hero-lead">
+    MonPetitProducteurLocal réunit les maraîchers, éleveurs, fromagers, apiculteurs, foodtrucks,
+    traiteurs et restaurants de votre région. Commandez vos récoltes de la semaine, repérez les
+    emplacements du soir et retrouvez tous les marchés locaux — <strong>en direct, sans intermédiaire et sans commission</strong>.
   </p>
-</section>
 
-{# ---- Fonctionnalités ---- #}
-<section class="hero">
-  <div class="grid features">
-    <div class="feature"><h3>🧺 Récoltes de la semaine</h3>
-      <p>Chaque producteur publie ses disponibilités hebdomadaires : produits, quantités estimées, prix.</p></div>
-    <div class="feature"><h3>📍 Points de livraison &amp; marchés</h3>
-      <p>Marchés, AMAP, exploitation : chaque producteur définit ses points de retrait et créneaux, jour par jour.</p></div>
-    <div class="feature"><h3>🎪 Marchés &amp; boutiques identifiés</h3>
-      <p>Les stands et points de vente déclarés par les producteurs sont agrégés : un marché, une fiche, des horaires déduits — même quand plusieurs y vendent.</p></div>
-    <div class="feature"><h3>🍽️ Restauration &amp; foodtrucks</h3>
-      <p>Restaurants, traiteurs et emplacements du soir des foodtrucks : pizzas, burgers, sandwichs, rôtisserie — sur la même carte.</p></div>
-    <div class="feature"><h3>🛒 Commande directe</h3>
-      <p>Le client commande auprès du producteur qui valide : paniers préparés pour chaque jour de livraison.</p></div>
-    <div class="feature"><h3>✉️ Communication directe</h3>
-      <p>Newsletters et annonces de mise à disposition, par la boîte mail du producteur.</p></div>
+  <div class="home-hero-actions">
+    <a class="btn btn-hero-primary" href="{% url 'portal:producer_search' %}">
+      <span class="btn-icone">🔍</span>
+      <span>Trouver autour de moi</span>
+    </a>
+    <a class="btn btn-hero-secondary" href="{% url 'portal:register_producer' %}">
+      <span class="btn-icone">🧑‍🌾</span>
+      <span>Rejoindre en tant que Pro</span>
+    </a>
   </div>
-  <p class="hero-lead muted">Trois modes de recherche sur la
-     <a href="{% url 'portal:producer_search' %}">page de recherche</a> :
-     🥬 producteurs, 🍽️ restauration &amp; foodtrucks, 🎪 marchés &amp; boutiques —
-     la carte, les filtres et les vignettes s'adaptent à chaque mode.</p>
+
+  {# Raccourcis rapides par univers #}
+  <div class="home-hero-univers">
+    <span class="home-hero-univers-label">Accès direct :</span>
+    <div class="home-hero-pills">
+      <a href="{% url 'portal:producer_search' %}?visu=producteurs" class="hero-pill" title="Afficher les producteurs et maraîchers">
+        <span class="pill-emoji">🥬</span> Producteurs &amp; Éleveurs
+      </a>
+      <a href="{% url 'portal:producer_search' %}?visu=restauration" class="hero-pill" title="Afficher les foodtrucks, traiteurs et restaurants">
+        <span class="pill-emoji">🚚</span> Foodtrucks &amp; Restauration
+      </a>
+      <a href="{% url 'portal:producer_search' %}?visu=marches" class="hero-pill" title="Afficher les marchés et boutiques paysannes">
+        <span class="pill-emoji">🎪</span> Marchés &amp; Boutiques
+      </a>
+    </div>
+  </div>
 </section>
 
 
-{# ---- Chiffres clés : pros segmentés par métier + trafic ---- #}
+{# ==================== SECTION LES UNIVERS MÉTIERS ==================== #}
+<section class="home-section home-metiers-section">
+  <div class="home-section-header">
+    <span class="home-section-tag">Entrées Métiers</span>
+    <h2>Toutes les saveurs locales au même endroit</h2>
+    <p class="home-section-desc">
+      Que vous cherchiez des légumes frais cueillis à maturité, un plat gourmand au foodtruck du coin ou un panier fermier sur le marché :
+    </p>
+  </div>
+
+  <div class="home-metiers-grid">
+    {# Métier 1 : Producteurs & Maraîchers #}
+    <div class="metier-card metier-card-agri">
+      <div class="metier-card-top">
+        <div class="metier-icon-box">🥬</div>
+        <span class="metier-badge">Circuits courts</span>
+      </div>
+      <h3>Maraîchers &amp; Éleveurs</h3>
+      <p>Légumes bio, vergers, viandes fermières, fromages affinés, œufs et miels locaux.</p>
+      <ul class="metier-points">
+        <li>🧺 Récoltes et disponibilités de la semaine</li>
+        <li>🛒 Commande en direct, paiement sans frais</li>
+        <li>📍 Retrait à la ferme ou en point relais</li>
+      </ul>
+      <a class="metier-link" href="{% url 'portal:producer_search' %}?visu=producteurs">
+        Explorer les producteurs <span class="fleche">→</span>
+      </a>
+    </div>
+
+    {# Métier 2 : Foodtrucks #}
+    <div class="metier-card metier-card-truck">
+      <div class="metier-card-top">
+        <div class="metier-icon-box">🚚</div>
+        <span class="metier-badge">Itinérance</span>
+      </div>
+      <h3>Foodtrucks &amp; Soirs nomades</h3>
+      <p>Pizzas au feu de bois, burgers du terroir, rôtisserie artisanale et cuisines du monde.</p>
+      <ul class="metier-points">
+        <li>📍 Emplacements du soir géolocalisés jour par jour</li>
+        <li>📱 Carte du jour &amp; précommande rapide</li>
+        <li>⏱️ Retrait express sur place sans file d'attente</li>
+      </ul>
+      <a class="metier-link" href="{% url 'portal:producer_search' %}?visu=restauration">
+        Localiser les foodtrucks <span class="fleche">→</span>
+      </a>
+    </div>
+
+    {# Métier 3 : Restauration & Traiteurs #}
+    <div class="metier-card metier-card-resto">
+      <div class="metier-card-top">
+        <div class="metier-icon-box">🍽️</div>
+        <span class="metier-badge">Fait maison</span>
+      </div>
+      <h3>Restaurants &amp; Traiteurs</h3>
+      <p>Tables paysannes, bistronomiques engagés et traiteurs valorisant les produits du coin.</p>
+      <ul class="metier-points">
+        <li>🥗 Ingrédients sourcés chez nos producteurs locaux</li>
+        <li>🧾 Menus de saison et formules traiteur</li>
+        <li>⭐ Avis et coordonnées directes des chefs</li>
+      </ul>
+      <a class="metier-link" href="{% url 'portal:producer_search' %}?visu=restauration">
+        Découvrir les bonnes tables <span class="fleche">→</span>
+      </a>
+    </div>
+
+    {# Métier 4 : Marchés & Boutiques #}
+    <div class="metier-card metier-card-marche">
+      <div class="metier-card-top">
+        <div class="metier-icon-box">🎪</div>
+        <span class="metier-badge">Lieux de vente</span>
+      </div>
+      <h3>Marchés &amp; Boutiques collectives</h3>
+      <p>Marchés de village, halles couvertes et boutiques de producteurs partagées.</p>
+      <ul class="metier-points">
+        <li>🕒 Horaires consolidés et jours de présence</li>
+        <li>🧑‍🌾 Tous les producteurs d'un même marché réunis</li>
+        <li>📦 Plusieurs paniers retirés en un seul arrêt</li>
+      </ul>
+      <a class="metier-link" href="{% url 'portal:producer_search' %}?visu=marches">
+        Voir les marchés &amp; boutiques <span class="fleche">→</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+{# ==================== SECTION COMMENT ÇA MARCHE ==================== #}
+<section class="home-section home-how-section">
+  <div class="home-section-header">
+    <span class="home-section-tag">Fonctionnement</span>
+    <h2>Un portail pensé pour tous</h2>
+    <p class="home-section-desc">Simple, transparent et respectueux de l'indépendance de chacun.</p>
+  </div>
+
+  <div class="home-how-grid">
+    {# Colonne 1 : Clients #}
+    <div class="how-column">
+      <div class="how-column-header">
+        <span class="how-role-emoji">🛒</span>
+        <div>
+          <h3>Pour les consommateurs</h3>
+          <p class="muted">Particuliers, familles et amateurs de bon sens</p>
+        </div>
+      </div>
+      <div class="how-steps">
+        <div class="how-step">
+          <div class="how-step-num">1</div>
+          <div class="how-step-body">
+            <strong>Localisez près de vous</strong>
+            <p>Explorez la carte interactive ou tapez votre code postal pour afficher les pros de votre bassin de vie.</p>
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">2</div>
+          <div class="how-step-body">
+            <strong>Commandez en direct</strong>
+            <p>Parcourez les récoltes fraîches ou la carte, commandez avec ou sans compte en quelques clics.</p>
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">3</div>
+          <div class="how-step-body">
+            <strong>Récupérez vos paniers</strong>
+            <p>Retirez votre commande préparée et numérotée sur votre marché ou point de livraison habituel.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# Colonne 2 : Producteurs & Pros #}
+    <div class="how-column">
+      <div class="how-column-header">
+        <span class="how-role-emoji">🧑‍🌾</span>
+        <div>
+          <h3>Pour les producteurs &amp; pros</h3>
+          <p class="muted">Maraîchers, éleveurs, foodtrucks, restaurateurs</p>
+        </div>
+      </div>
+      <div class="how-steps">
+        <div class="how-step">
+          <div class="how-step-num">1</div>
+          <div class="how-step-body">
+            <strong>Votre vitrine personnalisée</strong>
+            <p>Créez votre page avec vos produits, votre équipe, vos points de retrait et vos créneaux réguliers.</p>
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">2</div>
+          <div class="how-step-body">
+            <strong>Gestion simplifiée des ventes</strong>
+            <p>Publiez vos récoltes estimées, préparez vos paniers numérotés par jour et exportez vos ventes en CSV.</p>
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">3</div>
+          <div class="how-step-body">
+            <strong>Lien direct &amp; indépendance</strong>
+            <p>Communiquez avec vos clients par newsletter et SMS avec votre propre messagerie, sans commission.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+{# ==================== CHIFFRES CLÉS & STATISTIQUES ==================== #}
 <section class="chiffres-cles">
-  <h2>📈 Le portail en chiffres</h2>
-  <p class="chiffres-accroche">🤝 <strong>{{ nb_pros }} professionnel{{ nb_pros|pluralize }}</strong> nous font confiance</p>
-  <div class="chiffres-grille">
-    <div class="chiffre-carte"><span class="chiffre-emoji">🥬</span>
-      <strong class="chiffre-nb">{{ nb_producteurs_locaux }}</strong>
-      <span>{% if nb_producteurs_locaux > 1 %}producteurs locaux{% else %}producteur local{% endif %}</span></div>
-    <div class="chiffre-carte"><span class="chiffre-emoji">🥗</span>
-      <strong class="chiffre-nb">{{ nb_traiteurs }}</strong>
-      <span>traiteur{{ nb_traiteurs|pluralize }}</span></div>
-    <div class="chiffre-carte"><span class="chiffre-emoji">🍽️</span>
-      <strong class="chiffre-nb">{{ nb_restaurants }}</strong>
-      <span>restaurant{{ nb_restaurants|pluralize }}</span></div>
-    <div class="chiffre-carte"><span class="chiffre-emoji">🚚</span>
-      <strong class="chiffre-nb">{{ nb_foodtrucks }}</strong>
-      <span>foodtruck{{ nb_foodtrucks|pluralize }}</span></div>
-    <div class="chiffre-carte"><span class="chiffre-emoji">🎪</span>
-      <strong class="chiffre-nb">{{ nb_marches }}</strong>
-      <span>marché{{ nb_marches|pluralize }} identifié{{ nb_marches|pluralize }}</span></div>
-    <div class="chiffre-carte"><span class="chiffre-emoji">🏪</span>
-      <strong class="chiffre-nb">{{ nb_boutiques }}</strong>
-      <span>boutique{{ nb_boutiques|pluralize }} de producteur{{ nb_boutiques|pluralize }}</span></div>
+  <div class="chiffres-header">
+    <div>
+      <span class="home-section-tag">Dynamique Locale</span>
+      <h2>📈 Le portail en chiffres</h2>
+      <p class="chiffres-accroche">🤝 <strong>{{ nb_pros }} professionnel{{ nb_pros|pluralize }}</strong> font vivre le réseau sur le terrain</p>
+    </div>
   </div>
+
+  <div class="chiffres-grille">
+    <div class="chiffre-carte">
+      <span class="chiffre-emoji">🥬</span>
+      <strong class="chiffre-nb">{{ nb_producteurs_locaux }}</strong>
+      <span class="chiffre-libelle">{% if nb_producteurs_locaux > 1 %}producteurs locaux{% else %}producteur local{% endif %}</span>
+    </div>
+    <div class="chiffre-carte">
+      <span class="chiffre-emoji">🚚</span>
+      <strong class="chiffre-nb">{{ nb_foodtrucks }}</strong>
+      <span class="chiffre-libelle">foodtruck{{ nb_foodtrucks|pluralize }}</span>
+    </div>
+    <div class="chiffre-carte">
+      <span class="chiffre-emoji">🍽️</span>
+      <strong class="chiffre-nb">{{ nb_restaurants }}</strong>
+      <span class="chiffre-libelle">restaurant{{ nb_restaurants|pluralize }}</span>
+    </div>
+    <div class="chiffre-carte">
+      <span class="chiffre-emoji">🥗</span>
+      <strong class="chiffre-nb">{{ nb_traiteurs }}</strong>
+      <span class="chiffre-libelle">traiteur{{ nb_traiteurs|pluralize }}</span>
+    </div>
+    <div class="chiffre-carte">
+      <span class="chiffre-emoji">🎪</span>
+      <strong class="chiffre-nb">{{ nb_marches }}</strong>
+      <span class="chiffre-libelle">marché{{ nb_marches|pluralize }} identifié{{ nb_marches|pluralize }}</span>
+    </div>
+    <div class="chiffre-carte">
+      <span class="chiffre-emoji">🏪</span>
+      <strong class="chiffre-nb">{{ nb_boutiques }}</strong>
+      <span class="chiffre-libelle">boutique{{ nb_boutiques|pluralize }} paysanne{{ nb_boutiques|pluralize }}</span>
+    </div>
+  </div>
+
   <div class="chiffres-graphes">
     <div class="chiffre-graphe">
-      <strong>🧑‍🌾 Pros inscrits</strong>
-      <div class="stats-chart">{% for pt in graph_producteurs.points %}<span class="stats-bar" style="height:{{ pt.hauteur }}%" title="{{ pt.titre }}"></span>{% endfor %}</div>
-      {% if graph_producteurs.tendance > 0 %}<p class="muted">↗ +{{ graph_producteurs.tendance }} sur 7 jours</p>
-      {% elif graph_producteurs.tendance < 0 %}<p class="muted">↘ {{ graph_producteurs.tendance }} sur 7 jours</p>
-      {% else %}<p class="muted">→ stable sur 7 jours</p>{% endif %}
+      <div class="chiffre-graphe-titre">
+        <span>🧑‍🌾 Pros inscrits</span>
+        {% if graph_producteurs.tendance > 0 %}
+          <span class="tendance-badge tendance-up">↗ +{{ graph_producteurs.tendance }} (7j)</span>
+        {% elif graph_producteurs.tendance < 0 %}
+          <span class="tendance-badge tendance-down">↘ {{ graph_producteurs.tendance }} (7j)</span>
+        {% else %}
+          <span class="tendance-badge tendance-stable">→ stable</span>
+        {% endif %}
+      </div>
+      <div class="stats-chart">
+        {% for pt in graph_producteurs.points %}
+          <span class="stats-bar" style="height:{{ pt.hauteur }}%" title="{{ pt.titre }}"></span>
+        {% endfor %}
+      </div>
+      <p class="muted">Dernier jour : {{ graph_producteurs.dernier }} professionnel{{ graph_producteurs.dernier|pluralize }}</p>
     </div>
+
     <div class="chiffre-graphe">
-      <strong>👥 Clients inscrits</strong>
-      <div class="stats-chart">{% for pt in graph_clients.points %}<span class="stats-bar" style="height:{{ pt.hauteur }}%" title="{{ pt.titre }}"></span>{% endfor %}</div>
+      <div class="chiffre-graphe-titre">
+        <span>👥 Clients inscrits</span>
+      </div>
+      <div class="stats-chart">
+        {% for pt in graph_clients.points %}
+          <span class="stats-bar" style="height:{{ pt.hauteur }}%" title="{{ pt.titre }}"></span>
+        {% endfor %}
+      </div>
       <p class="muted">Dernier jour : {{ graph_clients.dernier }} inscrit{{ graph_clients.dernier|pluralize }}</p>
     </div>
+
     <div class="chiffre-graphe">
-      <strong>👀 Visiteurs</strong>
-      <div class="stats-chart">{% for pt in graph_visiteurs.points %}<span class="stats-bar" style="height:{{ pt.hauteur }}%" title="{{ pt.titre }}"></span>{% endfor %}</div>
+      <div class="chiffre-graphe-titre">
+        <span>👀 Visiteurs</span>
+      </div>
+      <div class="stats-chart">
+        {% for pt in graph_visiteurs.points %}
+          <span class="stats-bar" style="height:{{ pt.hauteur }}%" title="{{ pt.titre }}"></span>
+        {% endfor %}
+      </div>
       <p class="muted">Dernier jour : {{ graph_visiteurs.dernier }} visiteur{{ graph_visiteurs.dernier|pluralize }}</p>
+    </div>
+  </div>
+</section>
+
+
+{# ==================== SECTION BIEN COMMUN & VALEURS ==================== #}
+<section class="home-valeurs">
+  <div class="home-valeurs-header">
+    <h2>🌱 Un bien commun numérique au service du territoire</h2>
+    <p>Conçu pour préserver l'autonomie des producteurs et la transparence pour les consommateurs.</p>
+  </div>
+  <div class="home-valeurs-grid">
+    <div class="valeur-carte">
+      <div class="valeur-icon">🔓</div>
+      <h4>Logiciel Libre (AGPLv3)</h4>
+      <p>Code ouvert, décentralisé et réplicable par chaque collectivité, association ou AMAP.</p>
+    </div>
+    <div class="valeur-carte">
+      <div class="valeur-icon">💰</div>
+      <h4>0% de commission</h4>
+      <p>Pas d'intermédiaire financier : le producteur fixe son prix et perçoit 100% de la valeur.</p>
+    </div>
+    <div class="valeur-carte">
+      <div class="valeur-icon">🛡️</div>
+      <h4>Données souveraines &amp; RGPD</h4>
+      <p>Hébergé en Europe, sans revente de données, sans traqueur publicitaire ni profilage.</p>
+    </div>
+  </div>
+</section>
+
+
+{# ==================== BANNIÈRE CALL TO ACTION FINAL ==================== #}
+<section class="home-cta-final">
+  <div class="home-cta-content">
+    <h2>Prêt à passer au circuit court ?</h2>
+    <p>Trouvez dès aujourd'hui les artisans et producteurs à côté de chez vous ou rejoignez le réseau gratuitement.</p>
+    <div class="home-cta-buttons">
+      <a class="btn btn-hero-primary" href="{% url 'portal:producer_search' %}">
+        🔍 Trouver mes producteurs
+      </a>
+      <a class="btn btn-outline-white" href="{% url 'portal:register_producer' %}">
+        🧑‍🌾 Inscrire mon activité pro
+      </a>
     </div>
   </div>
 </section>
