@@ -932,8 +932,12 @@ def producer_detail(request, slug):
         return {"nom": user.get_full_name() or user.username,
                 "role": role, "photo_url": photo}
     equipe = [_membre(exploitant.user, "Gérant")]
-    equipe += [_membre(m.user, "Associé·e")
-                for m in exploitant.membres.select_related("user")]
+    # Vitrine publique : le compte SUPPORT (superuser rattaché)
+    # n'apparaît jamais ; les autres membres affichent leur rôle
+    # public (associé, collaborateur, salarié, stagiaire).
+    equipe += [_membre(m.user, m.get_role_public_display())
+               for m in exploitant.membres.select_related("user")
+               if not m.user.is_superuser]
     # Dispo restante par produit (colonne de saisie directe sur la
     # vitrine : les quantités partent pré-remplies vers la commande).
     restes = {}
@@ -1364,42 +1368,64 @@ def _phrases_livraison(exploitant):
     return phrases
 
 
-def _calendrier_recoltes(exploitant):
+# Libellés de mois en français pour la ligne de publication mensuelle.
+MOIS_FR = ["janvier", "février", "mars", "avril", "mai", "juin",
+           "juillet", "août", "septembre", "octobre", "novembre",
+           "décembre"]
+
+
+def _calendrier_recoltes(exploitant, ancre=None):
     """Ligne chronologique des publications saisonnières (dashboard),
     au rythme de la FRÉQUENCE de publication de l'espace : périodes
     hebdomadaires, de quinzaine ou mensuelles. Chaque période part
-    d'un lundi, la ligne démarre juste avant la période courante et
-    chaque période est reliée à sa publication (publiée ou brouillon)
-    ou à la création."""
+    d'un lundi ; les quinzaines démarrent sur les semaines ISO
+    IMPAIRES (n° 1, 3, 5…) pour un découpage stable d'une année sur
+    l'autre. ancre (?cal=AAAA-MM-JJ) décale la fenêtre affichée :
+    défilement ←/→ de la ligne. Retourne (calendrier, precedent,
+    suivant) — chaque entrée porte libelle (sem. n°X, quinzaine,
+    mois), lundi, fin, semaine, nb_lignes, passe, etat."""
     aujourd_hui = timezone.localdate()
     lundi_courant = aujourd_hui - datetime.timedelta(
         days=aujourd_hui.weekday())
-
-    def premier_lundi_du_mois(date_courante):
-        debut = date_courante.replace(day=1)
-        return debut + datetime.timedelta(
-            days=(7 - debut.weekday()) % 7)
-
     freq = exploitant.frequence_publication
-    duree = 7
     if freq == Exploitant.FrequencePublication.MENSUEL:
-        duree = 31
-        courant = premier_lundi_du_mois(aujourd_hui)
-        if courant > aujourd_hui:
-            courant = premier_lundi_du_mois(
-                aujourd_hui - datetime.timedelta(days=31))
-        debuts = [premier_lundi_du_mois(
-            courant - datetime.timedelta(days=31))]
-        for _ in range(4):
-            debuts.append(premier_lundi_du_mois(
-                debuts[-1] + datetime.timedelta(days=31)))
+        duree, pas = 31, 31
+
+        def premier_lundi_du_mois(date_courante):
+            debut = date_courante.replace(day=1)
+            return debut + datetime.timedelta(
+                days=(7 - debut.weekday()) % 7)
+
+        def periode_de(date_courante):
+            courant = premier_lundi_du_mois(date_courante)
+            if courant > date_courante:
+                courant = premier_lundi_du_mois(
+                    date_courante - datetime.timedelta(days=31))
+            return courant
+
+        base = periode_de(ancre if ancre else aujourd_hui)
     elif freq == Exploitant.FrequencePublication.QUINZAINE:
-        duree = 14
-        debuts = [lundi_courant + datetime.timedelta(days=14 * i)
-                  for i in range(-1, 5)]
+        duree, pas = 14, 14
+
+        def lundi_impair(date_courante):
+            lundi = date_courante - datetime.timedelta(
+                days=date_courante.weekday())
+            while lundi.isocalendar()[1] % 2 == 0:
+                lundi -= datetime.timedelta(days=7)
+            return lundi
+
+        base = lundi_impair(ancre if ancre else aujourd_hui)
     else:
-        debuts = [lundi_courant + datetime.timedelta(weeks=i)
-                  for i in range(8)]
+        duree, pas = 7, 7
+        base = (ancre - datetime.timedelta(days=ancre.weekday())
+                if ancre else lundi_courant)
+
+    # Fenêtre de 6 périodes, défilement par pas de 3 (moitié de
+    # fenêtre : on garde toujours un repère visible).
+    debuts = [base + datetime.timedelta(days=pas * i)
+              for i in range(-1, 5)]
+    precedent = debuts[0] - datetime.timedelta(days=pas * 3)
+    suivant = debuts[0] + datetime.timedelta(days=pas * 3)
 
     semaines = (SemaineRecolte.objects
                 .filter(exploitant=exploitant,
@@ -1414,9 +1440,16 @@ def _calendrier_recoltes(exploitant):
         fin = (debuts[i + 1] - datetime.timedelta(days=1)
                if i + 1 < len(debuts)
                else lundi + datetime.timedelta(days=duree - 1))
+        if freq == Exploitant.FrequencePublication.MENSUEL:
+            libelle = (MOIS_FR[lundi.month - 1] + " " + str(lundi.year))
+        elif freq == Exploitant.FrequencePublication.QUINZAINE:
+            libelle = "Quinzaine (sem. n°" + str(lundi.isocalendar()[1]) + ")"
+        else:
+            libelle = "Sem. n°" + str(lundi.isocalendar()[1])
         calendrier.append({
             "lundi": lundi,
             "fin": fin,
+            "libelle": libelle,
             "semaine": s,
             "nb_lignes": s.nb_lignes if s else 0,
             "passe": lundi < lundi_courant,
@@ -1426,7 +1459,7 @@ def _calendrier_recoltes(exploitant):
                      else "courante" if lundi == lundi_courant
                      else "avenir"),
         })
-    return calendrier
+    return calendrier, precedent, suivant
 
 
 def _edition_recolte(exploitant, semaine, lundi_defaut):
@@ -1508,6 +1541,16 @@ def dashboard(request):
                 .order_by("categorie__position", "categorie__nom",
                           "position", "nom"))
 
+    # Défilement de la ligne de publication : ?cal=AAAA-MM-JJ est le
+    # lundi de la 1re période affichée (flèches ←/→ du calendrier).
+    ancre_cal = None
+    brut_cal = request.GET.get("cal", "").strip()
+    try:
+        ancre_cal = (datetime.date.fromisoformat(brut_cal)
+                     if brut_cal else None)
+    except ValueError:
+        ancre_cal = None
+
     # Période choisie sur la ligne chronologique : ?publication=<pk>
     # ouvre l'édition d'une publication existante ; ?lundi=AAAA-MM-JJ
     # prépare la création d'une nouvelle période.
@@ -1547,7 +1590,9 @@ def dashboard(request):
         "exploitant": exploitant,
         "nb_produits": len(produits),
         "meteo": meteo_synthese(exploitant),
-        "calendrier": _calendrier_recoltes(exploitant),
+        "calendrier": _calendrier_recoltes(exploitant, ancre_cal)[0],
+        "cal_prec": _calendrier_recoltes(exploitant, ancre_cal)[1],
+        "cal_suiv": _calendrier_recoltes(exploitant, ancre_cal)[2],
         "publication_choisie": publication,
         "lundi_edition": lundi_edition,
         "edition_paires": edition_paires,
@@ -4518,8 +4563,12 @@ def equipe_manage(request):
                     messages.error(request, f"« {cle} » est déjà membre "
                                    "de cette exploitation.")
                 else:
+                    role = request.POST.get("role_public", "").strip()
+                    if role not in MembreExploitation.RolePublic.values:
+                        role = MembreExploitation.RolePublic.ASSOCIE
                     MembreExploitation.objects.create(
                         user=user, exploitant=exploitant,
+                        role_public=role,
                         telephone=request.POST.get(
                             "telephone", "").strip())
                     messages.success(
@@ -4537,6 +4586,18 @@ def equipe_manage(request):
                 membre.delete()
                 messages.info(request, f"{nom} n'est plus membre de "
                                "l'exploitation.")
+        elif action == "role":
+            # Changement du rôle public (associé, collaborateur,
+            # salarié, stagiaire) affiché sur la vitrine.
+            membre = exploitant.membres.filter(
+                pk=request.POST.get("membre_id")).first()
+            role = request.POST.get("role_public", "").strip()
+            if membre and role in MembreExploitation.RolePublic.values:
+                membre.role_public = role
+                membre.save(update_fields=["role_public"])
+                messages.success(request, "Rôle public mis à jour.")
+            else:
+                messages.error(request, "Membre ou rôle inconnu.")
         elif action == "support":
             # 🛟 Rattachement du support : l'admin de l'instance
             # rejoint l'équipe avec les mêmes droits que le gérant
@@ -4576,6 +4637,7 @@ def equipe_manage(request):
     return render(request, "portal/pro/equipe.html", {
         "exploitant": exploitant,
         "membres": exploitant.membres.select_related("user"),
+        "roles_public": MembreExploitation.RolePublic.choices,
         "est_proprietaire": True,
         "admins_instance": admins_instance,
     })

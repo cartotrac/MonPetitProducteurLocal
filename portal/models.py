@@ -1411,11 +1411,25 @@ class MembreExploitation(models.Model):
     commandes et paniers via exploitant_pour().
     """
 
+    class RolePublic(models.TextChoices):
+        """Statut PUBLIC du membre, affiché sur la vitrine — choisi par
+        le gérant au moment du rattachement (modifiable ensuite)."""
+        ASSOCIE = "ASSOCIE", "Associé·e"
+        COLLABORATEUR = "COLLABORATEUR", "Collaborateur·rice"
+        SALARIE = "SALARIE", "Salarié·e"
+        STAGIAIRE = "STAGIAIRE", "Stagiaire"
+
     user = models.ForeignKey(User, on_delete=models.CASCADE,
                              related_name="membres_exploitation")
     exploitant = models.ForeignKey(Exploitant, on_delete=models.CASCADE,
                                     related_name="membres")
     telephone = models.CharField("Téléphone", max_length=20, blank=True)
+    # Rôle affiché sur la vitrine publique (associé, collaborateur,
+    # salarié, stagiaire) — le compte support n'est jamais affiché.
+    role_public = models.CharField(
+        "Rôle affiché publiquement", max_length=15,
+        choices=RolePublic.choices, default=RolePublic.ASSOCIE,
+        help_text="Statut visible sur la vitrine, choisi par le gérant.")
     ajoute_le = models.DateTimeField("Ajouté le", auto_now_add=True)
 
     class Meta:

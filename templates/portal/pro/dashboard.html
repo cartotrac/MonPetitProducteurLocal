@@ -41,21 +41,25 @@
 <div class="dash-pleine-largeur">
 
 <div class="quick-actions">
-  <a class="btn" href="{% url 'portal:harvest_new' %}">{{ exploitant.vocab.nouvelle_recolte }}</a>
-  <a class="btn btn-outline" href="{% url 'portal:harvest_list' %}">{{ exploitant.vocab.recoltes_emoji }} {{ exploitant.vocab.recoltes_titre }}</a>
+  {% comment %}Boutons d'action selon le MÉTIER : les métiers à
+     carte/boutique (restauration, fromagerie, élevage…) pilotent
+     boutiques éphémères + carte + commandes directes ; les métiers de
+     récoltes (maraîcher, arboriculteur) pilotent leurs publications.
+     Les 4 boutons de gestion sont communs.{% endcomment %}
   {% if exploitant.a_carte_boutique %}
+    <a class="btn btn-outline" href="{% url 'portal:harvest_list' %}">🛍️ Boutiques éphémères</a>
     <a class="btn btn-outline" href="{% url 'portal:cartes_manage' %}">🧾 {{ exploitant.titre_carte_boutique }}</a>
-  {% endif %}
-  <a class="btn" href="{% url 'portal:order_direct' %}">📝 Saisir une commande</a>
-  {% if est_proprietaire %}
-    <a class="btn btn-outline" href="{% url 'portal:catalogue_standard' %}">📚 Importer des produits types</a>
+    <a class="btn" href="{% url 'portal:order_direct' %}">📝 Saisir une commande</a>
+  {% else %}
+    <a class="btn" href="{% url 'portal:harvest_new' %}">{{ exploitant.vocab.nouvelle_recolte }}</a>
+    <a class="btn btn-outline" href="{% url 'portal:harvest_list' %}">{{ exploitant.vocab.recoltes_emoji }} {{ exploitant.vocab.recoltes_titre }}</a>
   {% endif %}
   {% if est_proprietaire or user.is_superuser %}
     <a class="btn btn-outline" href="{% url 'portal:product_list' %}">📚 Catalogue</a>
   {% endif %}
-  <a class="btn btn-outline" href="{% url 'portal:mes_producteurs' %}">⭐ Mes favoris</a>
   <a class="btn btn-outline" href="{% url 'portal:clients_suivi' %}">👤 Mes clients</a>
   <a class="btn btn-outline" href="{% url 'portal:points_manage' %}">📍 Points & créneaux</a>
+  <a class="btn btn-outline" href="{% url 'portal:mes_producteurs' %}">⭐ Mes favoris</a>
 </div>
 
 <details id="commandes" class="bloc-replie" open>
@@ -110,10 +114,17 @@
     <noscript><button class="btn btn-sm" type="submit">Appliquer</button></noscript>
   </form>
   {% endif %}
+  <div class="timeline-nav">
+    <a class="btn btn-outline btn-sm" title="Périodes précédentes"
+       href="{% url 'portal:dashboard' %}?cal={{ cal_prec|date:'Y-m-d' }}{% if publication_choisie %}&publication={{ publication_choisie.pk }}{% endif %}">←</a>
+    <a class="btn btn-outline btn-sm" title="Périodes suivantes"
+       href="{% url 'portal:dashboard' %}?cal={{ cal_suiv|date:'Y-m-d' }}{% if publication_choisie %}&publication={{ publication_choisie.pk }}{% endif %}">→</a>
+  </div>
   <div class="timeline-pubs">
     {% for s in calendrier %}
       <a class="timeline-periode {% if s.passe %}passe{% endif %} cal-{{ s.etat }}{% if s.semaine and publication_choisie and s.semaine.pk == publication_choisie.pk %} choisie{% endif %}"
          href="{% if s.semaine %}{% url 'portal:dashboard' %}?publication={{ s.semaine.pk }}{% else %}{% url 'portal:dashboard' %}?lundi={{ s.lundi|date:'Y-m-d' }}{% endif %}">
+        <span class="cal-periode">{{ s.libelle }}</span>
         <span class="cal-dates">{{ s.lundi|date:"d/m" }} → {{ s.fin|date:"d/m/Y" }}</span>
         {% if s.semaine %}
           {% if s.semaine.publiee %}<span class="badge badge-ok cal-etat">publiée</span>
