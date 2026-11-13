@@ -2326,3 +2326,39 @@ html.dark .timeline-nav .btn:hover { border-color: #8fd694; }
 
 /* ===== Quick-actions : ligne 1 = gestion commune, ligne 2 = métier ===== */
 .quick-actions-ligne2 { margin-top: 0.45rem; }
+
+
+/* ===== Vignettes de publication : TOUTES affichées (pas de
+       défilement horizontal), bordure épaisse pour la période
+       contenant le jour courant, et mode sombre vraiment lisible
+       (!important pour gagner sur les règles génériques). ===== */
+.timeline-pubs { flex-wrap: wrap; overflow-x: visible; }
+.timeline-periode.cal-courante { border-width: 3px; }
+html.dark .timeline-periode {
+  background: #232620 !important; border-color: #4a4f44 !important;
+  color: #e6e4da !important; }
+html.dark .timeline-periode .cal-dates,
+html.dark .timeline-periode .cal-periode { color: #e6e4da !important; }
+html.dark .timeline-periode .muted,
+html.dark .timeline-periode .cal-etat { color: #aab599 !important; }
+html.dark .timeline-periode .badge-ok { background: #2e5b31 !important;
+  color: #d6f5d6 !important; }
+html.dark .timeline-periode .badge-off { background: #4a4232 !important;
+  color: #e8d9a0 !important; }
+html.dark .timeline-nav .btn { background: #232620 !important;
+  border-color: #4a4f44 !important; color: #e6e4da !important; }
+html.dark .cal-semaine { background: #232620; color: #e6e4da;
+  border-color: #4a4f44; }
+html.dark .cal-semaine .muted { color: #aab599 !important; }
+
+/* ===== Menu mobile : flèche sur les rubriques déroulables
+       (▾ replié / ▴ déplié ou rubrique courante) ===== */
+@media (max-width: 820px) {
+  .nav-gestion-titre::after { content: " ▾"; font-size: 0.8em; }
+  .nav-gestion.ouvert .nav-gestion-titre::after,
+  .nav-gestion-titre.nav-actif::after { content: " ▴"; }
+}
+
+/* ===== PC : le dernier sous-menu (Paramètres, le plus à droite)
+       s'ouvre aligné à droite — ne sort jamais de la page ===== */
+.nav-gestion:last-of-type .nav-gestion-menu { left: auto; right: 0; }

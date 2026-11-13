@@ -113,6 +113,13 @@
         <option value="QUINZAINE" {% if exploitant.frequence_publication == 'QUINZAINE' %}selected{% endif %}>Tous les quinze jours</option>
         <option value="MENSUEL" {% if exploitant.frequence_publication == 'MENSUEL' %}selected{% endif %}>Mensuelle</option>
       </select></label>
+    {% if exploitant.frequence_publication == 'QUINZAINE' %}
+    <label class="muted">Quinzaines
+      <select name="quinzaine_paire" onchange="this.form.submit()">
+        <option value="" {% if not exploitant.quinzaine_paire %}selected{% endif %}>début semaines impaires</option>
+        <option value="1" {% if exploitant.quinzaine_paire %}selected{% endif %}>début semaines paires</option>
+      </select></label>
+    {% endif %}
     <noscript><button class="btn btn-sm" type="submit">Appliquer</button></noscript>
   </form>
   {% endif %}

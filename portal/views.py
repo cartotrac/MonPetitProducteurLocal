@@ -1490,14 +1490,18 @@ def _calendrier_recoltes(exploitant, ancre=None):
     elif freq == Exploitant.FrequencePublication.QUINZAINE:
         duree, pas = 14, 14
 
-        def lundi_impair(date_courante):
+        def lundi_quinzaine(date_courante):
+            # Départ des quinzaines sur les semaines ISO impaires, ou
+            # PAIRES si le gérant l'a choisi (quinzaine_paire) —
+            # modifiable sans affecter les publications existantes.
             lundi = date_courante - datetime.timedelta(
                 days=date_courante.weekday())
-            while lundi.isocalendar()[1] % 2 == 0:
+            cible = 0 if exploitant.quinzaine_paire else 1
+            while lundi.isocalendar()[1] % 2 != cible:
                 lundi -= datetime.timedelta(days=7)
             return lundi
 
-        base = lundi_impair(ancre if ancre else aujourd_hui)
+        base = lundi_quinzaine(ancre if ancre else aujourd_hui)
     else:
         duree, pas = 7, 7
         base = (ancre - datetime.timedelta(days=ancre.weekday())
@@ -1535,11 +1539,11 @@ def _calendrier_recoltes(exploitant, ancre=None):
             "libelle": libelle,
             "semaine": s,
             "nb_lignes": s.nb_lignes if s else 0,
-            "passe": lundi < lundi_courant,
-            # Code couleur : bleu passé, vert période courante,
-            # orange à venir (dashboard + vitrine publique).
-            "etat": ("passe" if lundi < lundi_courant
-                     else "courante" if lundi == lundi_courant
+            "passe": fin < aujourd_hui,
+            # Code couleur : bleu passé, vert période CONTENANT le
+            # jour courant (quinzaine ou mois entiers), orange à venir.
+            "etat": ("passe" if fin < aujourd_hui
+                     else "courante" if lundi <= aujourd_hui <= fin
                      else "avenir"),
         })
     return calendrier, precedent, suivant
@@ -1598,7 +1602,11 @@ def frequence_publication(request):
         if freq in Exploitant.FrequencePublication.values:
             exploitant = exploitant_actif(request)
             exploitant.frequence_publication = freq
-            exploitant.save(update_fields=["frequence_publication"])
+            if freq == Exploitant.FrequencePublication.QUINZAINE:
+                exploitant.quinzaine_paire = bool(
+                    request.POST.get("quinzaine_paire"))
+            exploitant.save(update_fields=["frequence_publication",
+                                           "quinzaine_paire"])
             messages.success(request, "Fréquence de publication mise à jour.")
         else:
             messages.error(request, "Fréquence inconnue.")

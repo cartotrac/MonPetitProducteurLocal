@@ -427,14 +427,17 @@
     document.querySelectorAll(".nav-gestion-menu").forEach(function (m) {
       m.classList.remove("menu-bord-droit");
       var r = m.getBoundingClientRect();
-      if (r.right > window.innerWidth - 8 && r.width > 0) {
+      if (r.width === 0) { return; }  // menu pas encore affiché
+      if (r.right > window.innerWidth - 8) {
         m.classList.add("menu-bord-droit");
       }
     });
   }
+  /* Mesure APRÈS que :hover a affiché le menu (sinon largeur nulle). */
+  function programmerClamp() { requestAnimationFrame(clampMenus); }
   document.querySelectorAll(".nav-gestion").forEach(function (g) {
-    g.addEventListener("mouseenter", clampMenus);
-    g.addEventListener("focusin", clampMenus);
+    g.addEventListener("mouseenter", programmerClamp);
+    g.addEventListener("focusin", programmerClamp);
   });
   window.addEventListener("resize", clampMenus);
   document.querySelectorAll(".nav-gestion-titre").forEach(function (titre) {

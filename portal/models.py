@@ -207,6 +207,15 @@ class Exploitant(models.Model):
         help_text=("Cadence des publications saisonnières diffusées aux "
                    "clients : la ligne de publication du dashboard suit "
                    "cette fréquence."))
+    # Quinzaines : démarrage sur les semaines ISO PAIRES au choix du
+    # gérant (impaires par défaut) — modifiable sans affecter les
+    # publications existantes (chaque publication reste ancrée à son
+    # lundi ; seule la grille de la ligne change).
+    quinzaine_paire = models.BooleanField(
+        "Quinzaines en semaines paires", default=False,
+        help_text=("Quand la fréquence est « tous les quinze jours » : "
+                   "les quinzaines démarrent sur les semaines ISO "
+                   "paires au lieu d'impaires."))
     creee_le = models.DateTimeField(auto_now_add=True)
 
     class Meta:
