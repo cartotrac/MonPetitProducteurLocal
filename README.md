@@ -1,6 +1,7 @@
 # 🌱 MonPetitProducteurLocal
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
+[![Double Licence](https://img.shields.io/badge/Licence-Double%20(Libre%20%2F%20SaaS)-green.svg)](LICENSE.fr.md)
 
 **Portail web libre de mise en relation et de gestion pour les producteurs et pros locaux — maraîchers, arboriculteurs, éleveurs, fromagers, apiculteurs, foodtrucks, traiteurs, restaurants… — et leurs clients : vitrine, commandes, paniers hebdomadaires et communication directe (e-mail/SMS).**
 
@@ -58,7 +59,7 @@ MonPetitProducteurLocal est un **bien commun numérique** : un outil libre, déc
 
 ## 🏛️ Gouvernance
 
-- **Code ouvert** sous AGPL-3.0 : toute instance publique modifiée doit partager ses modifications.
+- **Code ouvert (Double licence)** : voie libre sous AGPL-3.0 (toute instance publique modifiée doit partager ses modifications) et voie commerciale éthique SaaS administrée par Cartotrac.
 - **Décisions et conception documentées publiquement** ([docs/DECISIONS.md](docs/DECISIONS.md)) ; les retours terrain des producteurs orientent la feuille de route.
 - **Admin d'instance local** : l'instance est animée par son admin (identité et site affichés en pied de page, réglables via `INSTANCE_ADMIN` dans les settings), responsable de l'animation du territoire — mais les données de production et de clientèle **appartiennent aux producteurs**, qui gardent leurs propres SMTP / passerelle SMS.
 - **Pas de données revendues, pas de publicité, pas de profilage.**
@@ -92,7 +93,12 @@ Sur le serveur, depuis la racine du projet : `bash scripts/deploy_prod.sh` (+ `-
 
 ## Licence
 
-Logiciel libre sous **GNU AGPL-3.0** ([LICENSE](LICENSE) — version anglaise de référence) : déployez votre propre instance pour votre territoire, adaptez le code — toute instance publique modifiée doit partager ses modifications. Résumé en français : [LICENSE.fr.md](LICENSE.fr.md).
+MonPetitProducteurLocal est proposé sous un modèle de **Double Licence** :
+
+1. **La Voie Libre & Bien Commun (GNU AGPL-3.0)** : le code source est ouvert et librement utilisable pour auto-héberger une instance pour votre territoire ([LICENSE](LICENSE) — texte légal anglais de référence). En contrepartie de la clause Affero, toute instance accessible en réseau comportant des modifications doit impérativement redistribuer ses sources sous AGPL-3.0.
+2. **La Voie Commerciale / SaaS Éthique** : pour les collectivités, réseaux ou partenaires souhaitant exploiter la plateforme sous forme d'abonnement ou de service managé sans obligation de redistribution réciproque du code ou avec garanties de service dédiées, une licence commerciale est accordée par l'éditeur (**Cartotrac**).
+
+👉 Consultez le détail des conditions et de la gouvernance dans [LICENSE.fr.md](LICENSE.fr.md) et la charte de contribution ([CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Contribuer
 

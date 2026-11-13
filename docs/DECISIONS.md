@@ -2,9 +2,9 @@
 
 Choix actés pour MonPetitProducteurLocal. Ce document garde la trace des décisions et de leur raison d'être — le modifier quand une décision évolue.
 
-## Licence : GNU AGPL-3.0
+## Licence : Double licence (GNU AGPL-3.0 & Commerciale / SaaS)
 
-Anti-fourke fermée et bien commun : toute instance publique modifiée doit partager ses modifications. `LICENSE` = texte anglais de référence ; `LICENSE.fr.md` = résumé non contraignant à visée pédagogique.
+Anti-fourke fermée et bien commun : toute instance publique auto-hébergée modifiée doit partager ses modifications sous AGPL-3.0. Une voie commerciale / SaaS éthique est proposée par Cartotrac pour les déploiements managés. `LICENSE` = texte anglais AGPL-3.0 de référence ; `LICENSE.fr.md` = détails du modèle de double licence ; `CONTRIBUTING.md` = accord de cession/contribution (CLA).
 
 ## Stack : Django 5, templates classiques
 
