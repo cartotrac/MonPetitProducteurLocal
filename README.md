@@ -22,7 +22,7 @@ Le producteur crée sa vitrine en ligne, publie ses récoltes et son planning de
 - une **hero section** : présentation du portail, sa philosophie (circuits courts, indépendance des maraîchers, bien commun) et ses fonctionnalités clés ;
 - une **carte de France** (Leaflet / fond IGN) des producteurs **catégorisés par mode de production** — AB, permaculture, agriculture paysanne, raisonnée, conventionnelle — avec légende filtrante et **géolocalisation de l'utilisateur** pour recentrer la carte sur sa position.
 
-## Fonctionnalités (cible V1/V2)
+## Fonctionnalités (cible V0/V1)
 
 | Espace | Fonctions |
 |---|---|
