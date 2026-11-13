@@ -2362,3 +2362,26 @@ html.dark .cal-semaine .muted { color: #aab599 !important; }
 /* ===== PC : le dernier sous-menu (Paramètres, le plus à droite)
        s'ouvre aligné à droite — ne sort jamais de la page ===== */
 .nav-gestion:last-of-type .nav-gestion-menu { left: auto; right: 0; }
+
+
+/* ===== Flèche ▾/▴ sur les rubriques à sous-menu (NAV, PC + mobile) :
+       les règles génériques de soulignement posent content:none
+       !important — on reprend la main de la même façon. ===== */
+.nav-gestion-titre::after {
+  content: " ▾" !important; display: inline !important;
+  font-size: 0.72em; font-weight: 700; vertical-align: 0.18em;
+  margin-left: 0.05em;
+}
+.nav-gestion:hover .nav-gestion-titre::after,
+.nav-gestion:focus-within .nav-gestion-titre::after,
+.nav-gestion.ouvert .nav-gestion-titre::after {
+  content: " ▴" !important;
+}
+
+/* ===== Vignettes de publication : en dark, MÊME logique et MÊMES
+       couleurs de contour qu'en clair (neutre / vert courante /
+       orange à venir), seul le fond et le texte s'adaptent. ===== */
+html.dark .timeline-periode { border-color: #d8d3c4 !important; }
+html.dark .timeline-periode.cal-courante { border-color: #2e7d32 !important; }
+html.dark .timeline-periode.cal-avenir { border-color: #f5a623 !important; }
+html.dark .timeline-periode.passe { opacity: 0.62; }
