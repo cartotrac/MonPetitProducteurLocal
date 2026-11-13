@@ -2390,3 +2390,29 @@ html.dark .timeline-periode { border-color: #d8d3c4 !important; }
 html.dark .timeline-periode.cal-courante { border-color: #2e7d32 !important; }
 html.dark .timeline-periode.cal-avenir { border-color: #f5a623 !important; }
 html.dark .timeline-periode.passe { opacity: 0.62; }
+
+
+/* ===== Cartographie complète des points (page Points & créneaux) :
+   carte pleine largeur, contrôles ✏️ Édition / ➕ Nouveau point,
+   curseurs adaptés, lisibilité clair ET sombre. ===== */
+.points-carte { height: 420px; border-radius: 10px;
+  border: 1px solid #cfd8c3; z-index: 0; margin: 0.6rem 0; }
+html.dark .points-carte { border-color: #4a4f44; }
+.points-carte.points-en-edition { cursor: move; }
+.points-carte.points-en-creation { cursor: crosshair; }
+.ctrl-points { display: flex; flex-direction: column; gap: 2px;
+               padding: 3px; background: #fff;
+               border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+.ctrl-points button { border: 1px solid #c9c4b4; background: #faf9f4;
+  border-radius: 6px; padding: 0.3rem 0.6rem; cursor: pointer;
+  font-size: 0.82rem; font-weight: 600; color: #2c4a1a;
+  white-space: nowrap; }
+.ctrl-points button:hover { background: #e8f1dc; }
+.ctrl-points button.actif { background: #2e7d32; color: #fff;
+  border-color: #2e7d32; }
+html.dark .ctrl-points { background: #232620; }
+html.dark .ctrl-points button { background: #2b2f27; color: #e6e4da;
+  border-color: #4a4f44; }
+html.dark .ctrl-points button:hover { background: #3a4034; }
+html.dark .ctrl-points button.actif { background: #7cb342; color: #1d2617; }
+.marker-provisoire .marker-activite { opacity: 0.9; }

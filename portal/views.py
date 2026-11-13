@@ -3612,20 +3612,39 @@ def points_manage(request):
 
     points = (exploitant.points_livraison
               .prefetch_related("creneaux").order_by("ville", "nom"))
+    # Emplacement / arrêt foodtruck : réservé aux foodtrucks.
+    est_foodtruck = (exploitant.activite
+                     == Exploitant.Activite.FOODTRUCK)
+    types_points = [
+        (valeur, libelle) for valeur, libelle in PointLivraison.Type.choices
+        if est_foodtruck or valeur != PointLivraison.Type.EMPLACEMENT]
     return render(request, "portal/pro/points.html", {
         "exploitant": exploitant,
         "points": points,
         "jours": CreneauLivraison._meta.get_field("jour").choices,
         "frequences": CreneauLivraison.Frequence.choices,
-        "types_points": PointLivraison.Type.choices,
+        "types_points": types_points,
+        "est_foodtruck": est_foodtruck,
         "creneaux": exploitant.creneaux.select_related("point_livraison"),
         "creneaux_sans_point": exploitant.creneaux
                               .filter(point_livraison__isnull=True),
         # Points localisés : affichés sur la carte de création avec
         # leur symbole propre, cadrage automatique sur leur emprise.
+        # Cartographie complète : position + type + créneaux de chaque
+        # point (popup de la carte, mode édition, création sur la carte).
         "points_geo": [{
-            "nom": p.nom, "latitude": p.latitude,
-            "longitude": p.longitude, "type": p.type_point,
+            "pk": p.pk, "nom": p.nom,
+            "type": p.type_point,
+            "type_libelle": p.get_type_point_display(),
+            "adresse": p.adresse, "code_postal": p.code_postal,
+            "ville": p.ville, "note": (p.note or "")[:200],
+            "latitude": p.latitude, "longitude": p.longitude,
+            "creneaux": [
+                c.get_jour_display() + " "
+                + f"{c.heure_debut:%H:%M}–{c.heure_fin:%H:%M}"
+                + ("" if c.frequence == CreneauLivraison.Frequence.HEBDO
+                   else " (" + c.get_frequence_display().lower() + ")")
+                for c in p.creneaux.all()],
         } for p in points
             if p.latitude is not None and p.longitude is not None],
     })

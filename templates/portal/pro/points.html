@@ -7,12 +7,11 @@
 <p class="muted">Vos lieux de mise en relation avec la clientèle :
    <strong>📍 {{ exploitant.vocab.points_min }}</strong> ({{ exploitant.vocab.paniers_min }}),
    <strong>🏪 boutiques / points de vente</strong> et
-   <strong>🎪 marchés</strong> — tout producteur peut déclarer des
-   créneaux récurrents sur un marché (stand hebdomadaire, une semaine
-   sur deux, mensuel…). Les points s'affichent sur votre vitrine et
-   sont proposés à la commande. Positionnez chaque point sur la carte
-   (clic ou géocodage de l'adresse) : le client reçoit la localisation
-   dès que son panier passe en prêt ou livré. Les
+   <strong>🎪 marchés</strong>{% if est_foodtruck %}, ainsi que vos
+   <strong>🚚 emplacements / arrêts foodtruck</strong>{% endif %} —
+   tout producteur peut déclarer des créneaux récurrents sur un marché
+   (stand hebdomadaire, une semaine sur deux, mensuel…). Les points
+   s'affichent sur votre vitrine et sont proposés à la commande. Les
    {{ exploitant.vocab.creneaux }} (jour, horaires, fréquence, capacité)
    cadrent les dates proposées aux clients — en mode boutique, ils
    font office d'horaires d'ouverture de vos points de vente.</p>
@@ -49,6 +48,57 @@
 </section>
 
 <section class="harvest-bloc">
+  <h2>🗺️ Cartographie de mes points</h2>
+  <p class="muted">Tous vos points localisés, avec leurs créneaux au
+     clic. <strong>✏️ Mode édition</strong> : déplacez un marqueur pour
+     corriger sa position (enregistrée immédiatement).
+     <strong>➕ Nouveau point</strong> : cliquez l'endroit sur la carte,
+     le formulaire minimal s'ouvre avec l'adresse déduite
+     automatiquement.</p>
+  {{ points_geo|json_script:"points-carte" }}
+  <div id="carte-points" class="points-carte"></div>
+
+  {# Envoi de la position corrigée en mode édition (marqueur déplacé) #}
+  <form method="post" id="form-deplacer-point" class="inline">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="point_geo">
+    <input type="hidden" name="pk" value="">
+    <input type="hidden" name="latitude" value="">
+    <input type="hidden" name="longitude" value="">
+  </form>
+
+  <details class="point-edition point-creation" id="creation-point" hidden>
+    <summary>➕ Créer un point à l'endroit choisi sur la carte</summary>
+    <form method="post" class="form card">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="point_creer">
+      <input type="hidden" name="latitude" id="id_latitude">
+      <input type="hidden" name="longitude" id="id_longitude">
+      <p class="muted" id="creation-point-position">Cliquez sur la carte
+         pour choisir l'emplacement du nouveau point.</p>
+      <div class="form-row">
+        <label>Type
+          <select name="type_point">
+            {% for valeur, libelle in types_points %}
+              <option value="{{ valeur }}"{% if exploitant.en_mode_boutique and valeur == "BOUTIQUE" or not exploitant.en_mode_boutique and valeur == "LIVRAISON" %} selected{% endif %}>{{ libelle }}</option>
+            {% endfor %}
+          </select></label>
+        <label>Nom <input type="text" name="nom" required placeholder="Ex : Marché couvert"></label>
+      </div>
+      <div class="form-row">
+        <label>Ville <input type="text" name="ville" id="id_ville" required placeholder="Ville"></label>
+        <label>Code postal <input type="text" name="code_postal" id="id_code_postal" placeholder="CP"></label>
+      </div>
+      <div class="form-row">
+        <label>Adresse <input type="text" name="adresse" id="id_adresse" placeholder="Adresse (déduite du clic)"></label>
+        <label>Précisions <input type="text" name="note" placeholder="Ex : à côté de la fontaine"></label>
+      </div>
+      <button class="btn" type="submit">Créer le point</button>
+    </form>
+  </details>
+</section>
+
+<section class="harvest-bloc">
   <h2>📍 Mes points</h2>
   {% for point in points %}
     <div class="card harvest-item">
@@ -59,50 +109,28 @@
         {% if point.note %}<span class="muted">— {{ point.note }}</span>{% endif %}
         {% if point.latitude %}
           <span class="badge badge-ok">🗺️ localisé</span>
-          <a href="https://www.openstreetmap.org/?mlat={{ point.latitude|floatformat:'6' }}&mlon={{ point.longitude|floatformat:'6' }}#map=17/{{ point.latitude|floatformat:'6' }}/{{ point.longitude|floatformat:'6' }}" target="_blank" rel="noopener">voir la position</a>
         {% else %}
-          <form method="post" class="inline">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="point_geo">
-            <input type="hidden" name="pk" value="{{ point.pk }}">
-            <button type="button" class="btn btn-sm btn-outline"
-                    data-geocoder data-adresse="geo_adresse_{{ point.pk }}"
-                    data-cp="geo_cp_{{ point.pk }}" data-ville="geo_ville_{{ point.pk }}"
-                    data-lat="geo_lat_{{ point.pk }}" data-lon="geo_lon_{{ point.pk }}"
-                    data-submit data-libelle="📍 Localiser">📍 Localiser</button>
-            <input type="hidden" id="geo_adresse_{{ point.pk }}" value="{{ point.adresse }}">
-            <input type="hidden" id="geo_cp_{{ point.pk }}" value="{{ point.code_postal }}">
-            <input type="hidden" id="geo_ville_{{ point.pk }}" value="{{ point.ville }}">
-            <input type="hidden" id="geo_lat_{{ point.pk }}" name="latitude">
-            <input type="hidden" id="geo_lon_{{ point.pk }}" name="longitude">
-          </form>
+          <span class="badge badge-encours">📍 non localisé — mode édition ✏️ sur la carte</span>
         {% endif %}
 
         <details class="point-edition">
-          <summary>✏️ Modifier le point (nom / localisation)</summary>
+          <summary>✏️ Modifier le point (nom / adresse)</summary>
           <form method="post" class="form">
             {% csrf_token %}
             <input type="hidden" name="action" value="point_modifier">
             <input type="hidden" name="pk" value="{{ point.pk }}">
             <div class="form-row">
               <label>Nom <input type="text" name="nom" value="{{ point.nom }}" required></label>
-              <label>Adresse <input type="text" name="adresse" id="mod_adresse_{{ point.pk }}" value="{{ point.adresse }}"></label>
+              <label>Adresse <input type="text" name="adresse" value="{{ point.adresse }}"></label>
             </div>
             <div class="form-row">
-              <label>Code postal <input type="text" name="code_postal" id="mod_cp_{{ point.pk }}" value="{{ point.code_postal }}"></label>
-              <label>Ville <input type="text" name="ville" id="mod_ville_{{ point.pk }}" value="{{ point.ville }}"></label>
+              <label>Code postal <input type="text" name="code_postal" value="{{ point.code_postal }}"></label>
+              <label>Ville <input type="text" name="ville" value="{{ point.ville }}"></label>
             </div>
-            <div class="form-row">
-              <label>Latitude <input type="text" name="latitude" id="mod_lat_{{ point.pk }}" value="{{ point.latitude|default_if_none:'' }}"></label>
-              <label>Longitude <input type="text" name="longitude" id="mod_lon_{{ point.pk }}" value="{{ point.longitude|default_if_none:'' }}"></label>
-            </div>
-            <button type="button" class="btn btn-sm btn-outline"
-                    data-geocoder data-adresse="mod_adresse_{{ point.pk }}"
-                    data-cp="mod_cp_{{ point.pk }}" data-ville="mod_ville_{{ point.pk }}"
-                    data-lat="mod_lat_{{ point.pk }}" data-lon="mod_lon_{{ point.pk }}"
-                    data-libelle="📍 Géolocaliser l'adresse">📍 Géolocaliser l'adresse</button>
-            <p class="muted">Les paniers déjà livrés ne sont pas affectés :
-               ils conservent le nom et la position transmis aux clients.</p>
+            <p class="muted">La position se règle sur la carte en haut de
+               page (mode édition ✏️ : déplacez le marqueur). Les paniers
+               déjà livrés ne sont pas affectés : ils conservent le nom
+               et la position transmis aux clients.</p>
             <button class="btn btn-sm" type="submit">💾 Enregistrer</button>
           </form>
         </details>
@@ -187,8 +215,9 @@
       </form>
     </div>
   {% empty %}
-    <p class="muted">Aucun point pour l'instant : créez-en un ci-dessous
-       (marché, boutique, dépôt de paniers…).</p>
+    <p class="muted">Aucun point pour l'instant : utilisez la carte
+       ci-dessus (bouton ➕ Nouveau point) pour en créer un — marché,
+       boutique, dépôt de paniers…</p>
   {% endfor %}
 
   {% if creneaux_sans_point %}
@@ -259,48 +288,9 @@
       </div>
     </div>
   {% endif %}
-
-  <details class="point-edition point-creation">
-    <summary>➕ Créer un nouveau point</summary>
-    <form method="post" class="form card">
-      {% csrf_token %}
-      <input type="hidden" name="action" value="point_creer">
-      <div class="form-row">
-        <label>Type
-          <select name="type_point">
-            {% for valeur, libelle in types_points %}
-              <option value="{{ valeur }}"{% if exploitant.en_mode_boutique and valeur == "BOUTIQUE" or not exploitant.en_mode_boutique and valeur == "LIVRAISON" %} selected{% endif %}>{{ libelle }}</option>
-            {% endfor %}
-          </select></label>
-        <label>Nom <input type="text" name="nom" required placeholder="Ex : Marché couvert"></label>
-        <label>Ville <input type="text" name="ville" id="id_ville" required placeholder="Ville"></label>
-      </div>
-      <div class="form-row">
-        <label>Adresse <input type="text" name="adresse" id="id_adresse" placeholder="Adresse"></label>
-        <label>Code postal <input type="text" name="code_postal" id="id_code_postal" placeholder="CP"></label>
-      </div>
-      <label>Précisions <input type="text" name="note" placeholder="Ex : à côté de la fontaine"></label>
-      <button type="button" class="btn btn-outline btn-sm"
-              data-geocoder data-adresse="id_adresse" data-cp="id_code_postal"
-              data-ville="id_ville" data-carte="carte-point"
-              data-libelle="📍 Localiser l'adresse">📍 Localiser l'adresse</button>
-      <div class="form-row">
-        <label>Latitude <input type="text" name="latitude" id="id_latitude" placeholder="par carte ou géocodage"></label>
-        <label>Longitude <input type="text" name="longitude" id="id_longitude" placeholder="par carte ou géocodage"></label>
-      </div>
-      <p class="muted">… ou cliquez directement sur la carte ci-dessous
-         (vos points existants y apparaissent avec leur symbole 📍🏪🎪) :</p>
-      {{ points_geo|json_script:"points-carte" }}
-      <div id="carte-point" data-pick-map data-lat-input="id_latitude"
-           data-lon-input="id_longitude" data-adresse-input="id_adresse"
-           data-ville-input="id_ville" data-cp-input="id_code_postal"
-           style="height: 320px; border-radius: 8px; margin: 1rem 0 0.4rem;"></div>
-      <button class="btn" type="submit">Créer le point</button>
-    </form>
-  </details>
 </section>
 {% endblock %}
 {% block extrajs %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="{% static 'js/pick-map.js' %}" defer></script>
+<script src="{% static 'js/carte-points.js' %}" defer></script>
 {% endblock %}
