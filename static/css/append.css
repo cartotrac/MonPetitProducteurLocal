@@ -2447,3 +2447,55 @@ html.dark .toast-points-actions button { background: #2b2f27;
   border-color: #4a4f44; color: #e6e4da; }
 html.dark .toast-points-actions .toast-ok { background: #7cb342;
   border-color: #7cb342; color: #1d2617; }
+
+/* ===== Page Points & créneaux : parcours pro en 3 temps =====
+   (1 planning → 2 carte → 3 fiches) : bandeau de stats, jour
+   courant surligné, liens croisés carte ↔ fiches, aide repliable. */
+.chapeau-points { margin-bottom: 0.5rem; }
+.points-stats { display: flex; flex-wrap: wrap; gap: 0.5rem;
+  margin: 0.6rem 0 0.8rem; }
+.stat-points { display: flex; flex-direction: column; align-items: center;
+  background: var(--accent-light, #eef4e2); border-radius: 10px;
+  padding: 0.35rem 0.9rem; min-width: 5.4rem; }
+.stat-points strong { font-size: 1.15rem; color: var(--accent-dark, #2c4a1a); }
+.stat-points span { font-size: 0.72rem; color: #55603f; text-align: center; }
+html.dark .stat-points { background: #2b2f27; }
+html.dark .stat-points strong { color: #7cb342; }
+html.dark .stat-points span { color: #aab599; }
+.aide-bloc { margin: 0.4rem 0 0.8rem; }
+.aide-bloc > summary { cursor: pointer; font-size: 0.88rem;
+  color: var(--accent-dark, #2c4a1a); font-weight: 600; }
+html.dark .aide-bloc > summary { color: #7cb342; }
+.planning-scroll { overflow-x: auto; }
+.planning-semaine th, .planning-semaine td { vertical-align: top;
+  min-width: 7.2rem; }
+.planning-semaine .col-aujourdhui { background: #eef4e2; }
+.planning-semaine thead .col-aujourdhui { color: #2c4a1a; }
+html.dark .planning-semaine .col-aujourdhui { background: #2f3627; }
+html.dark .planning-semaine thead .col-aujourdhui { color: #7cb342; }
+.creneau-puce { display: flex; flex-direction: column; gap: 0.05rem;
+  background: #fff; border: 1px solid #dfe6d2; border-radius: 8px;
+  padding: 0.3rem 0.45rem; margin-bottom: 0.3rem; }
+.creneau-heures { font-weight: 700; font-size: 0.82rem; color: #2c4a1a; }
+.creneau-point { font-size: 0.75rem; color: #55603f; }
+.creneau-freq { font-size: 0.68rem; color: #8d4b00; font-style: italic; }
+html.dark .creneau-puce { background: #2b2f27; border-color: #4a4f44; }
+html.dark .creneau-heures { color: #e6e4da; }
+html.dark .creneau-point { color: #aab599; }
+html.dark .creneau-freq { color: #e0a458; }
+.jour-vide { color: #b6bfa6; }
+.compteur-section { display: inline-block; background: var(--accent-light, #eef4e2);
+  color: var(--accent-dark, #2c4a1a); border-radius: 999px;
+  font-size: 0.8rem; padding: 0.05rem 0.55rem; vertical-align: middle; }
+html.dark .compteur-section { background: #2b2f27; color: #7cb342; }
+.badge-stats { background: #eef4e2; color: #2c4a1a; }
+html.dark .badge-stats { background: #2b2f27; color: #7cb342; }
+a.badge { text-decoration: none; }
+a.badge:hover { filter: brightness(0.95); }
+/* Marqueur pulsé quand on l'expose depuis sa fiche */
+.marker-exploitant.pulse .marker-activite {
+  animation: pulse-point 0.8s ease-in-out 3; }
+@keyframes pulse-point {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.55); }
+}

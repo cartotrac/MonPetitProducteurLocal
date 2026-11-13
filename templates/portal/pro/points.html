@@ -4,41 +4,61 @@
 {% block extra_style %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">{% endblock %}
 {% block content %}
 <h1>📍 {{ exploitant.vocab.points }} &amp; {{ exploitant.vocab.creneaux }}</h1>
-<p class="muted">Vos lieux de mise en relation avec la clientèle :
-   <strong>📍 {{ exploitant.vocab.points_min }}</strong> ({{ exploitant.vocab.paniers_min }}),
-   <strong>🏪 boutiques / points de vente</strong> et
-   <strong>🎪 marchés</strong>{% if est_foodtruck %}, ainsi que vos
-   <strong>🚚 emplacements / arrêts foodtruck</strong>{% endif %} —
-   tout producteur peut déclarer des créneaux récurrents sur un marché
-   (stand hebdomadaire, une semaine sur deux, mensuel…). Les points
-   s'affichent sur votre vitrine et sont proposés à la commande. Les
-   {{ exploitant.vocab.creneaux }} (jour, horaires, fréquence, capacité)
-   cadrent les dates proposées aux clients — en mode boutique, ils
-   font office d'horaires d'ouverture de vos points de vente.</p>
+<p class="muted chapeau-points">Vos lieux de mise en relation avec la
+   clientèle et leurs {{ exploitant.vocab.creneaux }} récurrents —
+   visibles sur votre vitrine et proposés à la commande.</p>
+
+<div class="points-stats">
+  <div class="stat-points"><strong>{{ nb_points }}</strong><span>point{{ nb_points|pluralize }}</span></div>
+  <div class="stat-points"><strong>{{ nb_localises }}/{{ nb_points }}</strong><span>localisés sur la carte</span></div>
+  <div class="stat-points"><strong>{{ nb_creneaux }}</strong><span>créneau{{ nb_creneaux|pluralize }}</span></div>
+  <div class="stat-points"><strong>{{ jours_couverts }}/7</strong><span>jours couverts</span></div>
+  {% if capacite_hebdo %}<div class="stat-points"><strong>{{ capacite_hebdo }}</strong><span>paniers de capacité / semaine</span></div>{% endif %}
+</div>
+
+<details class="aide-bloc">
+  <summary>❓ Comprendre points et créneaux (2 min)</summary>
+  <p class="muted">Les <strong>points</strong> sont vos lieux de mise en
+     relation : 📍 {{ exploitant.vocab.points_min }}
+     ({{ exploitant.vocab.paniers_min }}), 🏪 boutiques / points de
+     vente, 🎪 marchés{% if est_foodtruck %} et 🚚 emplacements /
+     arrêts foodtruck{% endif %}. Tout producteur peut déclarer des
+     créneaux récurrents sur un marché (stand hebdomadaire, une semaine
+     sur deux, mensuel…). Les <strong>{{ exploitant.vocab.creneaux }}</strong>
+     (jour, horaires, fréquence, capacité) cadrent les dates proposées
+     aux clients — en mode boutique, ils font office d'horaires
+     d'ouverture de vos points de vente.</p>
+</details>
 
 <section class="harvest-bloc">
   <h2>🗓 Ma semaine type</h2>
   {% if creneaux %}
-    <table class="table">
+    <div class="planning-scroll">
+    <table class="table planning-semaine">
       <thead><tr>
-        {% for valeur, libelle in jours %}<th>{{ libelle }}</th>{% endfor %}
+        {% for jour in planning %}<th{% if jour.aujourdhui %} class="col-aujourdhui"{% endif %}>{% if jour.aujourdhui %}📍 {% endif %}{{ jour.libelle }}</th>{% endfor %}
       </tr></thead>
       <tbody><tr>
-        {% for valeur, libelle in jours %}
-          <td>
-            {% for creneau in creneaux %}
-              {% if creneau.jour|stringformat:"s" == valeur|stringformat:"s" %}
-                <div class="badge">{{ creneau.heure_debut|time:"H:i" }}–{{ creneau.heure_fin|time:"H:i" }}</div>
-                <div class="muted">{% if creneau.point_livraison %}{{ creneau.point_livraison.emoji_type }} {{ creneau.point_livraison.nom }}{% else %}sans point{% endif %}</div>
-              {% endif %}
+        {% for jour in planning %}
+          <td{% if jour.aujourdhui %} class="col-aujourdhui"{% endif %}>
+            {% for creneau in jour.creneaux %}
+              <div class="creneau-puce">
+                <span class="creneau-heures">{{ creneau.heure_debut|time:"H:i" }}–{{ creneau.heure_fin|time:"H:i" }}</span>
+                <span class="creneau-point">{% if creneau.point_livraison %}{{ creneau.point_livraison.emoji_type }} {{ creneau.point_livraison.nom }}{% else %}• sans point{% endif %}</span>
+                {% if creneau.frequence != 'H' %}<span class="creneau-freq">{{ creneau.get_frequence_display|lower }}</span>{% endif %}
+              </div>
+            {% empty %}
+              <span class="jour-vide">—</span>
             {% endfor %}
           </td>
         {% endfor %}
       </tr></tbody>
     </table>
-    <p class="muted">La vue ci-dessus récapitule vos créneaux récurrents ;
-       les clients ne peuvent choisir que les dates tombant sur ces jours
-       (et uniquement ceux du point sélectionné).</p>
+    </div>
+    <p class="muted">Vos créneaux récurrents, triés par heure — la
+       colonne du jour est surlignée. Les clients ne peuvent choisir que
+       les dates tombant sur ces jours (et uniquement ceux du point
+       sélectionné).</p>
   {% else %}
     <p class="card etat-vide"><span class="etat-vide-emoji">🗓</span>
        Aucun créneau : les clients se voient proposer tous les jours.
@@ -48,15 +68,18 @@
 </section>
 
 <section class="harvest-bloc">
-  <h2>🗺️ Cartographie de mes points</h2>
-  <p class="muted">Tous vos points localisés, avec leurs créneaux au
-     clic, la recherche d'adresse 🔎, votre position 🎯 et le recadrage
-     ⤢ sur l'ensemble des points. <strong>✏️ Mode édition</strong> :
-     déplacez un marqueur, une fenêtre propose l'adresse déduite
-     (modifiable) — enregistrez ou annulez. <strong>➕ Nouveau
-     point</strong> (visible en édition uniquement) : cliquez l'endroit
-     sur la carte, le formulaire minimal s'ouvre avec l'adresse déduite
-     automatiquement.</p>
+  <h2 id="carte">🗺️ Cartographie de mes points</h2>
+  <p class="muted">Vos points sur une carte : recherche 🔎, position
+     🎯, recadrage ⤢, créneaux au clic sur un marqueur.</p>
+  <details class="aide-bloc">
+    <summary>❓ Déplacer un point ou en créer un</summary>
+    <p class="muted"><strong>✏️ Mode édition</strong> : déplacez un
+       marqueur, une fenêtre propose l'adresse déduite (modifiable) —
+       enregistrez ou annulez. <strong>➕ Nouveau point</strong> (visible
+       en édition uniquement) : cliquez l'endroit sur la carte, le
+       formulaire minimal s'ouvre avec l'adresse déduite
+       automatiquement.</p>
+  </details>
   {{ points_geo|json_script:"points-carte" }}
   <div id="carte-points" class="points-carte"></div>
 
@@ -104,7 +127,7 @@
 </section>
 
 <section class="harvest-bloc">
-  <h2>📍 Mes points</h2>
+  <h2>📍 Mes points <span class="compteur-section">{{ nb_points }}</span></h2>
   {% for point in points %}
     <div class="card harvest-item">
       <div>
@@ -113,9 +136,14 @@
         {{ point.code_postal }} {{ point.ville }}
         {% if point.note %}<span class="muted">— {{ point.note }}</span>{% endif %}
         {% if point.latitude %}
-          <span class="badge badge-ok">🗺️ localisé</span>
+          <a class="badge badge-ok lien-exposer" href="#carte" data-point="{{ point.pk }}" title="Afficher ce point sur la carte">🗺️ voir sur la carte</a>
         {% else %}
-          <span class="badge badge-encours">📍 non localisé — mode édition ✏️ sur la carte</span>
+          <a class="badge badge-encours lien-localiser" href="#carte" data-point="{{ point.pk }}" title="Activer le mode édition et placer ce point sur la carte">📍 non localisé — le placer sur la carte</a>
+        {% endif %}
+        {% if point.nb_creneaux %}
+          <span class="badge badge-stats">🗓 {{ point.nb_creneaux }} créneau{{ point.nb_creneaux|pluralize }}{% if point.capacite_totale %} · capacité {{ point.capacite_totale }}/sem.{% endif %}</span>
+        {% else %}
+          <span class="badge badge-encours">🗓 aucun créneau</span>
         {% endif %}
 
         <details class="point-edition">
@@ -228,9 +256,10 @@
       </form>
     </div>
   {% empty %}
-    <p class="muted">Aucun point pour l'instant : utilisez la carte
-       ci-dessus (bouton ➕ Nouveau point) pour en créer un — marché,
-       boutique, dépôt de paniers…</p>
+    <p class="muted">Aucun point pour l'instant : ouvrez la carte
+       ci-dessus, activez ✏️ Édition puis ➕ Nouveau point — marché,
+       boutique, dépôt de paniers…
+       <a class="btn btn-sm" href="#carte">🗺️ Ouvrir la carte</a></p>
   {% endfor %}
 
   {% if creneaux_sans_point %}

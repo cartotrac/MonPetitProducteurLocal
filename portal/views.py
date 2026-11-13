@@ -3642,14 +3642,52 @@ def points_manage(request):
     types_points = [
         (valeur, libelle) for valeur, libelle in PointLivraison.Type.choices
         if est_foodtruck or valeur != PointLivraison.Type.EMPLACEMENT]
+    # Tableau de bord de la page : compteurs d'en-tête, planning
+    # hebdomadaire trié par heure (colonne du jour courant surlignée),
+    # statistiques par point (créneaux, capacité, localisation) et
+    # liens croisés carte ↔ fiches.
+    aujourdhui = timezone.localdate().isoweekday()
+    creneaux_tous = list(
+        exploitant.creneaux.select_related("point_livraison"))
+    planning = []
+    for valeur, libelle in CreneauLivraison._meta.get_field("jour").choices:
+        planning.append({
+            "valeur": valeur, "libelle": libelle,
+            "aujourdhui": (valeur == aujourdhui),
+            "creneaux": sorted(
+                (c for c in creneaux_tous if c.jour == valeur),
+                key=lambda c: (c.heure_debut, c.heure_fin))})
+    points_liste = list(points)
+    nb_points = len(points_liste)
+    nb_localises = sum(1 for p in points_liste
+                       if p.latitude is not None
+                       and p.longitude is not None)
+    for p in points_liste:
+        creneaux_point = list(p.creneaux.all())
+        p.nb_creneaux = len(creneaux_point)
+        p.capacite_totale = (sum(c.capacite for c in creneaux_point)
+                             if p.type_point == PointLivraison.Type.LIVRAISON
+                             else None)
+    nb_creneaux = len(creneaux_tous)
+    capacite_hebdo = sum(
+        c.capacite for c in creneaux_tous
+        if c.point_livraison_id
+        and c.point_livraison.type_point == PointLivraison.Type.LIVRAISON)
+    jours_couverts = len({c.jour for c in creneaux_tous})
     return render(request, "portal/pro/points.html", {
         "exploitant": exploitant,
-        "points": points,
+        "points": points_liste,
         "jours": CreneauLivraison._meta.get_field("jour").choices,
         "frequences": CreneauLivraison.Frequence.choices,
         "types_points": types_points,
         "est_foodtruck": est_foodtruck,
-        "creneaux": exploitant.creneaux.select_related("point_livraison"),
+        "planning": planning,
+        "nb_points": nb_points,
+        "nb_localises": nb_localises,
+        "nb_creneaux": nb_creneaux,
+        "capacite_hebdo": capacite_hebdo,
+        "jours_couverts": jours_couverts,
+        "creneaux": creneaux_tous,
         "creneaux_sans_point": exploitant.creneaux
                               .filter(point_livraison__isnull=True),
         # Points localisés : affichés sur la carte de création avec
@@ -3669,7 +3707,7 @@ def points_manage(request):
                 + ("" if c.frequence == CreneauLivraison.Frequence.HEBDO
                    else " (" + c.get_frequence_display().lower() + ")")
                 for c in p.creneaux.all()],
-        } for p in points
+        } for p in points_liste
             if p.latitude is not None and p.longitude is not None],
     })
 

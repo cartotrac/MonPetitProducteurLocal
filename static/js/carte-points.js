@@ -73,6 +73,22 @@
     }
     recadrer();
 
+    /* ---- Exposer un point depuis sa fiche (lien « voir sur la carte ») ---- */
+    function exposer(pk) {
+      var trouve = marqueurs.filter(function (x) { return x.pk === pk; })[0];
+      if (!trouve) { return false; }
+      carteEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      carte.panTo(trouve.marqueur.getLatLng());
+      trouve.marqueur.openPopup();
+      var el = trouve.marqueur.getElement();
+      if (el) {
+        el.classList.add("pulse");
+        setTimeout(function () { el.classList.remove("pulse"); }, 2400);
+      }
+      return true;
+    }
+    window.cartePoints = { exposer: exposer };
+
     /* ---- Barre de recherche intelligente (comme les autres cartes) ---- */
     var ctrlRecherche = L.control({ position: "topleft" });
     ctrlRecherche.onAdd = function () {
@@ -389,6 +405,22 @@
         detailsCreation.scrollIntoView(
           { behavior: "smooth", block: "nearest" });
       }
+    });
+
+    /* ---- Liens croisés fiches → carte (voir / localiser) ---- */
+    document.addEventListener("click", function (e) {
+      var cible = e.target;
+      while (cible && cible !== document) {
+        if (cible.classList &&
+            (cible.classList.contains("lien-exposer") ||
+             cible.classList.contains("lien-localiser"))) { break; }
+        cible = cible.parentNode;
+      }
+      if (!cible || cible === document) { return; }
+      if (cible.classList.contains("lien-localiser") &&
+          !enEdition && btnEdit) { btnEdit.click(); }
+      var pk = parseInt(cible.getAttribute("data-point"), 10);
+      if (!isNaN(pk)) { exposer(pk); }
     });
   });
 })();
