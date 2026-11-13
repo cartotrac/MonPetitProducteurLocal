@@ -3485,41 +3485,6 @@ html.dark .home-valeurs {
   text-decoration: none;
 }
 
-.btn-session {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-decoration: none;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-}
-
-.session-libelle {
-  font-size: 0.82rem;
-}
-
-.btn-session-verte {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff !important;
-}
-
-.btn-session-verte:hover {
-  background: rgba(255, 255, 255, 0.25);
-  text-decoration: none;
-}
-
-.btn-session-rouge {
-  background: rgba(211, 47, 47, 0.3);
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-.btn-session-rouge:hover {
-  background: rgba(211, 47, 47, 0.5);
-}
 
 /* ---------- 2. FOOTER MULTI-COLONNES ---------- */
 .site-footer {

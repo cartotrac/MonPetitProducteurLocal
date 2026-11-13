@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}MonPetitProducteurLocal{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}?v=12">
-  <link rel="stylesheet" href="{% static 'css/append.css' %}?v=21">
+  <link rel="stylesheet" href="{% static 'css/append.css' %}?v=22">
   <script>
   /* Mode sombre appliqué AVANT le premier rendu (dans le <head>) :
      sans cela, les boutons du bandeau s'affichent une fraction de
@@ -101,12 +101,12 @@
           <a href="{% url 'portal:profil_client' %}" class="{% if request.path == '/profil/' %}nav-actif{% endif %}">Mon profil</a>
         {% endif %}
         <form class="inline" method="post" action="{% url 'logout' %}">
-          {% csrf_token %}<button class="btn btn-session btn-session-rouge" type="submit" title="Se déconnecter" aria-label="Se déconnecter"><span class="pastille-session pastille-verte" aria-hidden="true"></span><span class="session-libelle">Déconnexion</span></button>
+          {% csrf_token %}<button class="btn btn-session btn-session-rouge" type="submit" title="Se déconnecter" aria-label="Se déconnecter"><span class="pastille-session pastille-verte" aria-hidden="true"></span></button>
         </form>
       {% else %}
         <a href="{% url 'portal:register_client' %}" class="nav-compte" title="Créez votre compte Localien, c'est gratuit : commandez vos paniers, gardez vos producteurs favoris et suivez vos commandes" aria-label="Devenir Localien : créer un compte client gratuit">🧺 Devenir Localien</a>
         <a class="btn btn-outline nav-btn-pro" href="{% url 'portal:register_producer' %}" title="Créez votre espace producteur : exploitation, boutique, traiteur ou foodtruck" aria-label="Créer mon espace pro">🧑‍🌾 Espace Pro</a>
-        <a class="btn btn-session btn-session-verte" href="{% url 'login' %}" title="Se connecter" aria-label="Se connecter"><span class="pastille-session pastille-rouge" aria-hidden="true"></span><span class="session-libelle">Connexion</span></a>
+        <a class="btn btn-session btn-session-verte" href="{% url 'login' %}" title="Se connecter" aria-label="Se connecter"><span class="pastille-session pastille-rouge" aria-hidden="true"></span></a>
       {% endif %}
     </div>
   </nav>
