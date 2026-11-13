@@ -1610,7 +1610,9 @@ def frequence_publication(request):
             messages.success(request, "Fréquence de publication mise à jour.")
         else:
             messages.error(request, "Fréquence inconnue.")
-    return redirect("portal:dashboard")
+    # Revenir à la rubrique 🗓️ de la ligne de publication, pas en
+    # haut de page.
+    return redirect(reverse("portal:dashboard") + "#recoltes")
 
 
 @login_required

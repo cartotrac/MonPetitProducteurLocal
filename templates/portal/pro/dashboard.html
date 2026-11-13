@@ -132,7 +132,7 @@
   <div class="timeline-pubs">
     {% for s in calendrier %}
       <a class="timeline-periode {% if s.passe %}passe{% endif %} cal-{{ s.etat }}{% if s.semaine and publication_choisie and s.semaine.pk == publication_choisie.pk %} choisie{% endif %}"
-         href="{% if s.semaine %}{% url 'portal:dashboard' %}?publication={{ s.semaine.pk }}{% else %}{% url 'portal:dashboard' %}?lundi={{ s.lundi|date:'Y-m-d' }}{% endif %}">
+         href="{% if s.semaine %}{% url 'portal:dashboard' %}?publication={{ s.semaine.pk }}{% else %}{% url 'portal:dashboard' %}?lundi={{ s.lundi|date:'Y-m-d' }}{% endif %}#recoltes">
         <span class="cal-periode">{{ s.libelle }}</span>
         <span class="cal-dates">{{ s.lundi|date:"d/m" }} → {{ s.fin|date:"d/m/Y" }}</span>
         {% if s.semaine %}
@@ -209,19 +209,30 @@
 /* Depuis le bandeau « Gestion » ou une ancre (#recoltes…), la rubrique
    ciblée du dashboard se déplie automatiquement. */
 (function () {
-  if (!location.hash) { return; }
-  var cible = document.querySelector(
-    "details" + location.hash.replace(/[^\w-]/g, ""));
-  if (cible) { cible.open = true; cible.scrollIntoView(); }
-  /* Aperçu vitrine : rechargement après bascule sombre/clair —
-     l'iframe applique le thème à son propre chargement. */
-  var btnTheme = document.getElementById("btn-darkmode");
-  var apercu = document.querySelector(".apercu-vitrine");
-  if (btnTheme && apercu) {
-    btnTheme.addEventListener("click", function () {
-      setTimeout(function () { apercu.src = apercu.src; }, 150);
-    });
+  /* Ancre (#recoltes…) : déplier la rubrique ciblée et s'y positionner
+     — flèches, vignettes, formulaires fréquence/quinzaines. */
+  if (location.hash) {
+    var cible = document.querySelector(
+      "details" + location.hash.replace(/[^\w-]/g, ""));
+    if (cible) { cible.open = true; cible.scrollIntoView(); }
   }
+  /* Aperçu vitrine : rechargement à CHAQUE bascule sombre/clair —
+     l'iframe n'applique le thème qu'à son propre chargement.
+     (Hors du garde-fou hash : doit marcher sur toute la page.) */
+  var apercu = document.querySelector(".apercu-vitrine");
+  var derniere = null;
+  function rechargerApercu() {
+    if (!apercu) { return; }
+    var etat = document.documentElement.className;
+    if (etat === derniere) { return; }
+    derniere = etat;
+    setTimeout(function () { apercu.src = apercu.src; }, 150);
+  }
+  var btnTheme = document.getElementById("btn-darkmode");
+  if (btnTheme) { btnTheme.addEventListener("click", rechargerApercu); }
+  new MutationObserver(rechargerApercu).observe(
+    document.documentElement,
+    { attributes: true, attributeFilter: ["class"] });
 })();
 </script>
 {% endblock %}
