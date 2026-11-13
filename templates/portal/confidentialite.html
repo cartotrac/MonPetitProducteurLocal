@@ -80,9 +80,11 @@
      concernant. Vous pouvez également modifier ou supprimer vos
      informations depuis votre page « Mon profil ».</p>
   {% if user.is_authenticated %}
-  <p><a class="btn btn-outline btn-sm"
-        href="{% url 'portal:export_donnees' %}">📦 Exporter mes
-        données (JSON)</a></p>
+  <p>📦 Exporter mes données :
+    <a class="btn btn-outline btn-sm" href="{% url 'portal:export_donnees' %}">JSON</a>
+    <a class="btn btn-outline btn-sm" href="{% url 'portal:export_donnees' %}?format=csv">CSV</a>
+    <a class="btn btn-outline btn-sm" href="{% url 'portal:export_donnees' %}?format=xlsx">Excel (XLSX)</a>
+    <a class="btn btn-outline btn-sm" href="{% url 'portal:export_donnees' %}?format=ods">ODS (LibreOffice)</a></p>
   <details class="bloc-replie">
     <summary>🗑️ Supprimer mon compte (auto-service)</summary>
     <form method="post" action="{% url 'portal:supprimer_compte' %}">

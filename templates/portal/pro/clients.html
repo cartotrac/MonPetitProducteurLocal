@@ -12,17 +12,22 @@
 </form>
 
 <details class="bloc-replie">
-  <summary><h2>📥 Importer ma liste de clients (CSV)</h2>
+  <summary><h2>📥 Importer ma liste de clients (CSV, XLSX, ODS)</h2>
     <span class="aide-replier">reprendre mes contacts historiques</span></summary>
   <form method="post" enctype="multipart/form-data"
         action="{% url 'portal:clients_import_csv' %}" class="inline-form">
     {% csrf_token %}
-    <input type="file" name="fichier" accept=".csv,text/csv" required>
+    <input type="file" name="fichier" accept=".csv,.xlsx,.ods,text/csv,
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,
+            application/vnd.oasis.opendocument.spreadsheet" required>
     <button class="btn btn-sm" type="submit">Importer</button>
     <a class="btn btn-outline btn-sm" href="{% url 'portal:clients_modele_csv' %}">📄 Modèle CSV</a>
+    <a class="btn btn-outline btn-sm" href="{% url 'portal:clients_modele_csv' %}?format=xlsx">📊 Modèle XLSX</a>
+    <a class="btn btn-outline btn-sm" href="{% url 'portal:clients_modele_csv' %}?format=ods">📝 Modèle ODS</a>
   </form>
-  <p class="muted">Colonnes « nom ; email ; téléphone » (séparateur point-virgule,
-     l'en-tête est optionnel). Un client dont l'e-mail correspond à un compte
+  <p class="muted">Colonnes « nom ; email ; téléphone », l'en-tête est
+     optionnel — formats acceptés : CSV (point-virgule ou virgule),
+     XLSX (Excel) et ODS (LibreOffice), première feuille lue. Un client dont l'e-mail correspond à un compte
      Localien est rattaché automatiquement (badge « compte ») ; les lignes sans
      nom ni contact et les doublons sont ignorés.</p>
 </details>

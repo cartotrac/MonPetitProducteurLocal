@@ -7,3 +7,6 @@ django-allauth>=65.0
 # Dépendance du provider Google de allauth (appels OAuth)
 requests>=2.31
 pyjwt>=2.8
+# Imports / exports tableurs usuels (CSV, XLSX, ODS) :
+openpyxl>=3.1
+odfpy>=1.4

@@ -194,57 +194,140 @@ def mentions_legales(request):
 
 @login_required
 def export_donnees(request):
-    """RGPD — droit à la portabilité : téléchargement JSON de toutes
-    les données personnelles liées au compte (profil, commandes,
-    paniers, favoris, préférences de contact). Aucune donnée des
-    autres comptes n'y figure."""
+    """RGPD — droit à la portabilité : téléchargement de toutes les
+    données personnelles liées au compte (profil, commandes, paniers,
+    favoris, préférences de contact), aux formats usuels — JSON (par
+    défaut), CSV, XLSX (Excel) ou ODS (LibreOffice) via ?format=.
+    Aucune donnée des autres comptes n'y figure."""
     u = request.user
     profil = ProfilClient.objects.filter(user=u).first()
-    commandes = [{
-        "exploitant": c.exploitant.nom_espace,
-        "nom": c.nom_client, "date_livraison": str(c.date_livraison),
-        "statut": c.statut, "email": c.email_client,
-        "telephone": c.telephone_client,
-    } for c in u.commandes.order_by("date_livraison")]
-    paniers = [{
-        "exploitant": p.exploitant.nom_espace,
-        "nom": p.nom_client, "date_livraison": str(p.date_livraison),
-        "statut": p.statut, "total": str(p.total),
-    } for p in u.paniers.order_by("date_livraison")]
-    favoris = [{"espace": f.exploitant.nom_espace, "nature": f.nature}
-               for f in u.favoris.all()]
-    preferences = [{
-        "espace": pc.exploitant.nom_espace, "canal": pc.canal,
-        "veut_bulletin": pc.veut_bulletin, "veut_annonces": pc.veut_annonces,
-    } for pc in u.preferences_contact.all()]
-    contenu = {
-        "compte": {
-            "identifiant": u.username,
-            "email": u.email,
-            "prenom": u.first_name, "nom": u.last_name,
-            "date_inscription": str(u.date_joined),
-        },
-        "profil_client": (None if profil is None else {
-            "telephone": profil.telephone, "adresse": profil.adresse,
-            "ville": profil.ville, "code_postal": profil.code_postal,
-            "alias": profil.alias, "photo_url": profil.photo_url,
-        }),
-        "commandes": commandes, "paniers": paniers,
-        "favoris": favoris, "preferences_contact": preferences,
-    }
+    sections = [
+        ("compte", ["identifiant", "email", "prenom", "nom",
+                    "date_inscription"],
+         [[u.username, u.email, u.first_name, u.last_name,
+           str(u.date_joined)]]),
+        ("profil_client",
+         ["telephone", "adresse", "ville", "code_postal", "alias",
+          "photo_url"],
+         ([[profil.telephone, profil.adresse, profil.ville,
+            profil.code_postal, profil.alias, profil.photo_url]]
+          if profil else [])),
+        ("commandes",
+         ["exploitant", "nom", "date_livraison", "statut", "email",
+          "telephone"],
+         [[c.exploitant.nom_espace, c.nom_client, str(c.date_livraison),
+           c.statut, c.email_client, c.telephone_client]
+          for c in u.commandes.order_by("date_livraison")]),
+        ("paniers",
+         ["exploitant", "nom", "date_livraison", "statut", "total"],
+         [[p.exploitant.nom_espace, p.nom_client, str(p.date_livraison),
+           p.statut, str(p.total)]
+          for p in u.paniers.order_by("date_livraison")]),
+        ("favoris", ["espace", "nature"],
+         [[f.exploitant.nom_espace, f.nature] for f in u.favoris.all()]),
+        ("preferences_contact",
+         ["espace", "canal", "veut_bulletin", "veut_annonces"],
+         [[pc.exploitant.nom_espace, pc.canal, pc.veut_bulletin,
+           pc.veut_annonces] for pc in u.preferences_contact.all()]),
+    ]
     # Nom de fichier : AAAA-MM-JJ_RGPD_portail_mppl_<identifiant>_<mail>
     def propre(s):
         return re.sub(r"[^A-Za-z0-9._-]", "_", s or "")
     date_jour = timezone.localtime(timezone.now()).strftime("%Y-%m-%d")
-    nom_fichier = (propre(date_jour) + "_RGPD_portail_mppl_"
-                   + propre(u.username) + "_"
-                   + propre((u.email or "").replace("@", "_chez_"))
-                   + ".json")
-    reponse = HttpResponse(
-        json.dumps(contenu, indent=2, ensure_ascii=False),
-        content_type="application/json; charset=utf-8")
+    base_nom = (propre(date_jour) + "_RGPD_portail_mppl_"
+                + propre(u.username) + "_"
+                + propre((u.email or "").replace("@", "_chez_")))
+    format_demande = request.GET.get("format", "json").strip().lower()
+    if format_demande not in ("json", "csv", "xlsx", "ods"):
+        format_demande = "json"
+
+    if format_demande == "json":
+        contenu = {
+            "compte": dict(zip(sections[0][1], sections[0][2][0])),
+            "profil_client": (dict(zip(sections[1][1], sections[1][2][0]))
+                              if sections[1][2] else None),
+            "commandes": [dict(zip(sections[2][1], l))
+                          for l in sections[2][2]],
+            "paniers": [dict(zip(sections[3][1], l))
+                        for l in sections[3][2]],
+            "favoris": [dict(zip(sections[4][1], l))
+                        for l in sections[4][2]],
+            "preferences_contact": [dict(zip(sections[5][1], l))
+                                    for l in sections[5][2]],
+        }
+        reponse = HttpResponse(
+            json.dumps(contenu, indent=2, ensure_ascii=False),
+            content_type="application/json; charset=utf-8")
+        reponse["Content-Disposition"] = ('attachment; filename="'
+                                          + base_nom + '.json"')
+        return reponse
+
+    if format_demande == "csv":
+        # CSV multi-sections : titre, en-têtes, lignes, séparées par
+        # une ligne vide — lisible dans un tableur comme en texte.
+        tampon = io.StringIO()
+        tampon.write("\ufeff")
+        writer = csv.writer(tampon, delimiter=";")
+        for titre, entetes, lignes in sections:
+            writer.writerow(["# " + titre])
+            writer.writerow(entetes)
+            for ligne in lignes:
+                writer.writerow(["" if c is None else str(c)
+                                 for c in ligne])
+            writer.writerow([])
+        reponse = HttpResponse(tampon.getvalue(),
+                               content_type="text/csv; charset=utf-8")
+        reponse["Content-Disposition"] = ('attachment; filename="'
+                                          + base_nom + '.csv"')
+        return reponse
+
+    if format_demande == "xlsx":
+        try:
+            import openpyxl
+        except ImportError:
+            raise Http404("Export XLSX indisponible : openpyxl absent.")
+        classeur = openpyxl.Workbook()
+        classeur.remove(classeur.active)
+        for titre, entetes, lignes in sections:
+            feuille = classeur.create_sheet(title=titre[:31])
+            feuille.append(entetes)
+            for ligne in lignes:
+                feuille.append(["" if c is None else str(c)
+                                for c in ligne])
+        tampon = io.BytesIO()
+        classeur.save(tampon)
+        reponse = HttpResponse(tampon.getvalue(), content_type=(
+            "application/vnd.openxmlformats-officedocument"
+            ".spreadsheetml.sheet"))
+        reponse["Content-Disposition"] = ('attachment; filename="'
+                                          + base_nom + '.xlsx"')
+        return reponse
+
+    # ODS (LibreOffice)
+    try:
+        from odf.opendocument import OpenDocumentSpreadsheet
+        from odf.table import Table, TableRow, TableCell
+        from odf.text import P
+    except ImportError:
+        raise Http404("Export ODS indisponible : odfpy absent.")
+    document = OpenDocumentSpreadsheet()
+    for titre, entetes, lignes in sections:
+        feuille = Table(name=titre[:31])
+        for ligne in [entetes] + lignes:
+            tr = TableRow()
+            for cellule in ligne:
+                tc = TableCell(valuetype="string")
+                tc.addElement(P(text="" if cellule is None
+                                else str(cellule)))
+                tr.addElement(tc)
+            feuille.addElement(tr)
+        document.spreadsheet.addElement(feuille)
+    tampon = io.BytesIO()
+    document.save(tampon)
+    reponse = HttpResponse(tampon.getvalue(), content_type=(
+        "application/vnd.oasis.opendocument.spreadsheet"))
     reponse["Content-Disposition"] = ('attachment; filename="'
-                                      + nom_fichier + '"')
+                                      + base_nom + '.ods"')
     return reponse
 
 
@@ -3009,17 +3092,93 @@ def clients_suivi(request):
 
 @login_required
 @exploitant_requis
+def _lignes_tableau(fichier):
+    """Lignes (listes de cellules) d'un fichier téléversé CSV, XLSX ou
+    ODS : les imports du portail acceptent les formats usuels. CSV :
+    UTF-8 (BOM accepté) puis latin-1, séparateur ; ou , détecté."""
+    nom = (fichier.name or "").lower()
+    brut = fichier.read()
+    if nom.endswith(".xlsx"):
+        import openpyxl
+        classeur = openpyxl.load_workbook(
+            io.BytesIO(brut), read_only=True, data_only=True)
+        return [[("" if cellule is None else str(cellule))
+                 for cellule in ligne]
+                for feuille in classeur.worksheets
+                for ligne in feuille.iter_rows(values_only=True)]
+    if nom.endswith(".ods"):
+        from odf import teletype
+        from odf.opendocument import load
+        from odf.table import Table, TableRow, TableCell
+        document = load(io.BytesIO(brut))
+        lignes = []
+        for feuille in document.spreadsheet.getElementsByType(Table):
+            for tr in feuille.getElementsByType(TableRow):
+                lignes.append([
+                    teletype.extractText(tc)
+                    for tc in tr.getElementsByType(TableCell)])
+        return lignes
+    try:
+        contenu = brut.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        contenu = brut.decode("latin-1")
+    echantillon = contenu[:2048]
+    delim = ";" if echantillon.count(";") >= echantillon.count(",") else ","
+    return [l for l in csv.reader(io.StringIO(contenu), delimiter=delim)]
+
+
 def clients_modele_csv(request):
-    """Modèle CSV de l'import clients : nom ; e-mail ; téléphone —
-    une ligne d'en-tête et un exemple. UTF-8 avec BOM pour une
-    ouverture propre dans Excel, séparateur point-virgule."""
+    """Modèle de l'import clients (nom ; e-mail ; téléphone) aux
+    formats usuels : CSV (défaut, ; UTF-8 BOM), XLSX (?format=xlsx)
+    ou ODS (?format=ods) — une ligne d'en-tête et un exemple."""
+    entetes = ["nom", "email", "telephone"]
+    exemple = [["Marie Dupont", "marie.dupont@example.fr",
+                "06 12 34 56 78"]]
+    format_demande = request.GET.get("format", "csv").strip().lower()
+    if format_demande == "xlsx":
+        import openpyxl
+        classeur = openpyxl.Workbook()
+        feuille = classeur.active
+        feuille.title = "clients"
+        feuille.append(entetes)
+        for ligne in exemple:
+            feuille.append(ligne)
+        tampon = io.BytesIO()
+        classeur.save(tampon)
+        reponse = HttpResponse(tampon.getvalue(), content_type=(
+            "application/vnd.openxmlformats-officedocument"
+            ".spreadsheetml.sheet"))
+        reponse["Content-Disposition"] = \
+            'attachment; filename="clients_modele.xlsx"'
+        return reponse
+    if format_demande == "ods":
+        from odf.opendocument import OpenDocumentSpreadsheet
+        from odf.table import Table, TableRow, TableCell
+        from odf.text import P
+        document = OpenDocumentSpreadsheet()
+        feuille = Table(name="clients")
+        for ligne in [entetes] + exemple:
+            tr = TableRow()
+            for cellule in ligne:
+                tc = TableCell(valuetype="string")
+                tc.addElement(P(text=cellule))
+                tr.addElement(tc)
+            feuille.addElement(tr)
+        document.spreadsheet.addElement(feuille)
+        tampon = io.BytesIO()
+        document.save(tampon)
+        reponse = HttpResponse(tampon.getvalue(), content_type=(
+            "application/vnd.oasis.opendocument.spreadsheet"))
+        reponse["Content-Disposition"] = \
+            'attachment; filename="clients_modele.ods"'
+        return reponse
     reponse = HttpResponse(content_type="text/csv; charset=utf-8")
     reponse["Content-Disposition"] = 'attachment; filename="clients_modele.csv"'
     reponse.write("\ufeff")
     writer = csv.writer(reponse, delimiter=";")
-    writer.writerow(["nom", "email", "telephone"])
-    writer.writerow(["Marie Dupont", "marie.dupont@example.fr",
-                     "06 12 34 56 78"])
+    writer.writerow(entetes)
+    for ligne in exemple:
+        writer.writerow(ligne)
     return reponse
 
 
@@ -3037,20 +3196,17 @@ def clients_import_csv(request):
     fichier = request.FILES.get("fichier")
     if not fichier:
         messages.error(request, "Aucun fichier reçu : choisissez un "
-                       "fichier CSV (le modèle est téléchargeable).")
+                       "fichier CSV, XLSX ou ODS (le modèle est "
+                       "téléchargeable).")
         return redirect("portal:clients_suivi")
-    brut = fichier.read()
     try:
-        contenu = brut.decode("utf-8-sig")
-    except UnicodeDecodeError:
-        try:
-            contenu = brut.decode("latin-1")
-        except Exception:
-            messages.error(request, "Encodage non reconnu : "
-                           "réenregistrez le fichier en UTF-8.")
-            return redirect("portal:clients_suivi")
-    lignes = [l for l in csv.reader(io.StringIO(contenu), delimiter=";")
-              if any(c.strip() for c in l)]
+        lignes = [l for l in _lignes_tableau(fichier)
+                  if any((c or "").strip() for c in l)]
+    except Exception:
+        messages.error(request, "Fichier illisible : formats acceptés "
+                       "— CSV, XLSX et ODS (le modèle est "
+                       "téléchargeable).")
+        return redirect("portal:clients_suivi")
     if not lignes:
         messages.error(request, "Le fichier est vide.")
         return redirect("portal:clients_suivi")
