@@ -2416,3 +2416,34 @@ html.dark .ctrl-points button { background: #2b2f27; color: #e6e4da;
 html.dark .ctrl-points button:hover { background: #3a4034; }
 html.dark .ctrl-points button.actif { background: #7cb342; color: #1d2617; }
 .marker-provisoire .marker-activite { opacity: 0.9; }
+
+
+/* ===== Carte des points : fenêtre de confirmation après déplacement
+   d'un marqueur (adresse déduite, modifiable, annulation possible),
+   bouton ➕ visible uniquement en mode édition. ===== */
+.ctrl-points button.btn-points-nouveau { display: none; }
+.ctrl-points.edition-actif button.btn-points-nouveau,
+.points-carte.points-en-edition ~ * .btn-points-nouveau { display: block; }
+.toast-points { position: absolute; left: 50%; bottom: 14px;
+  transform: translateX(-50%); z-index: 1000; max-width: min(92%, 26rem);
+  background: #fff; border: 1px solid #cfd8c3; border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); padding: 0.6rem 0.8rem; }
+.toast-points p { margin: 0 0 0.4rem; font-size: 0.85rem; }
+.toast-points .toast-adresse { width: 100%; box-sizing: border-box;
+  border: 1px solid #c9c4b4; border-radius: 6px; padding: 0.3rem 0.5rem;
+  font-size: 0.85rem; }
+.toast-points-actions { display: flex; gap: 0.4rem; margin-top: 0.45rem; }
+.toast-points-actions button { border: 1px solid #c9c4b4;
+  background: #faf9f4; border-radius: 6px; padding: 0.25rem 0.6rem;
+  cursor: pointer; font-size: 0.82rem; font-weight: 600; }
+.toast-points-actions .toast-ok { background: #2e7d32; color: #fff;
+  border-color: #2e7d32; }
+.toast-points-actions button:disabled { opacity: 0.6; cursor: wait; }
+html.dark .toast-points { background: #232620; border-color: #4a4f44;
+  color: #e6e4da; }
+html.dark .toast-points .toast-adresse { background: #2b2f27;
+  border-color: #4a4f44; color: #e6e4da; }
+html.dark .toast-points-actions button { background: #2b2f27;
+  border-color: #4a4f44; color: #e6e4da; }
+html.dark .toast-points-actions .toast-ok { background: #7cb342;
+  border-color: #7cb342; color: #1d2617; }

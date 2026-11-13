@@ -3473,9 +3473,22 @@ def points_manage(request):
                                       exploitant=exploitant)
             point.latitude = _latlon(request.POST.get("latitude"))
             point.longitude = _latlon(request.POST.get("longitude"))
+            # Déplacement sur la carte : l'adresse déduite du géocodage
+            # inverse accompagne la position (éditable dans la fenêtre
+            # de confirmation, ou plus tard dans « Modifier le point »).
+            adresse = (request.POST.get("adresse", "") or "").strip()
+            ville = (request.POST.get("ville", "") or "").strip()
+            code_postal = (request.POST.get("code_postal", "") or "").strip()
+            if adresse:
+                point.adresse = adresse[:255]
+            if ville:
+                point.ville = ville[:100]
+            if code_postal:
+                point.code_postal = code_postal[:10]
             point.save()
             messages.success(request,
-                             f"Position de « {point.nom} » enregistrée.")
+                             f"Position de « {point.nom} » enregistrée."
+                             + (" Adresse mise à jour." if adresse else ""))
         elif action == "point_modifier":
             # Modifier un point existant (nom, adresse, position) SANS
             # toucher à l'historique : les paniers déjà livrés portent
