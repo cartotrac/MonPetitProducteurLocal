@@ -1,56 +1,72 @@
 {% extends "base.html" %}
 {% load static %}{% load l10n %}
-{% block title %}{% if visu == "restauration" %}Restauration & Foodtrucks{% elif visu == "marches" %}Marchés & Boutiques{% elif visu == "tout" %}All-in-1{% else %}Recherche{% endif %} — MonPetitProducteurLocal{% endblock %}
+{% block title %}{% if visu == "restauration" %}Restauration &amp; Foodtrucks{% elif visu == "marches" %}Marchés &amp; Boutiques{% elif visu == "tout" %}Tous les pros locaux{% else %}Producteurs locaux{% endif %} — MonPetitProducteurLocal{% endblock %}
 {% block extrahead %}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 {% endblock %}
 {% block retour_dashboard %}{% endblock %}
 {% block content %}
-<div class="entete-chercher">
-  <div class="titre-recherche">
-    <h1 title="{% if visu == "restauration" %}🍽️ Mode restaurants, traiteurs &amp; foodtrucks{% elif visu == "marches" %}🎪 Mode marchés &amp; boutiques de producteurs — identifiés à partir des points et créneaux déclarés{% elif visu == "tout" %}🌍 Mode producteurs, restauration, marchés &amp; boutiques réunis sur la même carte{% else %}🚜🥬 Mode exploitations &amp; producteurs locaux{% endif %}">{% if visu == "restauration" %}🔍🍽️ Quelle offre de restauration à proximité !{% elif visu == "marches" %}🔍🎪 Trouver les Boutiques/Marchés producteurs !{% elif visu == "tout" %}🔍🌍 Tout l'univers locavores réunis !{% else %}🔍🚜🥬 Trouver mon Producteur local !{% endif %}</h1>
-    
-  </div>
-  
-
-    
-    
+<div class="search-page-header">
+  <div class="search-title-row">
+    <div class="search-title-badge">
+      {% if visu == "restauration" %}🍽️ Restauration &amp; Foodtrucks
+      {% elif visu == "marches" %}🎪 Marchés &amp; Boutiques
+      {% elif visu == "tout" %}🌍 Univers Locavore Réuni
+      {% else %}🥬 Producteurs &amp; Maraîchers
+      {% endif %}
+    </div>
+    <h1>
+      {% if visu == "restauration" %}Trouver un restaurant, traiteur ou foodtruck
+      {% elif visu == "marches" %}Trouver un marché ou une boutique paysanne
+      {% elif visu == "tout" %}Tous les professionnels &amp; lieux de vente
+      {% else %}Trouver mes producteurs locaux
+      {% endif %}
+    </h1>
+    <p class="muted search-header-desc">
+      {% if visu == "restauration" %}Repérez les tables de terroir et les emplacements du soir des foodtrucks à proximité.
+      {% elif visu == "marches" %}Découvrez les stands déclarés par les producteurs sur les marchés et boutiques collectives.
+      {% elif visu == "tout" %}Consultez l'ensemble de l'offre locale en direct sur la même carte.
+      {% else %}Légumes frais de saison, viandes, fromages, miel : en direct de la ferme ou en point relais.
+      {% endif %}
+    </p>
   </div>
 </div>
 
-
 <section class="map-section">
   <div class="map-canvas-wrap{% if visu == "restauration" %} visu-restauration{% elif visu == "marches" %} visu-marches{% endif %}">
-    <h2 class="map-titre">🗺️ {% if visu == "restauration" %}Restaurants, traiteurs &amp; foodtrucks trouvés{% elif visu == "marches" %}Marchés &amp; boutiques identifiés{% elif visu == "tout" %}Tous les professionnels, marchés &amp; boutiques trouvés{% else %}Producteurs trouvés{% endif %}{% if carte_data %} ({{ carte_data|length }}){% endif %}</h2>
-      <div id="carte-recherche" class="map-canvas" data-mode="{% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% elif visu == "tout" %}tout{% else %}producteurs{% endif %}" data-zone="{{ dept }}" data-csrf="{{ csrf_token }}"></div>
-      {{ carte_data|json_script:"donnees-carte" }}
-      {{ home_carte|json_script:"home-carte" }}
-      {{ graph_locaux|json_script:"stats-serie-locaux" }}
-      {{ graph_restauration|json_script:"stats-serie-restauration" }}
-      {{ graph_marches|json_script:"stats-serie-marches" }}
-      {% if resultats_vides %}
-      <p class="muted">{% if visu == "marches" %}Aucun marché ou boutique identifié dans ces résultats :
-         les producteurs n'ont pas encore déclaré de stand de marché ou de
-         point de vente géolocalisé.{% else %}Aucun producteur géolocalisé dans ces résultats :
-         les espaces concernés n'ont pas renseigné de position sur la carte.{% endif %}</p>
+    <div class="map-header-bar">
+      <h2 class="map-titre">
+        <span>🗺️ Carte interactive</span>
+        <span class="map-count-badge">{% if carte_data %}{{ carte_data|length }}{% else %}0{% endif %} lieu{{ carte_data|length|pluralize }}</span>
+      </h2>
+    </div>
+    <div id="carte-recherche" class="map-canvas" data-mode="{% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% elif visu == "tout" %}tout{% else %}producteurs{% endif %}" data-zone="{{ dept }}" data-csrf="{{ csrf_token }}"></div>
+    {{ carte_data|json_script:"donnees-carte" }}
+    {{ home_carte|json_script:"home-carte" }}
+    {{ graph_locaux|json_script:"stats-serie-locaux" }}
+    {{ graph_restauration|json_script:"stats-serie-restauration" }}
+    {{ graph_marches|json_script:"stats-serie-marches" }}
+    {% if resultats_vides %}
+      <p class="muted empty-map-notice">
+        {% if visu == "marches" %}Aucun marché ou boutique identifié dans ces résultats :
+           les producteurs n'ont pas encore déclaré de stand de marché ou de point de vente géolocalisé.
+        {% else %}Aucun producteur géolocalisé dans ces résultats :
+           les espaces concernés n'ont pas renseigné de position sur la carte.
+        {% endif %}
+      </p>
     {% endif %}
   </div>
 </section>
 
-{% comment %}
-   Filtres : SOUS LA CARTE, dans l'ordre souhaité — 1) le filtre
-   d'activité (marchés/boutiques en mode marchés, renommé
-   « Activités » avec les symboles 🎪 &amp; 🏪) ; 2) les deux filtres à
-   saisir (recherche libre puis département/région/CP) ; 3) le filtre
-   mode de production à droite (mode producteurs).
-{% endcomment %}
-<form class="search-bar" method="get" action="{% url 'portal:producer_search' %}">
+{# ---- Formulaire de filtres sous la carte ---- #}
+<form class="search-bar search-bar-modern" method="get" action="{% url 'portal:producer_search' %}">
   <input type="hidden" name="visu" value="{{ visu }}">
   <input type="hidden" name="demo" value="{% if demo %}1{% else %}0{% endif %}">
   <input type="hidden" name="par_page" value="{{ par_page }}">
+
   {% if visu == "marches" %}
   <details class="filtre-multi">
-    <summary>Activités 🎪 &amp; 🏪{% if type_marche_choisi %} ({{ type_marche_choisi|length }}){% endif %} ▾</summary>
+    <summary><span>🎪 Activités{% if type_marche_choisi %} ({{ type_marche_choisi|length }}){% endif %}</span> <span class="chevron">▾</span></summary>
     <div class="filtre-multi-menu">
       <button type="button" class="filtre-tout-decocher">✕ Tout décocher</button>
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="MARCHE"{% if 'MARCHE' in type_marche_choisi %} checked{% endif %}> 🎪 Marchés</label>
@@ -59,12 +75,12 @@
     </div>
   </details>
   {% endif %}
+
   {% if visu != "marches" %}
   <details class="filtre-multi">
-    <summary>{% if visu == "restauration" %}🍽️{% else %}🥬{% endif %} Activités{% if activite_choisie %} ({{ activite_choisie|length }}){% endif %} ▾</summary>
+    <summary><span>{% if visu == "restauration" %}🍽️{% else %}🥬{% endif %} Activités{% if activite_choisie %} ({{ activite_choisie|length }}){% endif %}</span> <span class="chevron">▾</span></summary>
     <div class="filtre-multi-menu">
       <button type="button" class="filtre-tout-decocher">✕ Tout décocher</button>
-      {# Mode All-in-1 : activités regroupées par catégorie thématique. #}
       {% if visu == "tout" %}<div class="filtre-groupe-titre">🚜🥬 Producteurs</div>{% endif %}
       {% for code, libelle in activites %}
         {% if code != "FOODTRUCK" and code != "TRAITEUR" and code != "RESTAURANT" %}
@@ -77,34 +93,51 @@
         <label class="filtre-multi-choix"><input type="checkbox" name="activite" value="{{ code }}"{% if code in activite_choisie %} checked{% endif %}> {{ libelle }}</label>
         {% endif %}
       {% endfor %}
-      {% if visu == "tout" %}<div class="filtre-groupe-titre">🎪 Marchés &amp; Boutiques</div>
+      {% if visu == "tout" %}
+      <div class="filtre-groupe-titre">🎪 Marchés &amp; Boutiques</div>
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="MARCHE"{% if 'MARCHE' in type_marche_choisi %} checked{% endif %}> 🎪 Marchés</label>
-      <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="BOUTIQUE"{% if 'BOUTIQUE' in type_marche_choisi %} checked{% endif %}> 🏪 Boutiques de producteurs</label>{% endif %}
+      <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="BOUTIQUE"{% if 'BOUTIQUE' in type_marche_choisi %} checked{% endif %}> 🏪 Boutiques de producteurs</label>
+      {% endif %}
       <p class="muted">Plusieurs choix possibles — tout décocher = toutes les activités.</p>
     </div>
   </details>
   {% endif %}
-  <input type="text" name="q" placeholder="{% if visu == 'marches' %}Marché, boutique…{% elif visu == 'restauration' %}Plat, carte, nom…{% elif visu == 'tout' %}Produit, exploitation, plat, marché…{% else %}Produit, exploitation…{% endif %}"{% if q and resultats_vides %} class="filtre-vide"{% endif %} value="{{ q }}">
-  <input type="text" name="dept" placeholder="Département, région ou code postal…" title="Zoome la carte sur un département (nom ou numéro), une région ou un code postal — les vignettes suivent l'emprise"{% if dept and resultats_vides %} class="filtre-vide"{% endif %} value="{{ dept }}" size="14">
+
+  <div class="search-input-wrap search-input-query">
+    <span class="search-input-icon">🔍</span>
+    <input type="text" name="q" placeholder="{% if visu == 'marches' %}Nom du marché, commune…{% elif visu == 'restauration' %}Plat, spécialité, restaurant…{% elif visu == 'tout' %}Produit, producteur, plat, marché…{% else %}Produit, exploitation, maraîcher…{% endif %}"{% if q and resultats_vides %} class="filtre-vide"{% endif %} value="{{ q }}">
+  </div>
+
+  <div class="search-input-wrap search-input-location">
+    <span class="search-input-icon">📍</span>
+    <input type="text" name="dept" placeholder="Code postal, ville, département…" title="Zoome la carte sur un département (nom ou numéro), une commune ou un code postal" {% if dept and resultats_vides %} class="filtre-vide"{% endif %} value="{{ dept }}" size="14">
+  </div>
+
   {% if not visu %}
   <details class="filtre-multi">
-    <summary>🌱 Modes de production{% if mode_choisi %} ({{ mode_choisi|length }}){% endif %} ▾</summary>
+    <summary><span>🌱 Labels &amp; Modes{% if mode_choisi %} ({{ mode_choisi|length }}){% endif %}</span> <span class="chevron">▾</span></summary>
     <div class="filtre-multi-menu">
       <button type="button" class="filtre-tout-decocher">✕ Tout décocher</button>
-      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="AB"{% if 'AB' in mode_choisi %} checked{% endif %}> Bio (AB)</label>
-      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="PERMA"{% if 'PERMA' in mode_choisi %} checked{% endif %}> Permaculture</label>
-      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="PAYSAN"{% if 'PAYSAN' in mode_choisi %} checked{% endif %}> Agriculture paysanne</label>
-      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="RAISONNE"{% if 'RAISONNE' in mode_choisi %} checked{% endif %}> Raisonnée</label>
-      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="CONV"{% if 'CONV' in mode_choisi %} checked{% endif %}> Conventionnelle</label>
+      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="AB"{% if 'AB' in mode_choisi %} checked{% endif %}> 🌿 Bio (AB)</label>
+      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="PERMA"{% if 'PERMA' in mode_choisi %} checked{% endif %}> 🌍 Permaculture</label>
+      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="PAYSAN"{% if 'PAYSAN' in mode_choisi %} checked{% endif %}> 🧑‍🌾 Paysanne</label>
+      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="RAISONNE"{% if 'RAISONNE' in mode_choisi %} checked{% endif %}> 🌻 Raisonnée</label>
+      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="CONV"{% if 'CONV' in mode_choisi %} checked{% endif %}> 🚜 Conventionnelle</label>
       <p class="muted">Plusieurs choix possibles — tout décocher = tous les modes.</p>
     </div>
   </details>
   {% endif %}
-  {% if filtre_actif %}<a class="btn btn-sm btn-retirer-filtre" href="{% url 'portal:producer_search' %}?visu={{ visu }}{% if not demo %}&demo=0{% endif %}" title="Retirer tous les filtres actifs">✕ Retirer les filtres</a>{% endif %}
+
+  <button class="btn btn-search-submit" type="submit">Filtrer</button>
+
+  {% if filtre_actif %}
+    <a class="btn btn-sm btn-retirer-filtre" href="{% url 'portal:producer_search' %}?visu={{ visu }}{% if not demo %}&amp;demo=0{% endif %}" title="Retirer tous les filtres actifs">✕ Retirer filtres</a>
+  {% endif %}
 </form>
 
+{# ---- Grille des résultats ---- #}
 {% if visu == "marches" %}
-<div class="grid producers">
+<div class="grid producers search-results-grid">
   {% for m in marches %}
     <div class="card vignette-producteur vignette-marche"{% if m.latitude and m.longitude %} data-lat="{{ m.latitude|unlocalize }}" data-lng="{{ m.longitude|unlocalize }}"{% endif %}>
       <div class="vignette-titre">
@@ -112,30 +145,34 @@
         <h2><a href="{{ m.url }}">{{ m.nom }}</a></h2>
         {% if m.est_marche %}<span class="badge badge-marche">🎪 Marché</span>{% else %}<span class="badge badge-boutique">🏪 Boutique</span>{% endif %}
       </div>
-      <p class="muted vignette-localite"><span>{{ m.ville }}{% if m.code_postal %} ({{ m.code_postal }}){% endif %}</span>
-        <span class="badge">{{ m.nb_producteurs }} producteur{{ m.nb_producteurs|pluralize }}</span></p>
+      <p class="muted vignette-localite">
+        <span>📍 {{ m.ville }}{% if m.code_postal %} ({{ m.code_postal }}){% endif %}</span>
+        <span class="badge badge-sub">{{ m.nb_producteurs }} producteur{{ m.nb_producteurs|pluralize }}</span>
+      </p>
       <div class="vignette-reste">
         <div class="vignette-horaires" role="note">
-          <strong>🗓️ Jours &amp; horaires déduits :</strong>
+          <strong>🗓️ Créneaux &amp; horaires déclarés :</strong>
           {% for h in m.horaires_txt %}
-            <span>🗓️ {{ h }}</span>
+            <span class="horaire-item">🗓️ {{ h }}</span>
           {% endfor %}
           {% if not m.horaires_txt %}<span class="muted">Aucun créneau déclaré pour l'instant.</span>{% endif %}
         </div>
       </div>
       <p class="vignette-pied">
-        <span class="vignette-activite-libelle">Identifié d'après les saisies de {{ m.nb_producteurs }} producteur{{ m.nb_producteurs|pluralize }}</span>
-        <a class="btn btn-sm" href="{{ m.url }}">Voir la fiche →</a>
+        <span class="vignette-activite-libelle">Point commun de {{ m.nb_producteurs }} producteur{{ m.nb_producteurs|pluralize }}</span>
+        <a class="btn btn-sm btn-vignette-action" href="{{ m.url }}">Voir la fiche →</a>
       </p>
     </div>
   {% empty %}
-    <p>Aucun marché ou boutique de producteurs identifié pour l'instant :
-       les producteurs n'ont pas encore déclaré de stand de marché ou de
-       point de vente géolocalisé sur leur fiche.</p>
+    <div class="search-empty-box">
+      <span class="search-empty-icon">🎪</span>
+      <h3>Aucun marché ou boutique trouvé</h3>
+      <p class="muted">Aucun point de vente ne correspond aux critères ou à l'emprise géographique sélectionnée.</p>
+    </div>
   {% endfor %}
 </div>
 {% else %}
-<div class="grid producers">
+<div class="grid producers search-results-grid">
   {% for exploitant in exploitants %}
     <div class="card vignette-producteur"{% if exploitant.latitude and exploitant.longitude %} data-lat="{{ exploitant.latitude|unlocalize }}" data-lng="{{ exploitant.longitude|unlocalize }}"{% endif %}>
       {% if user.is_authenticated %}
@@ -147,9 +184,11 @@
                   aria-label="{% if exploitant.slug in favoris_slugs %}Retirer {{ exploitant.nom_espace }} des favoris{% else %}Ajouter {{ exploitant.nom_espace }} aux favoris{% endif %}">{% if exploitant.slug in favoris_slugs %}⭐{% else %}☆{% endif %}</button>
         </form>
       {% endif %}
+
       {% if exploitant.logo %}
         <img class="card-logo" src="{{ exploitant.logo.url }}" alt="Logo {{ exploitant.nom_espace }}">
       {% endif %}
+
       <div class="vignette-titre">
         <span class="badge badge-activite vignette-badge-activite" title="{{ exploitant.get_activite_display }}{% if exploitant.specialite %} — {{ exploitant.get_specialite_display }}{% endif %}" aria-label="{{ exploitant.get_activite_display }}">{{ exploitant.emoji_vitrine }}</span>
         <h2><a href="{% url 'portal:producer_detail' exploitant.slug %}">{{ exploitant.nom_espace }}</a></h2>
@@ -160,30 +199,54 @@
         {% elif exploitant.mode_production == 'CONV' %}<span class="badge badge-conventionnelle">Conventionnelle</span>
         {% endif %}
       </div>
-      <p class="muted vignette-localite"><span>{{ exploitant.ville }}{% if exploitant.code_postal %} ({{ exploitant.code_postal }}){% elif exploitant.departement %} ({{ exploitant.departement }}){% endif %}</span>
-        <a class="btn btn-sm btn-commander" href="{% url 'portal:order_create' exploitant.slug %}">🛒 Commander</a></p>
+
+      <p class="muted vignette-localite">
+        <span>📍 {{ exploitant.ville }}{% if exploitant.code_postal %} ({{ exploitant.code_postal }}){% elif exploitant.departement %} ({{ exploitant.departement }}){% endif %}</span>
+        <a class="btn btn-sm btn-commander" href="{% url 'portal:order_create' exploitant.slug %}">🛒 Commander</a>
+      </p>
+
       <div class="vignette-reste">
-        {% if exploitant.description %}<p>{{ exploitant.description|truncatewords:20 }}</p>{% endif %}
+        {% if exploitant.description %}
+          <p class="vignette-description">{{ exploitant.description|truncatewords:20 }}</p>
+        {% endif %}
         <div class="vignette-horaires" role="note">
-          <strong>📍 {% if exploitant.activite == 'FOODTRUCK' %}Emplacements &amp; horaires{% else %}Horaires boutiques, marchés, points relais{% endif %} :</strong>
+          <strong>📍 {% if exploitant.activite == 'FOODTRUCK' %}Emplacements &amp; horaires{% else %}Retrait &amp; points de vente{% endif %} :</strong>
           {% for h in exploitant.horaires %}
-            <span>🗓️ {{ h.txt }}{% if h.point %} — {% if h.itineraire %}<a href="{{ h.itineraire }}" target="_blank" rel="noopener" title="Itinéraire google maps">{{ h.point }}</a>{% else %}{{ h.point }}{% endif %}{% endif %}</span>
+            <span class="horaire-item">🗓️ {{ h.txt }}{% if h.point %} — {% if h.itineraire %}<a href="{{ h.itineraire }}" target="_blank" rel="noopener" title="Itinéraire Google Maps">{{ h.point }}</a>{% else %}{{ h.point }}{% endif %}{% endif %}</span>
           {% endfor %}
-          {% if not exploitant.horaires %}<span class="muted">Horaires non renseignés — voir la fiche de l'espace.</span>{% endif %}
+          {% if not exploitant.horaires %}<span class="muted">Horaires non renseignés — consulter la fiche.</span>{% endif %}
         </div>
       </div>
+
       <p class="vignette-pied">
-        <span class="vignette-activite-libelle">{{ exploitant.get_activite_display }}{% if exploitant.siret_valide %} <strong>vérifié</strong>{% endif %}</span>
+        <span class="vignette-activite-libelle">
+          {{ exploitant.get_activite_display }}
+          {% if exploitant.siret_valide %}<span class="medaille-siret" title="SIRET vérifié">✓ Vérifié</span>{% endif %}
+        </span>
         {% if exploitant.est_demo %}<span class="badge badge-demo vignette-demo-badge">🧪 DÉMO</span>{% endif %}
-        {% if exploitant.siret_valide %}<span class="medaille-siret" title="SIRET vérifié">✓</span>{% endif %}
+        <a class="btn btn-sm btn-vignette-action" href="{% url 'portal:producer_detail' exploitant.slug %}">Voir la vitrine →</a>
       </p>
     </div>
   {% empty %}
-    <p>Aucun producteur ne correspond à votre recherche.</p>
+    <div class="search-empty-box">
+      <span class="search-empty-icon">🥬</span>
+      <h3>Aucun professionnel ne correspond à votre recherche</h3>
+      <p class="muted">Essayez d'élargir la zone géographique ou de retirer certains filtres d'activité.</p>
+    </div>
   {% endfor %}
 </div>
+
 <div class="pagination-barre">
-  <span class="pagination-info">{% if nb_resultats %}{{ page_obj.start_index }}–{{ page_obj.end_index }} / {{ nb_resultats }}{% else %}0{% endif %} {% if visu == "restauration" %}restaurant{{ nb_resultats|pluralize }}, traiteur{{ nb_resultats|pluralize }} &amp; foodtruck{{ nb_resultats|pluralize }}{% elif visu == "marches" %}marché{{ nb_resultats|pluralize }} &amp; boutique{{ nb_resultats|pluralize }}{% elif visu == "tout" %}professionnel{{ nb_resultats|pluralize }} 🚜🥬 🍽️🚚{% else %}producteur{{ nb_resultats|pluralize }}{% endif %} affiché{{ nb_resultats|pluralize }} sur la carte — page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+  <span class="pagination-info">
+    {% if nb_resultats %}{{ page_obj.start_index }}–{{ page_obj.end_index }} / {{ nb_resultats }}{% else %}0{% endif %}
+    {% if visu == "restauration" %}restaurant{{ nb_resultats|pluralize }}, traiteur{{ nb_resultats|pluralize }} &amp; foodtruck{{ nb_resultats|pluralize }}
+    {% elif visu == "marches" %}marché{{ nb_resultats|pluralize }} &amp; boutique{{ nb_resultats|pluralize }}
+    {% elif visu == "tout" %}professionnel{{ nb_resultats|pluralize }}
+    {% else %}producteur{{ nb_resultats|pluralize }}
+    {% endif %}
+    affiché{{ nb_resultats|pluralize }} sur la carte — page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+  </span>
+
   {% if page_obj.paginator.num_pages > 1 %}
   <nav class="pagination-liens" aria-label="Pages de résultats">
     {% if page_obj.has_previous %}
@@ -199,12 +262,13 @@
     {% endif %}
   </nav>
   {% endif %}
+
   <form method="get" class="pagination-taille">
     {% for nom, valeur in filtres_get %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}
-    <label for="id_par_page">Vignettes par page :</label>
+    <label for="id_par_page">Afficher :</label>
     <select id="id_par_page" name="par_page" onchange="this.form.submit()">
       {% for t in par_page_choices %}
-      <option value="{{ t }}"{% if t == par_page %} selected{% endif %}>{{ t }}</option>
+      <option value="{{ t }}"{% if t == par_page %} selected{% endif %}>{{ t }} par page</option>
       {% endfor %}
     </select>
     <noscript><button class="btn btn-sm" type="submit">OK</button></noscript>
@@ -214,19 +278,6 @@
 {% endblock %}
 {% block extrajs %}
 <script>
-/* Position de défilement CONSERVÉE : tout re-soumission du formulaire
-   (mode depuis la carte, filtres, bascule démo, recherche) enregistre
-   la position avant rechargement, puis elle est restaurée — la page
-   ne remonte plus en haut à chaque interaction. */
-/* Repositionnement DÉTERMINISTE : après tout re-soumission
-   (mode, filtres, démo), la page se cale sur le TITRE DE LA CARTE —
-   toujours exactement au même endroit, aucune dérive possible d'un
-   clic à l'autre, quel que soit le contenu au-dessus de la carte. */
-/* Emprise de la carte (centre + zoom) conservée d'un rechargement
-   à l'autre : les filtres d'activité et la bascule Démo/Réel ne
-   recadrent PLUS la carte (le bouton de cadrage général reste
-   disponible). Seuls un changement de mode ou une NOUVELLE zone
-   saisie recadrent : garderVue = false. */
 window.mpplGarderVue = function () {
   try {
     if (window.carte && window.carte.getCenter) {
@@ -248,165 +299,7 @@ window.mpplSoumettre = function (form, garderVue) {
   } catch (e) {}
   form.submit();
 };
-(function () {
-  try {
-    /* Bascule Démo/Réel : position EXACTE de la page restituée. */
-    var ex = sessionStorage.getItem("mppl_scroll_exact");
-    if (ex) {
-      sessionStorage.removeItem("mppl_scroll_exact");
-      var xy = ex.split(",");
-      window.scrollTo(parseInt(xy[0], 10) || 0,
-                       parseInt(xy[1], 10) || 0);
-      return;
-    }
-    var p = sessionStorage.getItem("mppl_scroll_recherche");
-    if (p) {
-      sessionStorage.removeItem("mppl_scroll_recherche");
-      var cible = document.querySelector(".map-canvas-wrap");
-      if (cible) {
-        var y = cible.getBoundingClientRect().top + window.scrollY - 8;
-        window.scrollTo(0, Math.max(0, y));
-      }
-    }
-  } catch (e) {}
-})();
 </script>
-
-
-<script>
-/* Bascule 🎃 Démo / 🧡 Réel : filtre les comptes fictifs de
-   démonstration EN AMONT de tout le reste — carte, vignettes,
-   marchés déduits, dénombrements, autres filtres. Le formulaire
-   est re-soumis avec l'état inversé (demo=0 / demo=1). */
-(function () {
-  var btn = document.getElementById("bascule-demo");
-  var form = document.querySelector(".search-bar");
-  if (!btn || !form) { return; }
-  btn.addEventListener("click", function () {
-    var cache = form.querySelector('input[name="demo"]');
-    if (!cache) { return; }
-    cache.value = (cache.value === "1") ? "0" : "1";
-    /* La bascule ne change NI la position de la page NI l'emprise
-       de la carte : mêmes filtres, même mode — seuls les chiffres
-       changent. */
-    try {
-      sessionStorage.setItem("mppl_scroll_exact",
-                            window.scrollX + "," + window.scrollY);
-    } catch (e) {}
-    window.mpplGarderVue();
-    form.submit();
-  });
-})();
-</script>
-<script>
-/* Filtres déroulants (détails natifs) : accordéon — un seul menu
-   ouvert à la fois dans la barre de filtres, fermeture au clic
-   extérieur ou à la touche Échap. Deux menus ne peuvent donc plus
-   être déroulés ni se chevaucher en même temps. */
-(function () {
-  var barre = document.querySelector(".search-bar");
-  if (!barre) { return; }
-  var menus = Array.prototype.slice.call(
-    barre.querySelectorAll("details.filtre-multi"));
-  menus.forEach(function (menu) {
-    menu.addEventListener("toggle", function () {
-      if (menu.open) {
-        menus.forEach(function (autre) {
-          if (autre !== menu) { autre.open = false; }
-        });
-      }
-    });
-  });
-  document.addEventListener("click", function (evt) {
-    menus.forEach(function (menu) {
-      if (menu.open && !menu.contains(evt.target)) { menu.open = false; }
-    });
-  });
-  document.addEventListener("keydown", function (evt) {
-    if (evt.key === "Escape") {
-      menus.forEach(function (menu) { menu.open = false; });
-    }
-  });
-  /* « ✕ Tout décocher » : première ligne de chaque menu — décoche
-     toutes les cases du menu PUIS soumet le formulaire : les filtres
-     sont dynamiques, il n'y a plus de bouton « Filtrer ». */
-  barre.querySelectorAll(".filtre-tout-decocher").forEach(function (bouton) {
-    bouton.addEventListener("click", function () {
-      bouton.closest(".filtre-multi-menu")
-        .querySelectorAll("input[type=checkbox]")
-        .forEach(function (caseFiltre) { caseFiltre.checked = false; });
-      barre.submit();
-    });
-  });
-})();
-</script>
-<script>
-/* Filtres dynamiques : plus de bouton « Filtrer » — cocher ou
-   décocher une case soumet le formulaire immédiatement ; les champs
-   texte (recherche libre, zone) se soumettent à la sortie du champ
-   dès que la valeur saisie a changé. Un champ texte actif qui
-   n'affiche AUCUNE entité est entouré de rouge (filtre-vide). */
-(function () {
-  var form = document.querySelector(".search-bar");
-  if (!form) { return; }
-  form.querySelectorAll("input[type=checkbox]").forEach(function (caseFiltre) {
-    caseFiltre.addEventListener("change", function () { window.mpplSoumettre(form); });
-  });
-  ["q", "dept"].forEach(function (nom) {
-    var champ = form.querySelector('input[name="' + nom + '"]');
-    if (!champ) { return; }
-    champ.addEventListener("blur", function () {
-      if (champ.value.trim() !== champ.defaultValue) {
-        /* Nouvelle zone saisie : la carte recadre dessus —
-           l'emprise enregistrée est écartée (garderVue false). */
-        window.mpplSoumettre(form, nom !== "dept");
-      }
-    });
-  });
-})();
-</script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="{% static 'js/search-map.js' %}"></script>
-
-<script>
-/* Filtres ACTIFS : bouton « ✕ Retirer les filtres » posé sur la
-   carte, sous la colonne des modes (à droite). Un clic retire la
-   COMBINAISON complète — cases cochées, recherche libre, zone — et
-   relance la recherche. Visible seulement s'il y a un filtre actif. */
-(function () {
-  var form = document.querySelector(".search-bar");
-  if (!form || typeof L === "undefined" || typeof carte === "undefined") {
-    return;
-  }
-  var actifs = form.querySelectorAll(
-    "input[type=checkbox]:checked").length;
-  ["q", "dept"].forEach(function (nom) {
-    var champ = form.querySelector('input[name="' + nom + '"]');
-    if (champ && champ.value.trim()) { actifs += 1; }
-  });
-  if (!actifs) { return; }
-  var ctrl = L.control({ position: "topright" });
-  ctrl.onAdd = function () {
-    var div = L.DomUtil.create("div", "ctrl-filtres-actifs");
-    L.DomEvent.disableClickPropagation(div);
-    var b = document.createElement("button");
-    b.type = "button";
-    b.className = "pastille-filtre-carte";
-    b.textContent = "✕ Retirer les filtres";
-    b.title = "Retirer tous les filtres actifs (combinaison complète)";
-    b.addEventListener("click", function () {
-      form.querySelectorAll("input[type=checkbox]").forEach(
-        function (c) { c.checked = false; });
-      ["q", "dept"].forEach(function (nom) {
-        var champ = form.querySelector('input[name="' + nom + '"]');
-        if (champ) { champ.value = ""; }
-      });
-      window.mpplSoumettre(form, false);
-    });
-    div.appendChild(b);
-    return div;
-  };
-  ctrl.addTo(carte);
-})();
-</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+<script src="{% static 'js/search-map.js' %}" defer></script>
 {% endblock %}

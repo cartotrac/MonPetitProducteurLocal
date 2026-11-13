@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}MonPetitProducteurLocal{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}?v=12">
-  <link rel="stylesheet" href="{% static 'css/append.css' %}?v=19">
+  <link rel="stylesheet" href="{% static 'css/append.css' %}?v=20">
   <script>
   /* Mode sombre appliqué AVANT le premier rendu (dans le <head>) :
      sans cela, les boutons du bandeau s'affichent une fraction de
@@ -101,12 +101,12 @@
           <a href="{% url 'portal:profil_client' %}" class="{% if request.path == '/profil/' %}nav-actif{% endif %}">Mon profil</a>
         {% endif %}
         <form class="inline" method="post" action="{% url 'logout' %}">
-          {% csrf_token %}<button class="btn btn-session btn-session-rouge" type="submit" title="Se déconnecter" aria-label="Se déconnecter"><span class="pastille-session pastille-verte" aria-hidden="true"></span></button>
+          {% csrf_token %}<button class="btn btn-session btn-session-rouge" type="submit" title="Se déconnecter" aria-label="Se déconnecter"><span class="pastille-session pastille-verte" aria-hidden="true"></span><span class="session-libelle">Déconnexion</span></button>
         </form>
       {% else %}
-        <a href="{% url 'portal:register_client' %}" class="nav-compte" title="Créez votre compte Localien, c'est gratuit : commandez vos paniers, gardez vos producteurs favoris et suivez vos commandes — plus de saisie d'identifiants à chaque visite" aria-label="Devenir Localien : créer un compte client gratuit">Devenir Localien</a>
-        <a class="btn btn-outline" href="{% url 'portal:register_producer' %}" title="Créez votre espace producteur : exploitation, boutique, traiteur ou foodtruck — vos récoltes, productions ou créations à la vente en circuit court !" aria-label="Créer mon espace pro">Créer mon espace pro</a>
-        <a class="btn btn-session btn-session-verte" href="{% url 'login' %}" title="Se connecter"><span class="pastille-session pastille-rouge" aria-hidden="true"></span></a>
+        <a href="{% url 'portal:register_client' %}" class="nav-compte" title="Créez votre compte Localien, c'est gratuit : commandez vos paniers, gardez vos producteurs favoris et suivez vos commandes" aria-label="Devenir Localien : créer un compte client gratuit">🧺 Devenir Localien</a>
+        <a class="btn btn-outline nav-btn-pro" href="{% url 'portal:register_producer' %}" title="Créez votre espace producteur : exploitation, boutique, traiteur ou foodtruck" aria-label="Créer mon espace pro">🧑‍🌾 Espace Pro</a>
+        <a class="btn btn-session btn-session-verte" href="{% url 'login' %}" title="Se connecter" aria-label="Se connecter"><span class="pastille-session pastille-rouge" aria-hidden="true"></span><span class="session-libelle">Connexion</span></a>
       {% endif %}
     </div>
   </nav>
@@ -247,49 +247,76 @@
 </main>
 
 <footer class="site-footer">
-  <div class="container">
-    <div class="footer-brand">
-      <p class="footer-baseline">MonPetitProducteurLocal — producteurs locaux,
-         récoltes fraîches, circuits courts.</p>
-      {% if instance_admin_nom %}
-        <p class="footer-admin">
-          <span class="muted">Instance animée par</span>
-          {% if instance_admin_url %}<a href="{{ instance_admin_url }}" target="_blank" rel="noopener" class="footer-admin-lien">{% endif %}
-            <strong>{{ instance_admin_nom }}</strong>
-            {% if instance_admin_logo %}<img class="footer-admin-logo" src="{{ instance_admin_logo }}" alt="Logo {{ instance_admin_nom }}">{% endif %}
-          {% if instance_admin_url %}</a>{% endif %}
-        </p>
-      {% endif %}
-    </div>
-    <nav class="footer-plan" aria-label="Plan du site">
-      <a href="{% url 'portal:home' %}">Accueil</a>
-      <a href="{% url 'portal:producer_search' %}">Chercher un producteur</a>
-      {% if user.is_authenticated %}
-        {% if mode_pro %}
-          <a href="{% url 'portal:dashboard' %}">Dashboard</a>
-          <a href="{% url 'portal:ventes' %}">Ventes</a>
-          <a href="{% url 'portal:points_manage' %}">Points &amp; créneaux</a>
-          <a href="{% url 'portal:clients_suivi' %}">Mes clients</a>
-          <a href="{% url 'portal:harvest_list' %}">{% if exploitant_courant %}{{ exploitant_courant.vocab.recoltes_emoji }} {{ exploitant_courant.vocab.recoltes|capfirst }}{% else %}🧺 Récoltes{% endif %}</a>
-          <a href="{% url 'portal:pub_rubrique' 'newsletter' %}">Newsletter</a>
-          <a href="{% url 'portal:pub_rubrique' 'annonces' %}">Annonces</a>
-          <a href="{% url 'portal:param_rubrique' 'profil' %}">Mon profil</a>
-          {% if user.is_superuser %}<a href="{% url 'portal:param_rubrique' 'gerant' %}">Profil gérant</a>{% endif %}
-          {% if est_proprietaire or user.is_superuser %}<a href="{% url 'portal:param_rubrique' 'espace' %}">{{ exploitant_courant.titre_fiche }}</a>{% endif %}
-          {% if est_proprietaire %}<a href="{% url 'portal:equipe_manage' %}">Mon équipe</a>{% endif %}
-        {% else %}
-          <a href="{% url 'portal:my_orders' %}">Mes commandes</a>
-          <a href="{% url 'portal:mes_producteurs' %}">Mes producteurs</a>
-          <a href="{% url 'portal:profil_client' %}">Mon profil</a>
+  <div class="container footer-container">
+    <div class="footer-grid">
+      <div class="footer-col footer-col-brand">
+        <div class="footer-logo-title">
+          <img class="brand-logo" src="{% static 'img/logo.svg' %}" alt="Logo MonPetitProducteurLocal" width="28" height="28">
+          <strong>MonPetitProducteurLocal</strong>
+        </div>
+        <p class="footer-baseline">Le portail libre des circuits courts : producteurs, artisans, marchés et restauration locale.</p>
+        {% if instance_admin_nom %}
+          <div class="footer-admin-card">
+            <span class="muted">Instance animée localement par :</span>
+            <div class="footer-admin-identity">
+              {% if instance_admin_url %}<a href="{{ instance_admin_url }}" target="_blank" rel="noopener" class="footer-admin-lien">{% endif %}
+                <strong>{{ instance_admin_nom }}</strong>
+                {% if instance_admin_logo %}<img class="footer-admin-logo" src="{{ instance_admin_logo }}" alt="Logo {{ instance_admin_nom }}">{% endif %}
+              {% if instance_admin_url %}</a>{% endif %}
+            </div>
+          </div>
         {% endif %}
-      {% else %}
-        <a href="{% url 'portal:register_client' %}">Devenir Localien</a>
-        <a href="{% url 'portal:register_producer' %}">Créer mon espace pro</a>
-        <a href="{% url 'login' %}">Connexion</a>
-      {% endif %}
-      <a href="{% url 'portal:charte_logo' %}">Charte &amp; logo</a>
-      <a href="{% url 'portal:mentions_legales' %}">Mentions légales</a>
-    </nav>
+      </div>
+
+      <div class="footer-col">
+        <h4>Consommateurs</h4>
+        <nav class="footer-links-list">
+          <a href="{% url 'portal:home' %}">Accueil</a>
+          <a href="{% url 'portal:producer_search' %}">Tous les producteurs</a>
+          <a href="{% url 'portal:producer_search' %}?visu=restauration">Restauration &amp; Foodtrucks</a>
+          <a href="{% url 'portal:producer_search' %}?visu=marches">Marchés &amp; Boutiques</a>
+          {% if user.is_authenticated and not mode_pro %}
+            <a href="{% url 'portal:my_orders' %}">Mes commandes</a>
+            <a href="{% url 'portal:mes_producteurs' %}">Mes producteurs favoris</a>
+            <a href="{% url 'portal:profil_client' %}">Mon profil</a>
+          {% elif not user.is_authenticated %}
+            <a href="{% url 'portal:register_client' %}">Devenir Localien</a>
+          {% endif %}
+        </nav>
+      </div>
+
+      <div class="footer-col">
+        <h4>Professionnels</h4>
+        <nav class="footer-links-list">
+          {% if user.is_authenticated and mode_pro %}
+            <a href="{% url 'portal:dashboard' %}">📊 Tableau de bord</a>
+            <a href="{% url 'portal:ventes' %}">🧾 Ventes</a>
+            <a href="{% url 'portal:points_manage' %}">📍 Points &amp; créneaux</a>
+            <a href="{% url 'portal:clients_suivi' %}">👤 Mes clients</a>
+            <a href="{% url 'portal:harvest_list' %}">{% if exploitant_courant %}{{ exploitant_courant.vocab.recoltes_emoji }} {{ exploitant_courant.vocab.recoltes|capfirst }}{% else %}🧺 Récoltes{% endif %}</a>
+            <a href="{% url 'portal:param_rubrique' 'profil' %}">⚙️ Paramètres</a>
+          {% else %}
+            <a href="{% url 'portal:register_producer' %}">🧑‍🌾 Rejoindre le réseau Pro</a>
+            <a href="{% url 'login' %}">🔐 Connexion à mon espace</a>
+          {% endif %}
+        </nav>
+      </div>
+
+      <div class="footer-col">
+        <h4>Bien Commun &amp; Légal</h4>
+        <nav class="footer-links-list">
+          <a href="{% url 'portal:mentions_legales' %}">Mentions légales &amp; RGPD</a>
+          <a href="{% url 'portal:conditions_utilisation' %}">Conditions d'utilisation (CGU)</a>
+          <a href="{% url 'portal:politique_confidentialite' %}">Confidentialité des données</a>
+          <a href="{% url 'portal:charte_logo' %}">Charte graphique &amp; Logos</a>
+          <a href="https://github.com/cartotrac/MonPetitProducteurLocal" target="_blank" rel="noopener">Code source (AGPL-3.0)</a>
+        </nav>
+      </div>
+    </div>
+
+    <div class="footer-bottom-bar">
+      <p class="muted">🌱 MonPetitProducteurLocal — Logiciel libre, décentralisé, sans commission et respectueux de la vie privée.</p>
+    </div>
   </div>
 </footer>
 {% block extrajs %}{% endblock %}

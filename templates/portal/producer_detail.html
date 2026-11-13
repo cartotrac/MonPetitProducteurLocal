@@ -3,40 +3,61 @@
 {% block title %}{{ exploitant.nom_espace }} — MonPetitProducteurLocal{% endblock %}
 {% block extra_style %}<style>:root { --accent: {{ vitrine.couleur_theme|default:'#2e7d32' }}; }</style>{% endblock %}
 {% block content %}
-<div class="producer-head card">
-  {% if exploitant.logo %}<img class="producer-logo" src="{{ exploitant.logo.url }}" alt="Logo">{% elif vitrine.reseaux.logo_url %}<img class="producer-logo" src="{{ vitrine.reseaux.logo_url }}" alt="Logo">{% else %}<div class="producer-logo placeholder">🌱</div>{% endif %}
-  <div>
-    <h1>{{ exploitant.nom_espace }}</h1>
-    <span class="badge badge-activite">{{ exploitant.emoji_vitrine }} {{ exploitant.get_activite_display }}{% if exploitant.specialite %} — {{ exploitant.get_specialite_display }}{% endif %}</span>
-    {% if exploitant.est_demo %}<span class="badge badge-demo">🧪 Démo</span>{% endif %}
-    {% if exploitant.mode_production == 'AB' %}<span class="badge badge-ab">Certifié AB</span>
-    {% elif exploitant.mode_production == 'PERMA' %}<span class="badge badge-perma">Permaculture</span>
-    {% elif exploitant.mode_production == 'PAYSAN' %}<span class="badge badge-paysan">Agriculture paysanne</span>
-    {% elif exploitant.mode_production == 'RAISONNE' %}<span class="badge badge-raisonne">Raisonnée</span>{% endif %}
-    {% if exploitant.siret_valide %}<span class="badge badge-ok">✔ Compte pro vérifié (SIRET)</span>
-    {% else %}<span class="badge badge-off">Producteur particulier</span>{% endif %}
-    <p class="muted">{{ exploitant.adresse }} — {{ exploitant.code_postal }} {{ exploitant.ville }}</p>
-    <div class="producer-cta">
-      <a class="btn btn-lg" href="{% url 'portal:order_create' exploitant.slug %}">{{ exploitant.libelle_commander }}</a>
-      {% if user.is_authenticated %}
-        {% if est_compte_pro %}
-          <form method="post" class="inline" action="{% url 'portal:favoris_toggle' exploitant.slug %}">
-            {% csrf_token %}
-            <input type="hidden" name="nature" value="FOURNISSEUR">
-            <button class="btn btn-outline" type="submit">{% if nature_favori == 'FOURNISSEUR' %}⭐ Fournisseur{% else %}☆ Favori fournisseur{% endif %}</button>
-          </form>
-          <form method="post" class="inline" action="{% url 'portal:favoris_toggle' exploitant.slug %}">
-            {% csrf_token %}
-            <input type="hidden" name="nature" value="CLIENT_PRO">
-            <button class="btn btn-outline" type="submit">{% if nature_favori == 'CLIENT_PRO' %}⭐ Client pro{% else %}☆ Favori client pro{% endif %}</button>
-          </form>
-        {% else %}
-          <form method="post" class="inline" action="{% url 'portal:favoris_toggle' exploitant.slug %}">
-            {% csrf_token %}
-            <button class="btn btn-outline" type="submit">{% if est_favori %}⭐ Mes favoris{% else %}☆ Ajouter à mes favoris{% endif %}</button>
-          </form>
-        {% endif %}
+<div class="producer-head card producer-hero-card">
+  <div class="producer-hero-main">
+    <div class="producer-avatar-wrap">
+      {% if exploitant.logo %}
+        <img class="producer-logo" src="{{ exploitant.logo.url }}" alt="Logo {{ exploitant.nom_espace }}">
+      {% elif vitrine.reseaux.logo_url %}
+        <img class="producer-logo" src="{{ vitrine.reseaux.logo_url }}" alt="Logo {{ exploitant.nom_espace }}">
+      {% else %}
+        <div class="producer-logo placeholder">{{ exploitant.emoji_vitrine }}</div>
       {% endif %}
+    </div>
+
+    <div class="producer-hero-info">
+      <div class="producer-badges-row">
+        <span class="badge badge-activite">{{ exploitant.emoji_vitrine }} {{ exploitant.get_activite_display }}{% if exploitant.specialite %} — {{ exploitant.get_specialite_display }}{% endif %}</span>
+        {% if exploitant.est_demo %}<span class="badge badge-demo">🧪 Démo</span>{% endif %}
+        {% if exploitant.mode_production == 'AB' %}<span class="badge badge-ab">🌿 Certifié AB</span>
+        {% elif exploitant.mode_production == 'PERMA' %}<span class="badge badge-perma">🌍 Permaculture</span>
+        {% elif exploitant.mode_production == 'PAYSAN' %}<span class="badge badge-paysan">🧑‍🌾 Agriculture paysanne</span>
+        {% elif exploitant.mode_production == 'RAISONNE' %}<span class="badge badge-raisonne">🌻 Raisonnée</span>
+        {% endif %}
+        {% if exploitant.siret_valide %}
+          <span class="badge badge-ok">✔ Compte pro vérifié (SIRET)</span>
+        {% else %}
+          <span class="badge badge-off">Producteur particulier</span>
+        {% endif %}
+      </div>
+
+      <h1 class="producer-title">{{ exploitant.nom_espace }}</h1>
+      <p class="muted producer-address">📍 {{ exploitant.adresse }} — {{ exploitant.code_postal }} {{ exploitant.ville }}</p>
+
+      <div class="producer-cta">
+        <a class="btn btn-lg btn-commander-vitrine" href="{% url 'portal:order_create' exploitant.slug %}">
+          🛒 {{ exploitant.libelle_commander }}
+        </a>
+        {% if user.is_authenticated %}
+          {% if est_compte_pro %}
+            <form method="post" class="inline" action="{% url 'portal:favoris_toggle' exploitant.slug %}">
+              {% csrf_token %}
+              <input type="hidden" name="nature" value="FOURNISSEUR">
+              <button class="btn btn-outline" type="submit">{% if nature_favori == 'FOURNISSEUR' %}⭐ Fournisseur{% else %}☆ Favori fournisseur{% endif %}</button>
+            </form>
+            <form method="post" class="inline" action="{% url 'portal:favoris_toggle' exploitant.slug %}">
+              {% csrf_token %}
+              <input type="hidden" name="nature" value="CLIENT_PRO">
+              <button class="btn btn-outline" type="submit">{% if nature_favori == 'CLIENT_PRO' %}⭐ Client pro{% else %}☆ Favori client pro{% endif %}</button>
+            </form>
+          {% else %}
+            <form method="post" class="inline" action="{% url 'portal:favoris_toggle' exploitant.slug %}">
+              {% csrf_token %}
+              <button class="btn btn-outline btn-favori-btn" type="submit">{% if est_favori %}⭐ Mes favoris{% else %}☆ Ajouter à mes favoris{% endif %}</button>
+            </form>
+          {% endif %}
+        {% endif %}
+      </div>
     </div>
   </div>
 </div>
@@ -47,8 +68,7 @@
   <span class="meteo-emoji">{{ meteo.emoji }}</span>
   <div>
     <strong>{{ meteo.temperature }} °C — {{ meteo.libelle }}</strong>
-    <div class="muted">Max {{ meteo.max }} °C / min {{ meteo.min }} °C ·
-      vent {{ meteo.vent }} km/h · pluie du jour : {{ meteo.pluie }} mm</div>
+    <div class="muted">Max {{ meteo.max }} °C / min {{ meteo.min }} °C · vent {{ meteo.vent }} km/h · pluie du jour : {{ meteo.pluie }} mm</div>
     <div class="muted meteo-lieu">📍 {{ meteo.lieu }} — météo en direct</div>
   </div>
 </div>
@@ -77,7 +97,12 @@
 {% endif %}
 {% endif %}
 
-{% if exploitant.description %}<p class="producer-desc card">{{ exploitant.description }}</p>{% endif %}
+{% if exploitant.description %}
+<div class="producer-desc card">
+  <h3>À propos de nous</h3>
+  <p>{{ exploitant.description }}</p>
+</div>
+{% endif %}
 
 {% if reseaux.site_web or reseaux.facebook or reseaux.instagram %}
 <section class="reseaux-bloc">
@@ -88,9 +113,9 @@
 {% endif %}
 
 {% if equipe %}
-<section>
+<section class="producer-section">
   <h2>👥 {{ exploitant.libelle_equipe }}</h2>
-  <div class="grid">
+  <div class="grid equipe-grid">
     {% for membre in equipe %}
       <div class="card membre-equipe">
         {% if membre.photo_url %}
@@ -108,114 +133,110 @@
 </section>
 {% endif %}
 
-<section>
-<section class="cal-courante">
-  <h2>🧺 {{ exploitant.titre_semaine }}{% if semaine %} ({{ periode_libelle }}){% endif %}</h2>
-  {% if semaine and semaine.note %}<p class="flash info">{{ semaine.note }}</p>{% endif %}
-  {% if lignes %}
-    <p class="muted">Les quantités sont des estimations : elles vous informent des
-       disponibilités attendues. Le producteur ajuste au moment de la préparation.
-       Saisissez directement vos quantités ci-dessous : elles seront reprises
-       sur la page de commande.</p>
-    <form method="get" action="{% url 'portal:order_create' exploitant.slug %}">
-    {% for nom_cat, lignes_cat in groupes_categories %}
-      <h3>{{ nom_cat }} <span class="muted">({{ lignes_cat|length }})</span></h3>
-      <table class="table">
-        <thead><tr><th>Produit</th><th>Disponibilité estimée</th><th>Prix</th><th>Ma quantité</th></tr></thead>
-        <tbody>
-        {% for ligne in lignes_cat %}
-          <tr>
-            <td>{% if ligne.produit.origine_standard and ligne.produit.origine_standard.emoji %}{{ ligne.produit.origine_standard.emoji }} {% endif %}{{ ligne.produit.nom }}</td>
-            <td>~ {{ ligne.quantite_estimee|qte }} {{ ligne.quantite_estimee|unite:ligne.produit }}</td>
-            <td>{{ ligne.prix_unitaire }} €</td>
-            <td>{% with reste=restes|get_item:ligne.produit_id %}{% if reste != '' and reste <= 0 %}<span class="muted">complet</span>{% else %}<input type="number" step="{% if ligne.produit.unite_vente == 'KG' %}0.01{% else %}1{% endif %}" min="0" name="q_{{ ligne.produit.pk }}" placeholder="0" size="5">{% endif %}{% endwith %}</td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    {% endfor %}
-    <button class="btn" type="submit">🛒 Commander ces quantités</button>
-    </form>
-    {% if not user.is_authenticated %}
-      <span class="muted">— sans compte : indiquez simplement un e-mail ou
-        un téléphone, le producteur vous recontactera.</span>
+<section class="producer-section">
+  <div class="cal-courante card">
+    <h2>🧺 {{ exploitant.titre_semaine }}{% if semaine %} ({{ periode_libelle }}){% endif %}</h2>
+    {% if semaine and semaine.note %}<p class="flash info">{{ semaine.note }}</p>{% endif %}
+    {% if lignes %}
+      <p class="muted">
+        Les quantités sont des estimations : elles vous informent des disponibilités attendues.
+        Le producteur ajuste au moment de la préparation. Saisissez vos quantités souhaitées ci-dessous :
+        elles seront reprises sur la page de commande.
+      </p>
+      <form method="get" action="{% url 'portal:order_create' exploitant.slug %}">
+      {% for nom_cat, lignes_cat in groupes_categories %}
+        <h3 class="categorie-titre">{{ nom_cat }} <span class="muted">({{ lignes_cat|length }})</span></h3>
+        <table class="table table-moderne">
+          <thead>
+            <tr>
+              <th>Produit</th>
+              <th>Disponibilité estimée</th>
+              <th>Prix unitaire</th>
+              <th style="text-align: right;">Ma quantité</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for ligne in lignes_cat %}
+            <tr>
+              <td>
+                <span class="produit-nom">
+                  {% if ligne.produit.origine_standard and ligne.produit.origine_standard.emoji %}{{ ligne.produit.origine_standard.emoji }} {% endif %}
+                  {{ ligne.produit.nom }}
+                </span>
+              </td>
+              <td class="muted">~ {{ ligne.quantite_estimee|qte }} {{ ligne.quantite_estimee|unite:ligne.produit }}</td>
+              <td><strong>{{ ligne.prix_unitaire }} €</strong></td>
+              <td style="text-align: right;">
+                {% with reste=restes|get_item:ligne.produit_id %}
+                  {% if reste != '' and reste <= 0 %}
+                    <span class="badge badge-off">Complet</span>
+                  {% else %}
+                    <input class="input-qte" type="number" step="{% if ligne.produit.unite_vente == 'KG' %}0.01{% else %}1{% endif %}" min="0" name="q_{{ ligne.produit.pk }}" placeholder="0">
+                  {% endif %}
+                {% endwith %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      {% endfor %}
+      <div class="commander-bar">
+        <button class="btn btn-lg" type="submit">🛒 Commander ces quantités</button>
+        {% if not user.is_authenticated %}
+          <span class="muted">— commande sans compte possible : indiquez simplement un e-mail ou un téléphone.</span>
+        {% endif %}
+      </div>
+      </form>
+    {% else %}
+      <p class="muted">Pas encore de {{ exploitant.vocab.recolte }} publiée pour la période en cours.</p>
     {% endif %}
-  {% else %}
-    <p class="muted">Pas encore de {{ exploitant.vocab.recolte }} publiée pour la période en cours.</p>
+  </div>
+
+  {% if carte_active and carte_active.lignes.all %}
+  <div class="cal-courante card" style="margin-top: 2rem;">
+    <h2>{% if exploitant.activite == 'FOODTRUCK' %}🚚{% elif exploitant.activite == 'TRAITEUR' %}🍽️{% else %}🛒{% endif %} {{ exploitant.titre_carte_boutique }} — {{ carte_active.nom }}</h2>
+    <p class="muted">Sélection permanente : ces produits et plats sont proposés en continu, en plus de « {{ exploitant.titre_semaine }} ».</p>
+    <table class="table table-moderne">
+      <thead>
+        <tr>
+          <th>Produit / plat</th>
+          <th>Description</th>
+          <th>Prix</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for ligne in carte_active.lignes.all %}
+        {% ifchanged ligne.section %}
+          {% if ligne.section %}
+            <tr class="carte-section"><td colspan="3"><strong>{{ ligne.section }}</strong></td></tr>
+          {% endif %}
+        {% endifchanged %}
+        <tr>
+          <td>
+            <span class="produit-nom">
+              {% if ligne.emoji %}{{ ligne.emoji }} {% endif %}
+              {{ ligne.nom }}
+            </span>
+          </td>
+          <td class="muted">{{ ligne.description }}</td>
+          <td>
+            <strong>
+              {% if ligne.prix_affiche %}
+                {{ ligne.prix_affiche }} €
+                {% if ligne.unite_vente == 'PC' %}<span class="muted">/ pièce</span>
+                {% elif ligne.unite_vente == 'BO' %}<span class="muted">/ botte</span>
+                {% elif ligne.unite_vente == 'BQ' %}<span class="muted">/ barquette</span>
+                {% endif %}
+              {% else %}
+                <span class="muted">à la demande</span>
+              {% endif %}
+            </strong>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
   {% endif %}
 </section>
-
-{% if carte_active and carte_active.lignes.all %}
-<section class="cal-courante">
-  <h2>{% if exploitant.activite == 'FOODTRUCK' %}🚚{% elif exploitant.activite == 'TRAITEUR' %}🍽️{% else %}🛒{% endif %} {{ exploitant.titre_carte_boutique }} — {{ carte_active.nom }}</h2>
-  <p class="muted">Notre sélection habituelle : ces produits et plats sont proposés en permanence, en plus de « {{ exploitant.titre_semaine }} ».</p>
-  <table class="table">
-    <thead><tr><th>Produit / plat</th><th>Description</th><th>Prix</th><th>Restant</th></tr></thead>
-    <tbody>
-    {% for ligne in carte_active.lignes.all %}
-      {% ifchanged ligne.section %}{% if ligne.section %}<tr class="carte-section"><td colspan="4"><strong>{{ ligne.section }}</strong></td></tr>{% endif %}{% endifchanged %}
-      <tr>
-        <td>{% if ligne.emoji %}{{ ligne.emoji }} {% endif %}{{ ligne.nom }}</td>
-        <td class="muted">{{ ligne.description }}</td>
-        <td>{% if ligne.prix_affiche %}{{ ligne.prix_affiche }} €{% if ligne.unite_vente == 'PC' %} <span class="muted">la pièce</span>{% elif ligne.unite_vente == 'BO' %} <span class="muted">la botte</span>{% elif ligne.unite_vente == 'BQ' %} <span class="muted">la barquette</span>{% endif %}{% else %}<span class="muted">à la demande</span>{% endif %}</td>
-        <td>{% if ligne.stock is not None %}{% with reste=restes_carte|get_item:ligne.pk %}{% if reste != '' and reste <= 0 %}<span class="muted">complet</span>{% else %}{{ reste|floatformat:"-2" }}{% endif %}{% endwith %}{% else %}<span class="muted">illimité</span>{% endif %}</td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-  <a class="btn" href="{% url 'portal:order_create' exploitant.slug %}">🛒 Commander</a>
-</section>
-{% endif %}
-
-{% if semaines_avenir %}
-<section>
-  <h2>⏭️ {{ exploitant.titres_avoir }}</h2>
-  <div class="grid">
-    {% for s in semaines_avenir %}
-      <div class="card cal-avenir">
-        <strong>{{ libelles_avenir|get_item:s.pk }}</strong>
-        <p class="muted">{{ s.lignes.count }} produit{{ s.lignes.count|pluralize }} prévus</p>
-        {% if s.note %}<p>« {{ s.note }} »</p>{% endif %}
-        <p class="muted">Disponible à la commande dès cette période.</p>
-      </div>
-    {% endfor %}
-  </div>
-</section>
-{% endif %}
-
-{% if points_livraison %}
-<section>
-  <h2>📍 {{ exploitant.titre_points_vitrine }}</h2>
-  <ul>
-    {% for point in points_livraison %}
-      <li>{{ point.emoji_type }} <strong>{{ point.nom }}</strong> <span class="muted">({{ point.get_type_point_display }})</span> — {{ point.adresse }}, {{ point.code_postal }} {{ point.ville }}
-        {% if point.note %}<br><span class="muted">{{ point.note }}</span>{% endif %}
-        {% comment %}Itinéraire Google Maps (survol « Itinéraire
-           google maps ») pour les MARCHÉS, EMPLACEMENTS et BOUTIQUES
-           publics : la position exacte des points de livraison
-           n'est transmise qu'aux clients des paniers livrés.{% endcomment %}
-        {% if point.type_point == 'MARCHE' or point.type_point == 'EMPLACEMENT' or point.type_point == 'BOUTIQUE' %}{% if point.latitude and point.longitude %}<br>
-          {% with lat=point.latitude|unlocalize lon=point.longitude|unlocalize %}
-            <a class="btn btn-sm btn-outline" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination={{ lat }},{{ lon }}" title="Itinéraire google maps">→ Itinéraire</a>
-          {% endwith %}
-        {% endif %}{% endif %}</li>
-    {% endfor %}
-  </ul>
-</section>
-{% endif %}
-
-{% if creneaux %}
-<section>
-  <h2>🗓️ {{ exploitant.vocab.creneaux|capfirst }}</h2>
-  <ul>
-    {% for creneau in creneaux %}
-      <li>{{ creneau.get_jour_display }} {{ creneau.heure_debut|time:"H:i" }}–{{ creneau.heure_fin|time:"H:i" }}
-          — {{ creneau.get_frequence_display }}
-          {% if creneau.point_livraison %}({% if creneau.point_livraison.type_point == 'MARCHE' or creneau.point_livraison.type_point == 'EMPLACEMENT' or creneau.point_livraison.type_point == 'BOUTIQUE' %}{% if creneau.point_livraison.latitude and creneau.point_livraison.longitude %}<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination={{ creneau.point_livraison.latitude|unlocalize }},{{ creneau.point_livraison.longitude|unlocalize }}" title="Itinéraire google maps">{{ creneau.point_livraison.emoji_type }} {{ creneau.point_livraison.nom }}</a>{% else %}{{ creneau.point_livraison.emoji_type }} {{ creneau.point_livraison.nom }}{% endif %}{% else %}{{ creneau.point_livraison.emoji_type }} {{ creneau.point_livraison.nom }}{% endif %}){% endif %}</li>
-    {% endfor %}
-  </ul>
-</section>
-{% endif %}
-{% block extrajs %}<script src="{% static 'js/qte-steppers.js' %}" defer></script>{% endblock %}
 {% endblock %}
-

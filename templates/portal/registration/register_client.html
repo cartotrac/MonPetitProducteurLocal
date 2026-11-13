@@ -1,88 +1,132 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Inscription client — MonPetitProducteurLocal{% endblock %}
+{% block title %}Devenir Localien — MonPetitProducteurLocal{% endblock %}
 {% block content %}
-<h1>👤 Créer mon compte client</h1>
-<p class="muted">Quelques secondes suffisent : votre e-mail servira
-   d'identifiant, pas de nom d'utilisateur à inventer. Prénom, nom,
-   téléphone et photo (lien externe) sont optionnels mais bien
-   utiles aux producteurs pour vous identifier et vous contacter.</p>
-{% if google_connexion %}
-<div class="google-bloc">
-  <a class="btn btn-lg btn-google" href="{% url 'portal:google_entree_client' %}"><svg class="g-logo" width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C1.08 15.71 0 19.74 0 24s1.08 8.29 2.56 11.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continuer avec Google</a>
-  <p class="muted">Devenir Localien en 1 clic : votre e-mail et votre
-     photo de profil Google seront repris.</p>
-  <div class="ou-separateur"><span>ou créez votre compte avec un e-mail</span></div>
+<div class="auth-container">
+  <div class="auth-card auth-card-wide">
+    <div class="auth-header">
+      <span class="auth-icon">🧺</span>
+      <h1>Devenir Localien</h1>
+      <p class="muted">
+        Créez votre compte en quelques secondes : commandez directement vos paniers,
+        gardez vos producteurs favoris et suivez vos retraits — sans ressaisie à chaque visite.
+      </p>
+    </div>
+
+    {% if google_connexion %}
+    <div class="google-bloc">
+      <a class="btn btn-lg btn-google" href="{% url 'portal:google_entree_client' %}">
+        <svg class="g-logo" width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C1.08 15.71 0 19.74 0 24s1.08 8.29 2.56 11.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        <span>Devenir Localien en 1 clic avec Google</span>
+      </a>
+      <p class="muted auth-google-sub">Votre e-mail et votre photo de profil Google seront automatiquement repris.</p>
+      <div class="ou-separateur"><span>ou avec votre adresse e-mail</span></div>
+    </div>
+    {% endif %}
+
+    <form method="post" class="form auth-form">
+      {% csrf_token %}
+      {{ form.pieux }}
+      {% if form.non_field_errors %}
+        <div class="flash warning">⚠️ Merci de corriger les champs indiqués ci-dessous.</div>
+      {% endif %}
+
+      <div class="auth-section-box">
+        <h2 class="auth-section-title">👤 Mes informations personnelles</h2>
+        <p class="muted auth-section-desc">Votre e-mail servira d'identifiant de connexion. Vos coordonnées aident les producteurs à préparer vos commandes.</p>
+
+        <div class="profil-mise-en-page">
+          <div class="profil-champs">
+            <div class="form-duo">
+              <div class="form-champ">
+                {{ form.first_name.label_tag }}
+                {{ form.first_name }}
+                {{ form.first_name.errors }}
+              </div>
+              <div class="form-champ">
+                {{ form.last_name.label_tag }}
+                {{ form.last_name }}
+                {{ form.last_name.errors }}
+              </div>
+            </div>
+
+            <div class="form-duo">
+              <div class="form-champ">
+                {{ form.email.label_tag }}
+                {{ form.email }}
+                {{ form.email.errors }}
+                {% if form.email.help_text %}<span class="helptext">{{ form.email.help_text }}</span>{% endif %}
+              </div>
+              <div class="form-champ">
+                {{ form.telephone.label_tag }}
+                {{ form.telephone }}
+                {{ form.telephone.errors }}
+                {% if form.telephone.help_text %}<span class="helptext">{{ form.telephone.help_text }}</span>{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="profil-photo">
+            <div class="image-picker" data-photo-apercu="id_photo_externe">
+              <div class="image-picker-cadre">
+                <img class="image-picker-img" alt="👤 Photo de profil">
+                <div class="image-picker-placeholder">👤 Photo (optionnelle)</div>
+                <div class="image-picker-erreur">❌ Image introuvable : lien direct requis (.jpg, .png, .webp…).</div>
+              </div>
+            </div>
+            <div class="profil-photo-url" data-picker-custom>
+              {{ form.photo_externe.label_tag }}
+              {{ form.photo_externe }}
+              {{ form.photo_externe.errors }}
+              <span class="helptext">Lien direct (.jpg/.png/.webp) ou lien de partage Drive — rien n'est stocké sur le serveur.</span>
+              <div class="photo-outils">
+                <a class="btn btn-outline btn-mini" href="https://drive.google.com/drive/my-drive" target="_blank" rel="noopener">☁️ Ouvrir Drive</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-duo auth-pwd-row">
+          <div class="form-champ">
+            {{ form.password1.label_tag }}
+            {{ form.password1 }}
+            {{ form.password1.errors }}
+            {% if form.password1.help_text %}<span class="helptext">{{ form.password1.help_text }}</span>{% endif %}
+          </div>
+          <div class="form-champ">
+            {{ form.password2.label_tag }}
+            {{ form.password2 }}
+            {{ form.password2.errors }}
+            {% if form.password2.help_text %}<span class="helptext">{{ form.password2.help_text }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-champ champ-conditions auth-conditions-box">
+        {{ form.accepte_conditions }}
+        <label for="{{ form.accepte_conditions.id_for_label }}">
+          J'accepte les <a href="{% url 'portal:conditions_utilisation' %}" target="_blank">conditions d'utilisation</a>
+          et la <a href="{% url 'portal:politique_confidentialite' %}" target="_blank">politique de confidentialité</a>.
+        </label>
+        {{ form.accepte_conditions.errors }}
+      </div>
+
+      <div class="auth-action">
+        <button class="btn btn-lg btn-auth-submit" type="submit">✨ Créer mon compte Localien</button>
+      </div>
+
+      <div class="auth-footer-links">
+        <span>Vous avez déjà un compte ?</span>
+        <a class="btn btn-outline btn-sm" href="{% url 'login' %}">Se connecter</a>
+      </div>
+    </form>
+  </div>
 </div>
-{% endif %}
-<form method="post" class="form">
-  {% csrf_token %}
-  {{ form.pieux }}
-  {% if form.non_field_errors %}
-    <div class="flash warning">⚠️ Merci de corriger les champs indiqués ci-dessous.</div>
-  {% endif %}
-  <section class="form-bloc">
-    <h2>👤 Mon profil</h2>
-    <div class="profil-mise-en-page">
-      <div class="profil-champs">
-        <div class="form-duo">
-          <div class="form-champ">{{ form.first_name.label_tag }} {{ form.first_name }}
-            {{ form.first_name.errors }}</div>
-          <div class="form-champ">{{ form.last_name.label_tag }} {{ form.last_name }}
-            {{ form.last_name.errors }}</div>
-        </div>
-        <div class="form-duo">
-          <div class="form-champ">{{ form.email.label_tag }} {{ form.email }}
-            {{ form.email.errors }}
-            <span class="helptext">{{ form.email.help_text }}</span></div>
-          <div class="form-champ">{{ form.telephone.label_tag }} {{ form.telephone }}
-            {{ form.telephone.errors }}
-            <span class="helptext">{{ form.telephone.help_text }}</span></div>
-        </div>
-      </div>
-      <div class="profil-photo">
-        <div class="image-picker" data-photo-apercu="id_photo_externe">
-          <div class="image-picker-cadre">
-            <img class="image-picker-img" alt="👤 Photo de profil">
-            <div class="image-picker-placeholder">👤 Aucune photo</div>
-            <div class="image-picker-erreur">❌ Image introuvable : lien direct requis (.jpg, .png, .webp…).</div>
-          </div>
-        </div>
-        <div class="profil-photo-url" data-picker-custom>
-          {{ form.photo_externe.label_tag }} {{ form.photo_externe }}
-          {{ form.photo_externe.errors }}
-          <span class="helptext">Lien direct (.jpg/.png/.webp) ou lien de
-            partage Drive — converti automatiquement. Rien n'est hébergé
-            sur le portail.</span>
-          <div class="photo-outils">
-            <a class="btn btn-outline btn-mini" href="https://drive.google.com/drive/my-drive" target="_blank" rel="noopener">☁️ Drive</a>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="form-duo">
-      <div class="form-champ">{{ form.password1.label_tag }} {{ form.password1 }}
-        {{ form.password1.errors }}
-        <span class="helptext">{{ form.password1.help_text }}</span></div>
-      <div class="form-champ">{{ form.password2.label_tag }} {{ form.password2 }}
-        {{ form.password2.errors }}
-        <span class="helptext">{{ form.password2.help_text }}</span></div>
-    </div>
-  </section>
-  <div class="form-champ champ-conditions">
-    {{ form.accepte_conditions }}
-    <label for="{{ form.accepte_conditions.id_for_label }}">J'accepte les
-      <a href="{% url 'portal:conditions_utilisation' %}">conditions d'utilisation</a> et la
-      <a href="{% url 'portal:politique_confidentialite' %}">politique de confidentialité</a>.</label>
-    {{ form.accepte_conditions.errors }}
-  </div>
-  <div class="save-bar">
-    <button class="btn btn-lg" type="submit">Créer mon compte</button>
-  </div>
-  <p class="muted">Déjà inscrit ?
-    <a href="{% url 'login' %}">Se connecter</a>
-  </p>
-</form>
 {% endblock %}
 {% block extrajs %}
 <script src="{% static 'js/image-picker.js' %}" defer></script>
