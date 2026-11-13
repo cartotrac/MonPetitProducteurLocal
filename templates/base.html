@@ -421,6 +421,22 @@
      mobile, chaque groupe se replie et s'ouvre d'un tap sur son
      titre — le menu burger reste compact au lieu de tout afficher
      à plat. Le groupe de la page courante reste ouvert (nav-actif). */
+  /* Sous-menus : si le menu déroulé dépasse le bord droit de la
+     page, il s'ouvre aligné à droite (classe .menu-bord-droit). */
+  function clampMenus() {
+    document.querySelectorAll(".nav-gestion-menu").forEach(function (m) {
+      m.classList.remove("menu-bord-droit");
+      var r = m.getBoundingClientRect();
+      if (r.right > window.innerWidth - 8 && r.width > 0) {
+        m.classList.add("menu-bord-droit");
+      }
+    });
+  }
+  document.querySelectorAll(".nav-gestion").forEach(function (g) {
+    g.addEventListener("mouseenter", clampMenus);
+    g.addEventListener("focusin", clampMenus);
+  });
+  window.addEventListener("resize", clampMenus);
   document.querySelectorAll(".nav-gestion-titre").forEach(function (titre) {
     titre.addEventListener("click", function (evt) {
       if (!window.matchMedia("(max-width: 820px)").matches) { return; }

@@ -46,20 +46,22 @@
      boutiques éphémères + carte + commandes directes ; les métiers de
      récoltes (maraîcher, arboriculteur) pilotent leurs publications.
      Les 4 boutons de gestion sont communs.{% endcomment %}
-  {% if exploitant.a_carte_boutique %}
-    <a class="btn btn-outline" href="{% url 'portal:harvest_list' %}">🛍️ Boutiques éphémères</a>
-    <a class="btn btn-outline" href="{% url 'portal:cartes_manage' %}">🧾 {{ exploitant.titre_carte_boutique }}</a>
-    <a class="btn" href="{% url 'portal:order_direct' %}">📝 Saisir une commande</a>
-  {% else %}
-    <a class="btn" href="{% url 'portal:harvest_new' %}">{{ exploitant.vocab.nouvelle_recolte }}</a>
-    <a class="btn btn-outline" href="{% url 'portal:harvest_list' %}">{{ exploitant.vocab.recoltes_emoji }} {{ exploitant.vocab.recoltes_titre }}</a>
-  {% endif %}
   {% if est_proprietaire or user.is_superuser %}
     <a class="btn btn-outline" href="{% url 'portal:product_list' %}">📚 Catalogue</a>
   {% endif %}
   <a class="btn btn-outline" href="{% url 'portal:clients_suivi' %}">👤 Mes clients</a>
   <a class="btn btn-outline" href="{% url 'portal:points_manage' %}">📍 Points & créneaux</a>
   <a class="btn btn-outline" href="{% url 'portal:mes_producteurs' %}">⭐ Mes favoris</a>
+</div>
+<div class="quick-actions quick-actions-ligne2">
+  {% if exploitant.a_carte_boutique %}
+    <a class="btn" href="{% url 'portal:order_direct' %}">📝 Saisir une commande</a>
+    <a class="btn btn-outline" href="{% url 'portal:harvest_list' %}">🛍️ Boutiques éphémères</a>
+    <a class="btn btn-outline" href="{% url 'portal:cartes_manage' %}">🧾 {{ exploitant.titre_carte_boutique }}</a>
+  {% else %}
+    <a class="btn" href="{% url 'portal:harvest_new' %}">{{ exploitant.vocab.nouvelle_recolte }}</a>
+    <a class="btn btn-outline" href="{% url 'portal:harvest_list' %}">{{ exploitant.vocab.recoltes_emoji }} {{ exploitant.vocab.recoltes_titre }}</a>
+  {% endif %}
 </div>
 
 <details id="commandes" class="bloc-replie" open>
@@ -116,9 +118,9 @@
   {% endif %}
   <div class="timeline-nav">
     <a class="btn btn-outline btn-sm" title="Périodes précédentes"
-       href="{% url 'portal:dashboard' %}?cal={{ cal_prec|date:'Y-m-d' }}{% if publication_choisie %}&publication={{ publication_choisie.pk }}{% endif %}">←</a>
+       href="{% url 'portal:dashboard' %}?cal={{ cal_prec|date:'Y-m-d' }}{% if publication_choisie %}&publication={{ publication_choisie.pk }}{% endif %}#recoltes">←</a>
     <a class="btn btn-outline btn-sm" title="Périodes suivantes"
-       href="{% url 'portal:dashboard' %}?cal={{ cal_suiv|date:'Y-m-d' }}{% if publication_choisie %}&publication={{ publication_choisie.pk }}{% endif %}">→</a>
+       href="{% url 'portal:dashboard' %}?cal={{ cal_suiv|date:'Y-m-d' }}{% if publication_choisie %}&publication={{ publication_choisie.pk }}{% endif %}#recoltes">→</a>
   </div>
   <div class="timeline-pubs">
     {% for s in calendrier %}
@@ -204,6 +206,15 @@
   var cible = document.querySelector(
     "details" + location.hash.replace(/[^\w-]/g, ""));
   if (cible) { cible.open = true; cible.scrollIntoView(); }
+  /* Aperçu vitrine : rechargement après bascule sombre/clair —
+     l'iframe applique le thème à son propre chargement. */
+  var btnTheme = document.getElementById("btn-darkmode");
+  var apercu = document.querySelector(".apercu-vitrine");
+  if (btnTheme && apercu) {
+    btnTheme.addEventListener("click", function () {
+      setTimeout(function () { apercu.src = apercu.src; }, 150);
+    });
+  }
 })();
 </script>
 {% endblock %}

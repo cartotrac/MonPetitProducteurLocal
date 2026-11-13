@@ -2304,3 +2304,25 @@ html.dark .ctrl-filtres-actifs button.pastille-filtre-carte {
 html.dark .ctrl-filtres-actifs button.pastille-filtre-carte:hover {
   background: #4a2a2a; border-color: #8c5a5a; color: #f0c8c8;
 }
+
+
+/* ===== Dashboard : lisibilité des vignettes de publication en mode
+       sombre (texte, badges et flèches de défilement) ===== */
+html.dark .timeline-periode,
+html.dark .timeline-periode .cal-dates,
+html.dark .timeline-periode .cal-periode { color: #e6e4da; }
+html.dark .timeline-periode .muted { color: #aab599 !important; }
+html.dark .timeline-periode .badge-ok { background: #2e5b31; color: #d6f5d6; }
+html.dark .timeline-periode .badge-off { background: #4a4232; color: #e8d9a0; }
+html.dark .timeline-periode .cal-etat.muted { color: #aab599 !important; }
+html.dark .timeline-nav .btn { background: #232620; border-color: #4a4f44;
+                                color: #e6e4da; }
+html.dark .timeline-nav .btn:hover { border-color: #8fd694; }
+
+/* ===== Sous-menus du bandeau : ne jamais sortir de la page — un
+       menu près du bord droit s'ouvre aligné à droite (classe posée
+       par le script de base.html). ===== */
+.nav-gestion-menu.menu-bord-droit { left: auto; right: 0; }
+
+/* ===== Quick-actions : ligne 1 = gestion commune, ligne 2 = métier ===== */
+.quick-actions-ligne2 { margin-top: 0.45rem; }
