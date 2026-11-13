@@ -119,13 +119,21 @@
         {% endif %}
 
         <details class="point-edition">
-          <summary>✏️ Modifier le point (nom / adresse)</summary>
+          <summary>✏️ Modifier le point (nom / type / adresse)</summary>
           <form method="post" class="form">
             {% csrf_token %}
             <input type="hidden" name="action" value="point_modifier">
             <input type="hidden" name="pk" value="{{ point.pk }}">
             <div class="form-row">
+              <label>Type
+                <select name="type_point">
+                  {% for valeur, libelle in types_points %}
+                    <option value="{{ valeur }}"{% if point.type_point == valeur %} selected{% endif %}>{{ libelle }}</option>
+                  {% endfor %}
+                </select></label>
               <label>Nom <input type="text" name="nom" value="{{ point.nom }}" required></label>
+            </div>
+            <div class="form-row">
               <label>Adresse <input type="text" name="adresse" value="{{ point.adresse }}"></label>
             </div>
             <div class="form-row">

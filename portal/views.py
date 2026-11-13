@@ -3501,6 +3501,16 @@ def points_manage(request):
             if not nom:
                 messages.error(request, "Le nom du point est requis.")
             else:
+                # Type modifiable après création (règle métier :
+                # « emplacement / arrêt foodtruck » réservé aux
+                # exploitants foodtruck — déjà filtré dans
+                # types_points, donc rejeté ici silencieusement).
+                type_point = request.POST.get("type_point", "")
+                type_change = ""
+                if (type_point and type_point != point.type_point
+                        and type_point in [v for v, _ in types_points]):
+                    point.type_point = type_point
+                    type_change = " Type mis à jour."
                 point.nom = nom[:150]
                 for champ, limite in (("adresse", 255),
                                       ("ville", 100),
@@ -3517,7 +3527,8 @@ def points_manage(request):
                 messages.success(request,
                                  f"Point « {point.nom} » mis à jour "
                                  "(les paniers déjà livrés conservent "
-                                 "les infos transmises aux clients).")
+                                 "les infos transmises aux clients)."
+                                 + type_change)
         elif action == "point_supprimer":
             point = get_object_or_404(PointLivraison,
                                      pk=request.POST.get("pk"),
