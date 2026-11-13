@@ -1,158 +1,233 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Inscription producteur — MonPetitProducteurLocal{% endblock %}
+{% block title %}Créer mon espace pro — MonPetitProducteurLocal{% endblock %}
 {% block extra_style %}<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">{% endblock %}
 {% block content %}
-<h1>🚜 Créer mon espace pro</h1>
-<p class="muted">Deux blocs : <strong>👤 Mon profil</strong> (votre compte
-   individuel) et <strong>Mon espace pro</strong> (votre exploitation — le titre
-   suit l'activité choisie). Tout le reste (SIRET, mode de production,
-   logo, description, points de livraison…) se complète ensuite depuis
-   la page ⚙️ Paramètres.</p>
-<form method="post" class="form">
-  {% csrf_token %}
-  {{ form.pieux }}
-  {% if form.non_field_errors %}
-    <div class="flash warning">⚠️ Merci de corriger les champs indiqués ci-dessous.</div>
-  {% endif %}
-  {% if google_connexion and not user.is_authenticated %}
+<div class="auth-container">
+  <div class="auth-card auth-card-wide">
+    <div class="auth-header">
+      <span class="auth-icon">🧑‍🌾</span>
+      <h1>Créer mon espace pro</h1>
+      <p class="muted">
+        Rejoignez le réseau en quelques minutes : votre vitrine publique, vos récoltes de la semaine,
+        vos points de livraison et la commande directe — <strong>sans commission et sans intermédiaire</strong>.
+      </p>
+    </div>
+
+    {% if google_connexion and not user.is_authenticated %}
     <div class="google-bloc">
-      <a class="btn btn-lg btn-google" href="{% url 'portal:google_entree_pro' %}"><svg class="g-logo" width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C1.08 15.71 0 19.74 0 24s1.08 8.29 2.56 11.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continuer avec Google</a>
-      <p class="muted">Votre e-mail, prénom, nom et photo Google seront
-         repris : il ne restera que le nom de votre espace à renseigner.</p>
-      <div class="ou-separateur"><span>ou créez tout avec un e-mail</span></div>
+      <a class="btn btn-lg btn-google" href="{% url 'portal:google_entree_pro' %}">
+        <svg class="g-logo" width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C1.08 15.71 0 19.74 0 24s1.08 8.29 2.56 11.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        <span>Créer mon compte Pro en 1 clic avec Google</span>
+      </a>
+      <p class="muted auth-google-sub">Votre e-mail, prénom, nom et photo seront repris : vous n'aurez qu'à renseigner votre activité et votre exploitation.</p>
+      <div class="ou-separateur"><span>ou créez votre compte avec un e-mail</span></div>
     </div>
-  {% endif %}
-  {% if user.is_authenticated %}
-    <p class="muted">✅ Connecté en tant que <strong>{{ user.get_full_name|default:user.email }}</strong>
-       ({{ user.email }}) : votre compte existe déjà — il ne reste que
-       votre exploitation à créer ci-dessous.</p>
-  {% else %}
-  <section class="form-bloc">
-    <h2>👤 Mon profil</h2>
-    <p class="muted">Votre identité de compte individuel : prénom, nom,
-       e-mail (identifiant de connexion), téléphone et photo (lien
-       externe). Ces informations servent aux clients et aux autres
-       producteurs pour vous identifier et vous contacter.</p>
-    <div class="profil-mise-en-page">
-      <div class="profil-champs">
-        <div class="form-duo">
-          <div class="form-champ">{{ form.first_name.label_tag }} {{ form.first_name }}
-            {{ form.first_name.errors }}</div>
-          <div class="form-champ">{{ form.last_name.label_tag }} {{ form.last_name }}
-            {{ form.last_name.errors }}</div>
-        </div>
-        <div class="form-duo">
-          <div class="form-champ">{{ form.email.label_tag }} {{ form.email }}
-            {{ form.email.errors }}
-            <span class="helptext">{{ form.email.help_text }}</span></div>
-          <div class="form-champ">{{ form.telephone.label_tag }} {{ form.telephone }}
-            {{ form.telephone.errors }}</div>
-        </div>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+      <div class="auth-tip">
+        ✅ Connecté en tant que <strong>{{ user.get_full_name|default:user.email }}</strong> ({{ user.email }}) :
+        votre compte individuel existe déjà — renseignez simplement votre espace professionnel ci-dessous.
       </div>
-      <div class="profil-photo">
-        <div class="image-picker" data-photo-apercu="id_photo_externe">
-          <div class="image-picker-cadre">
-            <img class="image-picker-img" alt="👤 Photo de profil">
-            <div class="image-picker-placeholder">👤 Aucune photo</div>
-            <div class="image-picker-erreur">❌ Image introuvable : lien direct requis (.jpg, .png, .webp…).</div>
+    {% endif %}
+
+    <form method="post" class="form auth-form">
+      {% csrf_token %}
+      {{ form.pieux }}
+      {% if form.non_field_errors %}
+        <div class="flash warning">⚠️ Merci de corriger les champs indiqués ci-dessous.</div>
+      {% endif %}
+
+      {% if not user.is_authenticated %}
+      {# Bloc 1 : Profil individuel #}
+      <div class="auth-section-box">
+        <h2 class="auth-section-title">👤 1. Mon profil individuel (gérant)</h2>
+        <p class="muted auth-section-desc">
+          Votre identité pour administrer votre vitrine. Votre e-mail servira d'identifiant de connexion sécurisé.
+        </p>
+
+        <div class="profil-mise-en-page">
+          <div class="profil-champs">
+            <div class="form-duo">
+              <div class="form-champ">
+                {{ form.first_name.label_tag }}
+                {{ form.first_name }}
+                {{ form.first_name.errors }}
+              </div>
+              <div class="form-champ">
+                {{ form.last_name.label_tag }}
+                {{ form.last_name }}
+                {{ form.last_name.errors }}
+              </div>
+            </div>
+
+            <div class="form-duo">
+              <div class="form-champ">
+                {{ form.email.label_tag }}
+                {{ form.email }}
+                {{ form.email.errors }}
+                {% if form.email.help_text %}<span class="helptext">{{ form.email.help_text }}</span>{% endif %}
+              </div>
+              <div class="form-champ">
+                {{ form.telephone.label_tag }}
+                {{ form.telephone }}
+                {{ form.telephone.errors }}
+              </div>
+            </div>
+          </div>
+
+          <div class="profil-photo">
+            <div class="image-picker" data-photo-apercu="id_photo_externe">
+              <div class="image-picker-cadre">
+                <img class="image-picker-img" alt="👤 Photo de profil">
+                <div class="image-picker-placeholder">👤 Photo (optionnelle)</div>
+                <div class="image-picker-erreur">❌ Image introuvable : lien direct requis (.jpg, .png, .webp…).</div>
+              </div>
+            </div>
+            <div class="profil-photo-url" data-picker-custom>
+              {{ form.photo_externe.label_tag }}
+              {{ form.photo_externe }}
+              {{ form.photo_externe.errors }}
+              <span class="helptext">Lien direct (.jpg/.png/.webp) ou lien de partage Drive — rien n'est stocké sur le portail.</span>
+              <div class="photo-outils">
+                <a class="btn btn-outline btn-mini" href="https://drive.google.com/drive/my-drive" target="_blank" rel="noopener">☁️ Ouvrir Drive</a>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="profil-photo-url" data-picker-custom>
-          {{ form.photo_externe.label_tag }} {{ form.photo_externe }}
-          {{ form.photo_externe.errors }}
-          <span class="helptext">Lien direct (.jpg/.png/.webp) ou lien de
-            partage Drive — converti automatiquement. Rien n'est hébergé
-            sur le portail.</span>
-          <div class="photo-outils">
-            <a class="btn btn-outline btn-mini" href="https://drive.google.com/drive/my-drive" target="_blank" rel="noopener">☁️ Drive</a>
+
+        <div class="form-duo auth-pwd-row">
+          <div class="form-champ">
+            {{ form.password1.label_tag }}
+            {{ form.password1 }}
+            {{ form.password1.errors }}
+            {% if form.password1.help_text %}<span class="helptext">{{ form.password1.help_text }}</span>{% endif %}
+          </div>
+          <div class="form-champ">
+            {{ form.password2.label_tag }}
+            {{ form.password2 }}
+            {{ form.password2.errors }}
+            {% if form.password2.help_text %}<span class="helptext">{{ form.password2.help_text }}</span>{% endif %}
           </div>
         </div>
       </div>
-    </div>
-    <div class="form-duo">
-      <div class="form-champ">{{ form.password1.label_tag }} {{ form.password1 }}
-        {{ form.password1.errors }}
-        <span class="helptext">{{ form.password1.help_text }}</span></div>
-      <div class="form-champ">{{ form.password2.label_tag }} {{ form.password2 }}
-        {{ form.password2.errors }}
-        <span class="helptext">{{ form.password2.help_text }}</span></div>
-    </div>
-  </section>
-  {% endif %}
+      {% endif %}
 
-  <section class="form-bloc">
-    <h2 id="titre-ferme">🚜 Ma ferme</h2>
-    <div class="form-duo form-duo-ferme">
-      <div class="form-champ">{{ form.nom_espace.label_tag }} {{ form.nom_espace }}
-        {{ form.nom_espace.errors }}
-        <span class="helptext">{{ form.nom_espace.help_text }}</span></div>
-      <div class="form-champ form-champ-demo">
-        <label class="case-demo" for="id_est_demo">{{ form.est_demo }} {{ form.est_demo.label }}</label>
-        <span class="helptext">{{ form.est_demo.help_text }}</span>
-        {{ form.est_demo.errors }}
+      {# Bloc 2 : Espace Pro #}
+      <div class="auth-section-box">
+        <h2 class="auth-section-title" id="titre-ferme">🚜 2. Mon activité &amp; mon exploitation</h2>
+        <p class="muted auth-section-desc">
+          Les informations principales de votre espace. Vous pourrez compléter le reste (SIRET, modes de production, logo, créneaux) plus tard dans les paramètres.
+        </p>
+
+        <div class="form-duo form-duo-ferme">
+          <div class="form-champ">
+            {{ form.nom_espace.label_tag }}
+            {{ form.nom_espace }}
+            {{ form.nom_espace.errors }}
+            {% if form.nom_espace.help_text %}<span class="helptext">{{ form.nom_espace.help_text }}</span>{% endif %}
+          </div>
+          <div class="form-champ form-champ-demo">
+            <label class="case-demo" for="id_est_demo">{{ form.est_demo }} {{ form.est_demo.label }}</label>
+            <span class="helptext">{{ form.est_demo.help_text }}</span>
+            {{ form.est_demo.errors }}
+          </div>
+        </div>
+
+        <div class="form-duo">
+          <div class="form-champ">
+            {{ form.activite.label_tag }}
+            {{ form.activite }}
+            {{ form.activite.errors }}
+            {% if form.activite.help_text %}<span class="helptext">{{ form.activite.help_text }}</span>{% endif %}
+          </div>
+          <div class="form-champ" id="ligne-specialite">
+            {{ form.specialite.label_tag }}
+            {{ form.specialite }}
+            {{ form.specialite.errors }}
+            {% if form.specialite.help_text %}<span class="helptext">{{ form.specialite.help_text }}</span>{% endif %}
+          </div>
+        </div>
+
+        <div class="carte-inscription-wrap">
+          <label><strong>📍 Localisation géographique de votre exploitation ou point de vente :</strong></label>
+          <div id="carte-inscription" data-pick-map data-lat-input="id_latitude"
+               data-lon-input="id_longitude" data-adresse-input="id_adresse"
+               data-ville-input="id_ville" data-cp-input="id_code_postal"
+               data-dept-input="id_departement"
+               style="height: 320px; border-radius: 12px; margin: 0.6rem 0 0.5rem; border: 1px solid #c5d3b4;"></div>
+          <p class="muted carte-inscription-aide">
+            👆 <strong>Trois façons de positionner :</strong> Clic direct sur la carte, 🎯 bouton géolocalisation navigateur, ou 🔎 recherche par adresse/commune. L'adresse se remplit automatiquement.
+          </p>
+        </div>
+
+        <div class="form-champ">
+          {{ form.adresse.label_tag }}
+          {{ form.adresse }}
+          {{ form.adresse.errors }}
+        </div>
+
+        <div class="form-duo">
+          <div class="form-champ">
+            {{ form.ville.label_tag }}
+            {{ form.ville }}
+            {{ form.ville.errors }}
+          </div>
+          <div class="form-champ">
+            {{ form.code_postal.label_tag }}
+            {{ form.code_postal }}
+            {{ form.code_postal.errors }}
+            {% if form.code_postal.help_text %}<span class="helptext">{{ form.code_postal.help_text }}</span>{% endif %}
+          </div>
+        </div>
+
+        <div class="form-trio">
+          <div class="form-champ">
+            {{ form.departement.label_tag }}
+            {{ form.departement }}
+            {{ form.departement.errors }}
+          </div>
+          <div class="form-champ">
+            {{ form.latitude.label_tag }}
+            {{ form.latitude }}
+            {{ form.latitude.errors }}
+            <span class="helptext">Latitude calculée</span>
+          </div>
+          <div class="form-champ">
+            {{ form.longitude.label_tag }}
+            {{ form.longitude }}
+            {{ form.longitude.errors }}
+            <span class="helptext">Longitude calculée</span>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="form-duo">
-      <div class="form-champ">{{ form.activite.label_tag }} {{ form.activite }}
-        {{ form.activite.errors }}
-        <span class="helptext">{{ form.activite.help_text }}</span></div>
-      <div class="form-champ" id="ligne-specialite">{{ form.specialite.label_tag }} {{ form.specialite }}
-        {{ form.specialite.errors }}
-        <span class="helptext">{{ form.specialite.help_text }}</span></div>
-    </div>
 
-    <div id="carte-inscription" data-pick-map data-lat-input="id_latitude"
-         data-lon-input="id_longitude" data-adresse-input="id_adresse"
-         data-ville-input="id_ville" data-cp-input="id_code_postal"
-         data-dept-input="id_departement"
-         style="height: 300px; border-radius: 8px; margin: 1rem 0 0.4rem;"></div>
-    <p class="muted">👆 Positionnez votre exploitation de trois façons :
-       <strong>clic ou déplacement du marqueur</strong> — l'adresse, la
-       ville, le code postal et le département se mettent à jour
-       automatiquement ; <strong>🎯 sur la carte</strong> — géolocalisation
-       navigateur ; <strong>🔎 sur la carte</strong> — recherche d'une
-       commune, adresse, département ou pays avec suggestions (les
-       champs reconnus sont remplis, une région zoome sans bouger le
-       marqueur). Réciproquement, valider une adresse saisie dans les
-       champs ci-dessous repositionne le marqueur et recalcule la
-       position.</p>
+      <div class="form-champ champ-conditions auth-conditions-box">
+        {{ form.accepte_conditions }}
+        <label for="{{ form.accepte_conditions.id_for_label }}">
+          J'accepte les <a href="{% url 'portal:conditions_utilisation' %}" target="_blank">conditions d'utilisation</a>
+          et la <a href="{% url 'portal:politique_confidentialite' %}" target="_blank">politique de confidentialité</a>.
+        </label>
+        {{ form.accepte_conditions.errors }}
+      </div>
 
-    <div class="form-champ">{{ form.adresse.label_tag }} {{ form.adresse }}
-      {{ form.adresse.errors }}</div>
-    <div class="form-duo">
-      <div class="form-champ">{{ form.ville.label_tag }} {{ form.ville }}
-        {{ form.ville.errors }}</div>
-      <div class="form-champ">{{ form.code_postal.label_tag }} {{ form.code_postal }}
-        {{ form.code_postal.errors }}
-        <span class="helptext">{{ form.code_postal.help_text }}</span></div>
-    </div>
-    <div class="form-trio">
-      <div class="form-champ">{{ form.departement.label_tag }} {{ form.departement }}
-        {{ form.departement.errors }}</div>
-      <div class="form-champ">{{ form.latitude.label_tag }} {{ form.latitude }}
-        {{ form.latitude.errors }}
-        <span class="helptext">Position sur la carte (optionnel)</span></div>
-      <div class="form-champ">{{ form.longitude.label_tag }} {{ form.longitude }}
-        {{ form.longitude.errors }}
-        <span class="helptext">Position sur la carte (optionnel)</span></div>
-    </div>
-  </section>
+      <div class="auth-action">
+        <button class="btn btn-lg btn-auth-submit" type="submit">🌾 Créer mon espace pro</button>
+      </div>
 
-  <div class="form-champ champ-conditions">
-    {{ form.accepte_conditions }}
-    <label for="{{ form.accepte_conditions.id_for_label }}">J'accepte les
-      <a href="{% url 'portal:conditions_utilisation' %}">conditions d'utilisation</a> et la
-      <a href="{% url 'portal:politique_confidentialite' %}">politique de confidentialité</a>.</label>
-    {{ form.accepte_conditions.errors }}
+      <div class="auth-footer-links">
+        <span>Vous avez déjà un compte ?</span>
+        <a class="btn btn-outline btn-sm" href="{% url 'login' %}">Se connecter</a>
+      </div>
+    </form>
   </div>
-  <div class="save-bar">
-    <button class="btn btn-lg" type="submit">Créer mon espace pro</button>
-  </div>
-</form>
-<p class="muted">💡 Votre e-mail servira d'identifiant de connexion : pas de
-   nom d'utilisateur à retenir. Vous pourrez compléter votre fiche et publier
-   votre première récolte dès la prochaine étape.</p>
+</div>
 {% endblock %}
 {% block extrajs %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -161,25 +236,10 @@
 <script src="{% static 'js/photo-picker.js' %}" defer></script>
 <script src="{% static 'js/form-validateurs.js' %}" defer></script>
 <script>
-/* Inscription pro : trois comportements liés à l'agencement du
-   formulaire.
-   1. La spécialité suit des listes conditionnelles au métier choisi
-      (foodtruck, traiteur, restaurant, éleveur) : les options des
-      autres métiers sont masquées, la ligne est grisée pour un métier
-      sans liste et la valeur réinitialisée (le serveur la vide aussi,
-      côté clean()).
-   2. Le titre du bloc exploitation suit l'activité : « Ma ferme »,
-      « Mon foodtruck », « Ma boutique » (mêmes libellés que la
-      rubrique Paramètres des pros connectés).
-   3. Carte : contrôles intégrés délégués à pick-map.js — contrôleur
-      de couches (Plan/Ortho, Régions, Départements), 🎯 géolocalisation,
-      🔎 recherche intelligente et géocodage inverse bidirectionnel
-      (marqueur ↔ champs d'adresse). */
 (function () {
-  var TITRES = { "FOODTRUCK": "🚚 Mon foodtruck",
-                 "TRAITEUR": "🥗 Ma boutique" };
-  /* Listes conditionnelles : spécialités proposées par métier —
-     identiques à Exploitant.SPECIALITES_PAR_ACTIVITE côté serveur. */
+  var TITRES = { "FOODTRUCK": "🚚 2. Mon foodtruck",
+                 "TRAITEUR": "🥗 2. Ma boutique de traiteur",
+                 "RESTAURANT": "🍽️ 2. Mon restaurant" };
   var SPECIALITES_PAR_ACT = {
     "FOODTRUCK": ["SANDWICHS", "PIZZA", "BURGER", "TRAITEUR",
                   "ROTISSEUR", "TACOS", "KEBAB", "GALETTE", "POISSON",
@@ -195,20 +255,12 @@
   var spe = document.getElementById("id_specialite");
   var ligneSpe = document.getElementById("ligne-specialite");
   var titre = document.getElementById("titre-ferme");
-  /* Modèle des options d'origine (l'option vide incluse), copié
-     avant toute reconstruction de la liste par majActivite(). */
   var OPTIONS_SPE = spe ? Array.prototype.map.call(
       spe.options, function (o) { return o.cloneNode(true); }) : [];
 
   function majActivite() {
     var actives = (act && SPECIALITES_PAR_ACT[act.value]) || null;
     if (spe) {
-      /* La liste est RECONSTRUITE à chaque changement d'activité :
-         fiable sur tous les navigateurs, contrairement à l'attribut
-         hidden des <option> (ignoré sur certains Safari/mobiles).
-         La valeur est conservée si elle fait toujours partie de la
-         liste, réinitialisée sinon (le serveur la vide aussi, côté
-         clean()). */
       var garde = actives && actives.indexOf(spe.value) >= 0
         ? spe.value : "";
       while (spe.options.length) { spe.remove(0); }
@@ -224,14 +276,13 @@
     }
     if (ligneSpe) { ligneSpe.classList.toggle("champ-grise", !actives); }
     if (titre && act) {
-      titre.textContent = TITRES[act.value] || "🚜 Ma ferme";
+      titre.textContent = TITRES[act.value] || "🚜 2. Mon activité & mon exploitation";
     }
   }
   if (act) {
     act.addEventListener("change", majActivite);
     majActivite();
   }
-
 })();
 </script>
 {% endblock %}

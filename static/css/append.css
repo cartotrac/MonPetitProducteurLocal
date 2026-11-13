@@ -4132,3 +4132,51 @@ html.dark .input-qte {
     align-items: stretch;
   }
 }
+
+
+/* ---------- Harmonie des 3 formulaires d'accès (Login, Localien, Pro) ---------- */
+.carte-inscription-wrap {
+  margin: 1.2rem 0;
+}
+
+.carte-inscription-aide {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  margin: 0.4rem 0 0.8rem;
+}
+
+.auth-form .btn-auth-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.85rem 1.6rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 14px rgba(46, 125, 50, 0.3);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.auth-form .btn-auth-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(46, 125, 50, 0.4);
+}
+
+.auth-form .btn-auth-submit:active {
+  transform: translateY(0);
+}
+
+.auth-conditions-box label a {
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+html.dark .carte-inscription-aide {
+  color: #aab599;
+}
