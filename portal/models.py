@@ -538,6 +538,19 @@ class Exploitant(models.Model):
         return reverse("portal:producer_detail", kwargs={"slug": self.slug})
 
     @property
+    def logo_url(self):
+        """URL du logo : fichier si présent, ou logo externe configuré dans ParamètresVitrine."""
+        if self.logo:
+            try:
+                return self.logo.url
+            except Exception:
+                pass
+        try:
+            return (self.parametres_vitrine.reseaux or {}).get("logo_url", "")
+        except Exception:
+            return ""
+
+    @property
     def siret_valide(self):
         """SIRET syntaxiquement valide : 14 chiffres, clé de Luhn correcte.
         (Validation de forme, sans appel au registre national en V1.)"""

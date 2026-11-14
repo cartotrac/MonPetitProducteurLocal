@@ -4736,8 +4736,8 @@ html.dark .badge-demo-texte {
 }
 
 .logo-mini-cadre {
-  width: 68px !important;
-  height: 68px !important;
+  width: 58px !important;
+  height: 58px !important;
   border-radius: 10px !important;
   border: 1px solid var(--border, #cfd8c3) !important;
   background: #fff !important;
@@ -4746,6 +4746,23 @@ html.dark .badge-demo-texte {
   justify-content: center !important;
   flex-shrink: 0;
   margin: 0 !important;
+  overflow: hidden !important;
+}
+
+.logo-mini-cadre img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.param-logo-colonne {
+  margin-bottom: 1.2rem;
+}
+
+.param-logo-colonne .param-logo-ligne {
+  margin-bottom: 0 !important;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .logo-mini-cadre .image-picker-placeholder {

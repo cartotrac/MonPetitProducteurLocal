@@ -12,8 +12,8 @@ Attend la variable « exploitant ».
               aria-label="{% if exploitant.slug in favoris_slugs %}Retirer {{ exploitant.nom_espace }} des favoris{% else %}Ajouter {{ exploitant.nom_espace }} aux favoris{% endif %}">{% if exploitant.slug in favoris_slugs %}⭐{% else %}☆{% endif %}</button>
     </form>
   {% endif %}
-  {% if exploitant.logo %}
-    <img class="card-logo" src="{{ exploitant.logo.url }}" alt="Logo {{ exploitant.nom_espace }}">
+  {% if exploitant.logo_url %}
+    <img class="card-logo" src="{{ exploitant.logo_url }}" alt="Logo {{ exploitant.nom_espace }}">
   {% endif %}
   <div class="vignette-titre">
     <span class="badge badge-activite vignette-badge-activite" title="{{ exploitant.get_activite_display }}{% if exploitant.activite == 'FOODTRUCK' and exploitant.specialite %} — {{ exploitant.get_specialite_display }}{% endif %}" aria-label="{{ exploitant.get_activite_display }}">{{ exploitant.emoji_vitrine }}</span>

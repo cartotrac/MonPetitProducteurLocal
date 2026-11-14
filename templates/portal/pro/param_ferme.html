@@ -65,43 +65,44 @@
         {{ form_espace.siret.errors }}
         <span class="helptext">{{ form_espace.siret.help_text }}</span>
       </div>
-      <div class="form-champ">
-        {{ form_espace.mode_production.label_tag }}
-        {{ form_espace.mode_production }}
-        {{ form_espace.mode_production.errors }}
-      </div>
-    </div>
-
-    {# Lien logo externe avec aperçu compact aligné #}
-    <div class="param-logo-ligne">
-      <div class="param-logo-apercu-cadre" data-photo-apercu="id_logo_externe">
-        <div class="image-picker-cadre logo-mini-cadre">
-          <img class="image-picker-img" alt="Logo de l'espace">
-          <div class="image-picker-placeholder">🖼️ Logo</div>
-          <div class="image-picker-erreur">❌ Introuvable</div>
+      <div class="form-champ param-logo-colonne" data-picker-custom>
+        <div class="param-logo-ligne">
+          <div class="param-logo-apercu-cadre" data-photo-apercu="id_logo_externe">
+            <div class="image-picker-cadre logo-mini-cadre">
+              <img class="image-picker-img" alt="Logo de l'espace">
+              <div class="image-picker-placeholder">🖼️ Logo</div>
+              <div class="image-picker-erreur">❌ Introuvable</div>
+            </div>
+          </div>
+          <div class="param-logo-saisie">
+            <div class="champ-avec-info">
+              <label for="id_logo_externe">Lien du logo :</label>
+              <span class="info-bulle" title="Lien direct (.jpg, .png, .webp) ou lien de partage Google Drive. Rien n'est stocké sur le portail.">ℹ️</span>
+            </div>
+            {{ form_espace.logo_externe }}
+            {{ form_espace.logo_externe.errors }}
+          </div>
         </div>
-      </div>
-      <div class="param-logo-saisie" data-picker-custom>
-        <div class="champ-avec-info">
-          <label for="id_logo_externe">Lien du logo :</label>
-          <span class="info-bulle" title="Lien direct (.jpg, .png, .webp) ou lien de partage Google Drive. Rien n'est stocké sur le portail.">ℹ️</span>
-        </div>
-        {{ form_espace.logo_externe }}
-        {{ form_espace.logo_externe.errors }}
       </div>
     </div>
 
     <div class="form-duo">
       <div class="form-champ">
+        {{ form_espace.mode_production.label_tag }}
+        {{ form_espace.mode_production }}
+        {{ form_espace.mode_production.errors }}
+      </div>
+      <div class="form-champ">
         {{ form_espace.telephone.label_tag }}
         {{ form_espace.telephone }}
         {{ form_espace.telephone.errors }}
       </div>
-      <div class="form-champ">
-        {{ form_espace.mode_fonctionnement.label_tag }}
-        {{ form_espace.mode_fonctionnement }}
-        {{ form_espace.mode_fonctionnement.errors }}
-      </div>
+    </div>
+
+    <div class="form-champ">
+      {{ form_espace.mode_fonctionnement.label_tag }}
+      {{ form_espace.mode_fonctionnement }}
+      {{ form_espace.mode_fonctionnement.errors }}
     </div>
 
     <div class="form-champ">
@@ -246,6 +247,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{% static 'js/pick-map.js' %}" defer></script>
 <script src="{% static 'js/image-picker.js' %}" defer></script>
+<script src="{% static 'js/photo-picker.js' %}" defer></script>
 <script src="{% static 'js/form-validateurs.js' %}" defer></script>
 <script>
 /* Mise en page « Ma ferme » sur le modèle de l'inscription pro :

@@ -6,10 +6,8 @@
 <div class="producer-head card producer-hero-card">
   <div class="producer-hero-main">
     <div class="producer-avatar-wrap">
-      {% if exploitant.logo %}
-        <img class="producer-logo" src="{{ exploitant.logo.url }}" alt="Logo {{ exploitant.nom_espace }}">
-      {% elif vitrine.reseaux.logo_url %}
-        <img class="producer-logo" src="{{ vitrine.reseaux.logo_url }}" alt="Logo {{ exploitant.nom_espace }}">
+      {% if exploitant.logo_url %}
+        <img class="producer-logo" src="{{ exploitant.logo_url }}" alt="Logo {{ exploitant.nom_espace }}">
       {% else %}
         <div class="producer-logo placeholder">{{ exploitant.emoji_vitrine }}</div>
       {% endif %}

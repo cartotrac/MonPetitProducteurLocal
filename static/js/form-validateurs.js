@@ -132,6 +132,36 @@
     maj();
   }
 
+  /* Téléphone : format numéro français valide avec contrôle et contour orange */
+  function initTelephone() {
+    var inputs = [champ("id_telephone"), champ("id_tel")];
+    inputs.forEach(function (input) {
+      if (!input) return;
+      var el = indicateur(input);
+      function maj() {
+        var v = (input.value || "").trim();
+        if (!v) {
+          vide(el);
+          input.classList.remove("input-saisie-alerte");
+          return;
+        }
+        // Nettoyage des espaces, points, tirets
+        var propre = v.replace(/[\s.-]/g, "");
+        // Format téléphone : 10 chiffres (0X...) ou indicatif international (+33...)
+        var ok = /^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/.test(v) || /^\+?\d{8,15}$/.test(propre);
+        if (!ok) {
+          majEtat(el, false, "Numéro invalide (ex : 06 12 34 56 78 ou +33 6 ...)");
+          input.classList.add("input-saisie-alerte");
+        } else {
+          majEtat(el, true, "Numéro de téléphone valide");
+          input.classList.remove("input-saisie-alerte");
+        }
+      }
+      input.addEventListener("input", maj);
+      maj();
+    });
+  }
+
   /* Validation des liens réseaux sociaux (Site web, Facebook, Instagram) */
   function initReseauxSociaux() {
     var site = champ("id_site_web");
@@ -188,10 +218,17 @@
     relierLabelLien(site, "label_site_web");
     relierLabelLien(fb, "label_facebook");
     relierLabelLien(insta, "label_instagram");
+
+    // Contrôle du logo externe avec contour orange si url invalide
+    var logo = champ("id_logo_externe");
+    if (logo) {
+      validerUrl(logo, "logo", null, "https://mon-site.fr/logo.png", "votre logo");
+    }
   }
 
   document.addEventListener("DOMContentLoaded", function () {
     initEmail();
+    initTelephone();
     initUsername();
     initMotDePasse1();
     initMotDePasse2();
