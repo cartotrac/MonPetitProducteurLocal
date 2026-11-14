@@ -121,38 +121,42 @@
 
       {# Bloc 2 : Espace Pro #}
       <div class="auth-section-box">
-        <h2 class="auth-section-title" id="titre-ferme">🚜 2. Mon activité &amp; mon exploitation</h2>
-        <p class="muted auth-section-desc">
-          Les informations principales de votre espace. Vous pourrez compléter le reste (SIRET, modes de production, logo, créneaux) plus tard dans les paramètres.
-        </p>
+        <div class="auth-section-header-flex">
+          <div>
+            <h2 class="auth-section-title" id="titre-ferme">🚜 2. Mon activité &amp; mon exploitation</h2>
+            <p class="muted auth-section-desc">
+              Les informations principales de votre espace. Vous pourrez compléter le reste (SIRET, modes de production, logo, créneaux) plus tard dans les paramètres.
+            </p>
+          </div>
+          <div class="badge-demo-top" title="Cochez pour marquer cette exploitation comme fictive (test, formation, démo) : un badge 🧪 DÉMO la distingue sur le portail.">
+            <label class="case-demo" for="id_est_demo">
+              {{ form.est_demo }}
+              <span class="badge-demo-texte">🧪 Mode Démo</span>
+            </label>
+          </div>
+        </div>
+        {{ form.est_demo.errors }}
 
-        <div class="form-duo form-duo-ferme">
+        <div class="form-duo">
           <div class="form-champ">
             {{ form.nom_espace.label_tag }}
             {{ form.nom_espace }}
             {{ form.nom_espace.errors }}
             {% if form.nom_espace.help_text %}<span class="helptext">{{ form.nom_espace.help_text }}</span>{% endif %}
           </div>
-          <div class="form-champ form-champ-demo">
-            <label class="case-demo" for="id_est_demo">{{ form.est_demo }} {{ form.est_demo.label }}</label>
-            <span class="helptext">{{ form.est_demo.help_text }}</span>
-            {{ form.est_demo.errors }}
-          </div>
-        </div>
-
-        <div class="form-duo">
           <div class="form-champ">
             {{ form.activite.label_tag }}
             {{ form.activite }}
             {{ form.activite.errors }}
             {% if form.activite.help_text %}<span class="helptext">{{ form.activite.help_text }}</span>{% endif %}
           </div>
-          <div class="form-champ" id="ligne-specialite">
-            {{ form.specialite.label_tag }}
-            {{ form.specialite }}
-            {{ form.specialite.errors }}
-            {% if form.specialite.help_text %}<span class="helptext">{{ form.specialite.help_text }}</span>{% endif %}
-          </div>
+        </div>
+
+        <div class="form-champ" id="ligne-specialite">
+          {{ form.specialite.label_tag }}
+          {{ form.specialite }}
+          {{ form.specialite.errors }}
+          {% if form.specialite.help_text %}<span class="helptext">{{ form.specialite.help_text }}</span>{% endif %}
         </div>
 
         <div class="carte-inscription-wrap">

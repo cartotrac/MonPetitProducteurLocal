@@ -4656,3 +4656,177 @@ html.dark .btn-reseau-insta:hover {
   background: #341226;
   border-color: #ec4899;
 }
+
+/* Fix barre de sauvegarde sticky et z-index supérieur à Leaflet (z-index 400-1000) */
+.save-bar,
+.param-save-bar {
+  position: sticky !important;
+  bottom: 0.6rem !important;
+  z-index: 1250 !important;
+  background: var(--bg, #f4faf2) !important;
+  padding: 0.8rem 1rem !important;
+  border-radius: 14px !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.12) !important;
+}
+
+html.dark .save-bar,
+html.dark .param-save-bar {
+  background: #1e2617 !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* En-tête flex pour sortir le bouton Démo en haut à droite */
+.param-bloc-entete-flex,
+.auth-section-header-flex {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--border, #e0ebd8);
+}
+
+.param-bloc-entete-titre {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.badge-demo-top {
+  flex-shrink: 0;
+  background: #fdf5e6;
+  border: 1px solid #fed7aa;
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  transition: background 0.15s ease, transform 0.15s ease;
+  cursor: help;
+}
+
+.badge-demo-top:hover {
+  background: #ffedd5;
+  transform: translateY(-1px);
+}
+
+.badge-demo-texte {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #c2410c;
+}
+
+html.dark .badge-demo-top {
+  background: #2c2117;
+  border-color: #7c2d12;
+}
+
+html.dark .badge-demo-texte {
+  color: #fdba74;
+}
+
+/* Alignement compact Lien logo et aperçu image */
+.param-logo-ligne {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  background: var(--bg-alt, #f7fbf5);
+  border: 1px solid var(--border, #cce5c8);
+  border-radius: 12px;
+  padding: 0.8rem 1.1rem;
+  margin-bottom: 1.2rem;
+}
+
+.logo-mini-cadre {
+  width: 68px !important;
+  height: 68px !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--border, #cfd8c3) !important;
+  background: #fff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0;
+  margin: 0 !important;
+}
+
+.logo-mini-cadre .image-picker-placeholder {
+  font-size: 0.85rem !important;
+}
+
+.param-logo-saisie {
+  flex: 1;
+  min-width: 0;
+}
+
+.champ-avec-info {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.info-bulle {
+  cursor: help;
+  font-size: 0.95rem;
+}
+
+/* Alerte saisie contour orange */
+.input-saisie-alerte,
+input.input-saisie-alerte {
+  border-color: #f97316 !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.22) !important;
+}
+
+/* Lien cliquable sur label réseau */
+.lien-label-actif {
+  color: var(--accent-dark, #2e5927);
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.lien-label-actif:hover {
+  color: #15803d;
+}
+
+html.dark .lien-label-actif {
+  color: #a3e635;
+}
+
+/* Département auto grisé sur PC et masqué sur mobile */
+.champ-dept-auto input {
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+  cursor: not-allowed;
+}
+
+html.dark .champ-dept-auto input {
+  background: #1e261a !important;
+  color: #94a3b8 !important;
+}
+
+@media (max-width: 768px) {
+  .champ-dept-auto {
+    display: none !important;
+  }
+  .param-logo-ligne {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+}
+
+/* Form duo réseaux (Facebook et Instagram sur une ligne) */
+.form-duo-reseaux {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+}
+
+@media (max-width: 640px) {
+  .form-duo-reseaux {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}

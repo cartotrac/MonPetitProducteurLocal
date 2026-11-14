@@ -441,16 +441,15 @@ class ProduitForm(forms.ModelForm):
 class ProfilExploitantForm(forms.ModelForm):
     """Édition de sa fiche par un maraîcher (badge SIRET inclus)."""
     logo_externe = forms.URLField(
-        label="Lien logo externe (drive, cloud, réseau — alternative au "
-              "fichier : rien n'est hébergé sur le portail)", required=False)
+        label="Lien logo externe", required=False)
     site_web = forms.URLField(
         label="Site web de l'exploitation", required=False)
     facebook = forms.URLField(label="Page Facebook", required=False)
     instagram = forms.URLField(label="Compte Instagram", required=False)
     field_order = ["nom_espace", "activite", "specialite", "siret", "mode_production",
-                   "logo", "logo_externe", "description", "adresse", "ville",
-                   "code_postal", "departement", "telephone", "latitude",
-                   "longitude", "est_demo", "mode_fonctionnement"]
+                   "logo_externe", "telephone", "mode_fonctionnement", "description",
+                   "adresse", "ville", "code_postal", "departement", "latitude",
+                   "longitude", "est_demo"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -468,7 +467,7 @@ class ProfilExploitantForm(forms.ModelForm):
     class Meta:
         model = Exploitant
         fields = ["nom_espace", "activite", "specialite", "siret", "mode_production",
-                  "logo", "description", "adresse", "ville", "code_postal",
+                  "description", "adresse", "ville", "code_postal",
                   "departement", "telephone", "latitude", "longitude",
                   "est_demo", "mode_fonctionnement"]
         labels = {"nom_espace": "Nom de l'espace pro",
@@ -478,9 +477,8 @@ class ProfilExploitantForm(forms.ModelForm):
                   "activite": "Activité",
                   "siret": "SIRET (14 chiffres)",
                   "mode_production": "Mode de production",
-                  "logo": "Logo miniature (fichier)",
                   "description": "Présentation",
-                  "departement": "Département (auto si vide : 2 premiers chiffres du code postal)",
+                  "departement": "Département (auto si vide)",
                   "latitude": "Latitude (optionnel, pour la carte)",
                   "longitude": "Longitude (optionnel, pour la carte)",
                   "est_demo": "Exploitation de démonstration",

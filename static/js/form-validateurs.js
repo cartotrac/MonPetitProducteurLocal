@@ -138,23 +138,44 @@
     var fb = champ("id_facebook");
     var insta = champ("id_instagram");
 
+    function relierLabelLien(input, labelId) {
+      if (!input) return;
+      var label = document.getElementById(labelId);
+      if (!label) return;
+      function majLabel() {
+        var v = (input.value || "").trim();
+        if (v && /^https?:\/\//i.test(v)) {
+          label.innerHTML = '<a href="' + v + '" target="_blank" rel="noopener" class="lien-label-actif" title="Ouvrir le lien dans un nouvel onglet">' + label.textContent.replace(' 🔗', '') + ' 🔗</a>';
+        }
+      }
+      input.addEventListener("input", majLabel);
+      majLabel();
+    }
+
     function validerUrl(input, type, regexMotCle, exemple, labelNom) {
       if (!input) return;
       var el = indicateur(input);
       function maj() {
         var v = (input.value || "").trim();
-        if (!v) { vide(el); return; }
+        if (!v) {
+          vide(el);
+          input.classList.remove("input-saisie-alerte");
+          return;
+        }
         // Vérification format URL général
         var isUrl = /^https?:\/\/[^\s/$.?#].[^\s]*$/i.test(v);
         if (!isUrl) {
           majEtat(el, false, "L'adresse doit commencer par https:// ou http://");
+          input.classList.add("input-saisie-alerte");
           return;
         }
         if (regexMotCle && !regexMotCle.test(v)) {
           majEtat(el, false, "Doit être un lien vers " + labelNom + " (" + exemple + ")");
+          input.classList.add("input-saisie-alerte");
           return;
         }
         majEtat(el, true, "Lien " + labelNom + " valide");
+        input.classList.remove("input-saisie-alerte");
       }
       input.addEventListener("input", maj);
       maj();
@@ -163,6 +184,10 @@
     validerUrl(site, "site", null, "https://mon-domaine.fr", "votre site web");
     validerUrl(fb, "facebook", /(facebook\.com|fb\.com|fb\.me)/i, "https://www.facebook.com/votrepage", "Facebook");
     validerUrl(insta, "instagram", /(instagram\.com)/i, "https://www.instagram.com/votrecompte", "Instagram");
+
+    relierLabelLien(site, "label_site_web");
+    relierLabelLien(fb, "label_facebook");
+    relierLabelLien(insta, "label_instagram");
   }
 
   document.addEventListener("DOMContentLoaded", function () {
