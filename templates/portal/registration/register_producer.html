@@ -232,6 +232,29 @@
     </form>
   </div>
 </div>
+
+{# Modale d'alerte Mode Démo à l'inscription #}
+<dialog id="dlg-alerte-demo" class="dialog-choix-inscription dialog-alerte-demo">
+  <div class="choix-inscription-card">
+    <button class="choix-inscription-fermer" type="button" id="btn-annuler-demo-croix" aria-label="Fermer">✕</button>
+    <div class="choix-inscription-header">
+      <span class="choix-icon">🧪</span>
+      <h2>Activation du Mode Démo</h2>
+      <p class="demo-sous-titre">Usage temporaire &amp; essai de fonctionnalités</p>
+    </div>
+    <div class="demo-alerte-corps">
+      <div class="demo-avertissement-box">
+        <strong>⚠️ PLANNING DE PURGE &amp; SUPPRESSION :</strong>
+        <p>Cet espace sera marqué publiquement comme fictif (badge 🧪 DÉMO). L'ensemble des données (espace, récoltes, commandes, messages et clients liés) seront <strong>intégralement supprimés à l'issue de la phase de tests de version</strong>.</p>
+      </div>
+      <p class="muted demo-conseil">Ne saisissez aucune donnée de production réelle dans ce mode.</p>
+    </div>
+    <div class="demo-dialog-actions">
+      <button type="button" class="btn btn-demo-confirmer" id="btn-confirmer-demo">J'ai compris, activer le mode Démo</button>
+      <button type="button" class="btn btn-outline" id="btn-annuler-demo">Annuler</button>
+    </div>
+  </div>
+</dialog>
 {% endblock %}
 {% block extrajs %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -288,21 +311,41 @@
     majActivite();
   }
 
-  /* Alerte confirmation lors de l'activation du Mode Démo à l'inscription */
+  /* Alerte modale confirmation lors de l'activation du Mode Démo à l'inscription */
   var demoCheck = document.getElementById("id_est_demo");
-  if (demoCheck) {
+  var dlgDemo = document.getElementById("dlg-alerte-demo");
+  var btnConfirmer = document.getElementById("btn-confirmer-demo");
+  var btnAnnuler = document.getElementById("btn-annuler-demo");
+  var btnAnnulerCroix = document.getElementById("btn-annuler-demo-croix");
+
+  if (demoCheck && dlgDemo) {
     demoCheck.addEventListener("change", function () {
       if (demoCheck.checked) {
-        var confirmer = confirm(
-          "🧪 ATTENTION : ACTIVATION DU MODE DÉMO\n\n" +
-          "Ce mode est réservé à un USAGE TEMPORAIRE ou d'ESSAI de fonctionnalités.\n\n" +
-          "⚠️ PLANNING DE SUPPRESSION : tous les espaces démo ainsi que leurs commandes et éléments associés sont automatiquement purgés et supprimés à l'issue de chaque phase de tests de version.\n\n" +
-          "Confirmez-vous l'activation du mode Démo ?"
-        );
-        if (!confirmer) {
-          demoCheck.checked = false;
+        if (typeof dlgDemo.showModal === "function") {
+          dlgDemo.showModal();
+        } else {
+          var ok = confirm("🧪 ATTENTION : ACTIVATION DU MODE DÉMO\n\nCe mode est réservé à un usage temporaire d'essai.\nLes espaces démo et données associées sont supprimés à l'issue des tests.\n\nConfirmer ?");
+          if (!ok) demoCheck.checked = false;
         }
       }
+    });
+
+    if (btnConfirmer) {
+      btnConfirmer.addEventListener("click", function () {
+        dlgDemo.close();
+      });
+    }
+
+    function fermerEtAnnuler() {
+      demoCheck.checked = false;
+      dlgDemo.close();
+    }
+
+    if (btnAnnuler) { btnAnnuler.addEventListener("click", fermerEtAnnuler); }
+    if (btnAnnulerCroix) { btnAnnulerCroix.addEventListener("click", fermerEtAnnuler); }
+
+    dlgDemo.addEventListener("click", function (e) {
+      if (e.target === dlgDemo) { fermerEtAnnuler(); }
     });
   }
 })();

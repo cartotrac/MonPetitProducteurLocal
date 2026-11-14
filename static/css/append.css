@@ -4834,7 +4834,91 @@ html.dark .champ-dept-auto input {
   }
 }
 
-/* Form duo réseaux (Facebook et Instagram sur une ligne) */
+/* Modale alerte Mode Démo */
+dialog.dialog-alerte-demo {
+  max-width: 520px;
+}
+
+.demo-sous-titre {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #c2410c;
+  margin: 0.2rem 0 0;
+}
+
+.demo-alerte-corps {
+  margin: 1.2rem 0 1.5rem;
+}
+
+.demo-avertissement-box {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-left: 4px solid #ea580c;
+  border-radius: 10px;
+  padding: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #9a3412;
+}
+
+.demo-avertissement-box strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 0.35rem;
+  color: #c2410c;
+}
+
+.demo-avertissement-box p {
+  margin: 0;
+}
+
+.demo-conseil {
+  font-size: 0.85rem;
+  margin: 0.8rem 0 0;
+  text-align: center;
+}
+
+.demo-dialog-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.btn-demo-confirmer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-demo-confirmer:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(234, 88, 12, 0.45);
+}
+
+html.dark .demo-sous-titre {
+  color: #fdba74;
+}
+
+html.dark .demo-avertissement-box {
+  background: #2b1f14;
+  border-color: #7c2d12;
+  border-left-color: #f97316;
+  color: #fed7aa;
+}
+
+html.dark .demo-avertissement-box strong {
+  color: #fdba74;
+}
 .form-duo-reseaux {
   display: grid;
   grid-template-columns: 1fr 1fr;

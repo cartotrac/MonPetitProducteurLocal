@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}MonPetitProducteurLocal{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}?v=12">
-  <link rel="stylesheet" href="{% static 'css/append.css' %}?v=29">
+  <link rel="stylesheet" href="{% static 'css/append.css' %}?v=30">
   <script>
   /* Mode sombre appliqué AVANT le premier rendu (dans le <head>) :
      sans cela, les boutons du bandeau s'affichent une fraction de
@@ -626,6 +626,9 @@
     if (!dlg || !declencheurs.length) return;
 
     declencheurs.forEach(function (btn) {
+      // Ne PAS intercepter si le bouton est à l'intérieur de la modale elle-même
+      if (btn.closest("dialog")) return;
+
       btn.addEventListener("click", function (e) {
         // Si c'est un clic avec modificateur (Ctrl/Cmd pour nouvel onglet), laisser faire le lien
         if (e.metaKey || e.ctrlKey || e.shiftKey) return;
@@ -643,9 +646,9 @@
     });
   }
 
-  // Intercepte les boutons/liens vers l'inscription client
+  // Intercepte les boutons/liens vers l'inscription client (hors contenu de la modale)
   connecterDlg('a[href*="inscription/client"]', "dlg-choix-client");
-  // Intercepte les boutons/liens vers l'inscription pro
+  // Intercepte les boutons/liens vers l'inscription pro (hors contenu de la modale)
   connecterDlg('a[href*="inscription/exploitant"]', "dlg-choix-pro");
 
   // Boutons de fermeture
