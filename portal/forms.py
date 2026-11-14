@@ -471,16 +471,14 @@ class ProfilExploitantForm(forms.ModelForm):
                   "departement", "telephone", "latitude", "longitude",
                   "est_demo", "mode_fonctionnement"]
         labels = {"nom_espace": "Nom de l'espace pro",
-                  "specialite": "Spécialité (listes selon le métier : "
-                                "foodtruck, traiteur, restaurant, "
-                                "éleveur)",
+                  "specialite": "Spécialité",
                   "activite": "Activité",
                   "siret": "SIRET (14 chiffres)",
                   "mode_production": "Mode de production",
                   "description": "Présentation",
                   "departement": "Département (auto si vide)",
-                  "latitude": "Latitude (optionnel, pour la carte)",
-                  "longitude": "Longitude (optionnel, pour la carte)",
+                  "latitude": "Latitude (optionnel)",
+                  "longitude": "Longitude (optionnel)",
                   "est_demo": "Exploitation de démonstration",
                   "mode_fonctionnement": "Mode de fonctionnement"}
         help_texts = {"est_demo": (

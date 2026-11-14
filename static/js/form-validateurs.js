@@ -209,14 +209,17 @@
     var fb = champ("id_facebook");
     var insta = champ("id_instagram");
 
-    function relierLabelLien(input, labelId) {
+    function relierLabelLien(input, labelId, nomReseau) {
       if (!input) return;
       var label = document.getElementById(labelId);
       if (!label) return;
+      var texteBase = nomReseau || label.textContent.replace(' 🔗', '').trim();
       function majLabel() {
         var v = (input.value || "").trim();
         if (v && /^https?:\/\//i.test(v)) {
-          label.innerHTML = '<a href="' + v + '" target="_blank" rel="noopener" class="lien-label-actif" title="Ouvrir le lien dans un nouvel onglet">' + label.textContent.replace(' 🔗', '') + ' 🔗</a>';
+          label.innerHTML = '<a href="' + v + '" target="_blank" rel="noopener" class="lien-label-actif" title="Ouvrir le lien ' + texteBase + ' dans un nouvel onglet">' + texteBase + ' 🔗</a>';
+        } else {
+          label.textContent = texteBase + (texteBase.endsWith(":") ? "" : " :");
         }
       }
       input.addEventListener("input", majLabel);
@@ -256,9 +259,9 @@
     validerUrl(fb, "facebook", /(facebook\.com|fb\.com|fb\.me)/i, "https://www.facebook.com/votrepage", "Facebook");
     validerUrl(insta, "instagram", /(instagram\.com)/i, "https://www.instagram.com/votrecompte", "Instagram");
 
-    relierLabelLien(site, "label_site_web");
-    relierLabelLien(fb, "label_facebook");
-    relierLabelLien(insta, "label_instagram");
+    relierLabelLien(site, "label_site_web", "Site web officiel");
+    relierLabelLien(fb, "label_facebook", "Page Facebook");
+    relierLabelLien(insta, "label_instagram", "Compte Instagram");
 
     // Contrôle du logo externe avec contour orange si url invalide
     var logo = champ("id_logo_externe");

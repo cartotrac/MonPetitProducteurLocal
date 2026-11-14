@@ -294,8 +294,9 @@
     demoCheck.addEventListener("change", function () {
       if (demoCheck.checked) {
         var confirmer = confirm(
-          "🧪 Attention : vous activez le Mode Démo.\n\n" +
-          "Cette exploitation sera marquée comme fictive (test, formation, démo) sur tout le portail avec le badge 🧪 DÉMO.\n\n" +
+          "🧪 ATTENTION : ACTIVATION DU MODE DÉMO\n\n" +
+          "Ce mode est réservé à un USAGE TEMPORAIRE ou d'ESSAI de fonctionnalités.\n\n" +
+          "⚠️ PLANNING DE SUPPRESSION : tous les espaces démo ainsi que leurs commandes et éléments associés sont automatiquement purgés et supprimés à l'issue de chaque phase de tests de version.\n\n" +
           "Confirmez-vous l'activation du mode Démo ?"
         );
         if (!confirmer) {
