@@ -132,10 +132,44 @@
     maj();
   }
 
+  /* Validation des liens réseaux sociaux (Site web, Facebook, Instagram) */
+  function initReseauxSociaux() {
+    var site = champ("id_site_web");
+    var fb = champ("id_facebook");
+    var insta = champ("id_instagram");
+
+    function validerUrl(input, type, regexMotCle, exemple, labelNom) {
+      if (!input) return;
+      var el = indicateur(input);
+      function maj() {
+        var v = (input.value || "").trim();
+        if (!v) { vide(el); return; }
+        // Vérification format URL général
+        var isUrl = /^https?:\/\/[^\s/$.?#].[^\s]*$/i.test(v);
+        if (!isUrl) {
+          majEtat(el, false, "L'adresse doit commencer par https:// ou http://");
+          return;
+        }
+        if (regexMotCle && !regexMotCle.test(v)) {
+          majEtat(el, false, "Doit être un lien vers " + labelNom + " (" + exemple + ")");
+          return;
+        }
+        majEtat(el, true, "Lien " + labelNom + " valide");
+      }
+      input.addEventListener("input", maj);
+      maj();
+    }
+
+    validerUrl(site, "site", null, "https://mon-domaine.fr", "votre site web");
+    validerUrl(fb, "facebook", /(facebook\.com|fb\.com|fb\.me)/i, "https://www.facebook.com/votrepage", "Facebook");
+    validerUrl(insta, "instagram", /(instagram\.com)/i, "https://www.instagram.com/votrecompte", "Instagram");
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     initEmail();
     initUsername();
     initMotDePasse1();
     initMotDePasse2();
+    initReseauxSociaux();
   });
 })();

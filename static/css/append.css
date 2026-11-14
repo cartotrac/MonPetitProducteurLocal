@@ -4419,3 +4419,240 @@ html.dark .choix-inscription-fermer:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
 }
+
+/* ==========================================================================
+   PARAMÈTRES ESPACE PRO : BLOCS MODERNISÉS, RÉSEAUX & CONTRÔLE DE SAISIE
+   ========================================================================== */
+.param-ferme-form {
+  max-width: 860px;
+}
+
+.param-rubrique-bloc {
+  background: var(--card, #ffffff);
+  border: 1px solid var(--border, #cce5c8);
+  border-radius: 16px;
+  padding: 1.8rem;
+  margin-bottom: 1.8rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.param-bloc-entete {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--border, #e0ebd8);
+}
+
+.param-bloc-icone {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.param-bloc-entete h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--accent-dark, #2e5927);
+  margin: 0 0 0.2rem;
+}
+
+.param-bloc-desc {
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+/* Bloc déroulable Réseaux sociaux */
+.bloc-deroulable-reseaux {
+  padding: 0;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bloc-deroulable-reseaux[open] {
+  border-color: var(--accent, #4e6b3a);
+  box-shadow: 0 6px 20px rgba(46, 125, 50, 0.08);
+}
+
+.param-bloc-entete-deroulable {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.4rem 1.8rem;
+  cursor: pointer;
+  user-select: none;
+  background: var(--bg-alt, #f7fbf5);
+  transition: background-color 0.15s ease;
+}
+
+.param-bloc-entete-deroulable:hover {
+  background: #edf7eb;
+}
+
+.param-summary-gauche {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.param-summary-gauche h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent-dark, #2e5927);
+  margin: 0 0 0.2rem;
+}
+
+.badge-deroulable-fleche {
+  font-size: 0.95rem;
+  color: var(--muted, #666);
+  transition: transform 0.2s ease;
+}
+
+.bloc-deroulable-reseaux[open] .badge-deroulable-fleche {
+  transform: rotate(180deg);
+}
+
+.param-bloc-contenu {
+  padding: 1.5rem 1.8rem 1.8rem;
+  border-top: 1px solid var(--border, #e0ebd8);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.champ-reseau-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.champ-reseau-header {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--text, #2e3b28);
+}
+
+.reseau-icon-field {
+  flex-shrink: 0;
+}
+
+/* Style des boutons réseaux sociaux officiels sur la vitrine publique */
+.btn-reseau {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  font-size: 0.92rem;
+}
+
+.btn-reseau:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.btn-reseau-site {
+  border-color: #94a3b8;
+  color: #334155;
+  background: #ffffff;
+}
+
+.btn-reseau-site:hover {
+  border-color: #2e7d32;
+  color: #2e7d32;
+  background: #f8fafc;
+}
+
+.btn-reseau-fb {
+  border-color: #cbd5e1;
+  color: #1877f2;
+  background: #ffffff;
+}
+
+.btn-reseau-fb:hover {
+  background: #f0f7ff;
+  border-color: #1877f2;
+}
+
+.btn-reseau-insta {
+  border-color: #fbcfe8;
+  color: #be185d;
+  background: #ffffff;
+}
+
+.btn-reseau-insta:hover {
+  background: #fdf2f8;
+  border-color: #db2777;
+}
+
+/* Mode sombre pour les paramètres & réseaux */
+html.dark .param-rubrique-bloc {
+  background: #232820;
+  border-color: #3e5036;
+}
+
+html.dark .param-bloc-entete {
+  border-bottom-color: #3e5036;
+}
+
+html.dark .param-bloc-entete h2,
+html.dark .param-summary-gauche h2 {
+  color: #c5e1a5;
+}
+
+html.dark .param-bloc-entete-deroulable {
+  background: #1e241c;
+}
+
+html.dark .param-bloc-entete-deroulable:hover {
+  background: #273024;
+}
+
+html.dark .param-bloc-contenu {
+  border-top-color: #3e5036;
+}
+
+html.dark .champ-reseau-header {
+  color: #dcedc8;
+}
+
+html.dark .btn-reseau-site {
+  background: #232820;
+  color: #e2e8f0;
+  border-color: #475569;
+}
+
+html.dark .btn-reseau-site:hover {
+  background: #2b3628;
+  border-color: #81c784;
+  color: #a5d6a7;
+}
+
+html.dark .btn-reseau-fb {
+  background: #232820;
+  color: #60a5fa;
+  border-color: #334155;
+}
+
+html.dark .btn-reseau-fb:hover {
+  background: #1e293b;
+  border-color: #3b82f6;
+}
+
+html.dark .btn-reseau-insta {
+  background: #232820;
+  color: #f472b6;
+  border-color: #4c1d3d;
+}
+
+html.dark .btn-reseau-insta:hover {
+  background: #341226;
+  border-color: #ec4899;
+}

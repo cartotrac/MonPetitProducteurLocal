@@ -5149,6 +5149,7 @@ def param_rubrique(request, rubrique):
 
     if rubrique == "espace":
         reseaux = dict(vitrine.reseaux or {})
+        nb_equipe_hors_support = exploitant.membres.filter(user__is_superuser=False).count() + 1
         form_espace = ProfilExploitantForm(
             instance=exploitant,
             initial={"logo_externe": reseaux.get("logo_url", ""),
@@ -5159,6 +5160,7 @@ def param_rubrique(request, rubrique):
             "exploitant": exploitant,
             "form_espace": form_espace,
             "vitrine": vitrine,
+            "nb_equipe_hors_support": nb_equipe_hors_support,
         })
 
     form_messagerie = MessagerieForm(initial=messagerie)

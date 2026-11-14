@@ -490,6 +490,22 @@ class ProfilExploitantForm(forms.ModelForm):
             "(test, formation, démo) : un badge 🧪 DÉMO la distingue "
             "sur le portail.")}
 
+    def clean_facebook(self):
+        url = (self.cleaned_data.get("facebook") or "").strip()
+        if not url:
+            return ""
+        if "facebook.com" not in url.lower() and "fb.com" not in url.lower() and "fb.me" not in url.lower():
+            raise forms.ValidationError("L'adresse doit être un lien vers une page ou profil Facebook (ex : https://www.facebook.com/votrepage).")
+        return url
+
+    def clean_instagram(self):
+        url = (self.cleaned_data.get("instagram") or "").strip()
+        if not url:
+            return ""
+        if "instagram.com" not in url.lower():
+            raise forms.ValidationError("L'adresse doit être un lien vers un compte Instagram (ex : https://www.instagram.com/votrecompte).")
+        return url
+
     def clean_specialite(self):
         """La spécialité n'existe que pour les métiers qui ont leur
         liste (foodtruck, traiteur, restaurant, éleveur) : hors liste
