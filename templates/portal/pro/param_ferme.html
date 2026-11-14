@@ -38,73 +38,82 @@
     </div>
     {{ form_espace.est_demo.errors }}
 
-    <div class="form-duo">
-      <div class="form-champ">
-        {{ form_espace.nom_espace.label_tag }}
-        {{ form_espace.nom_espace }}
+    {# Ligne 1 : Mini preview logo + Nom espace pro | SIRET #}
+    <div class="form-duo form-duo-entete-pro">
+      <div class="form-champ champ-nom-avec-logo">
+        <label for="id_nom_espace">{{ form_espace.nom_espace.label }} :</label>
+        <div class="nom-espace-logo-wrap">
+          <div class="param-logo-apercu-cadre mini-preview-nom" data-photo-apercu="id_logo_externe">
+            <div class="image-picker-cadre logo-mini-cadre">
+              <img class="image-picker-img" alt="Logo">
+              <div class="image-picker-placeholder">🖼️</div>
+              <div class="image-picker-erreur">❌</div>
+            </div>
+          </div>
+          <div class="input-nom-espace-wrap">
+            {{ form_espace.nom_espace }}
+          </div>
+        </div>
         {{ form_espace.nom_espace.errors }}
       </div>
-      <div class="form-champ">
-        {{ form_espace.activite.label_tag }}
-        {{ form_espace.activite }}
-        {{ form_espace.activite.errors }}
-      </div>
-    </div>
 
-    <div class="form-champ" id="ligne-specialite">
-      {{ form_espace.specialite.label_tag }}
-      {{ form_espace.specialite }}
-      {{ form_espace.specialite.errors }}
-      <span class="helptext">Uniquement pour un foodtruck : pizza, burger…</span>
-    </div>
-
-    <div class="form-duo">
       <div class="form-champ">
         {{ form_espace.siret.label_tag }}
         {{ form_espace.siret }}
         {{ form_espace.siret.errors }}
         <span class="helptext">{{ form_espace.siret.help_text }}</span>
       </div>
-      <div class="form-champ param-logo-colonne" data-picker-custom>
-        <div class="param-logo-ligne">
-          <div class="param-logo-apercu-cadre" data-photo-apercu="id_logo_externe">
-            <div class="image-picker-cadre logo-mini-cadre">
-              <img class="image-picker-img" alt="Logo de l'espace">
-              <div class="image-picker-placeholder">🖼️ Logo</div>
-              <div class="image-picker-erreur">❌ Introuvable</div>
-            </div>
-          </div>
-          <div class="param-logo-saisie">
-            <div class="champ-avec-info">
-              <label for="id_logo_externe">Lien du logo :</label>
-              <span class="info-bulle" title="Lien direct (.jpg, .png, .webp) ou lien de partage Google Drive. Rien n'est stocké sur le portail.">ℹ️</span>
-            </div>
-            {{ form_espace.logo_externe }}
-            {{ form_espace.logo_externe.errors }}
-          </div>
-        </div>
-      </div>
     </div>
 
-    <div class="form-duo">
+    {# Ligne 2 : 3 éléments en ligne : Activité | Spécialité | Mode de production #}
+    <div class="form-trio form-trio-activite">
+      <div class="form-champ">
+        {{ form_espace.activite.label_tag }}
+        {{ form_espace.activite }}
+        {{ form_espace.activite.errors }}
+      </div>
+      <div class="form-champ" id="ligne-specialite">
+        {{ form_espace.specialite.label_tag }}
+        {{ form_espace.specialite }}
+        {{ form_espace.specialite.errors }}
+        <span class="helptext">Selon métier</span>
+      </div>
       <div class="form-champ">
         {{ form_espace.mode_production.label_tag }}
         {{ form_espace.mode_production }}
         {{ form_espace.mode_production.errors }}
       </div>
+    </div>
+
+    {# Ligne 3 : URL Logo | Mode de fonctionnement | Téléphone #}
+    <div class="form-trio form-trio-contact">
+      <div class="form-champ" data-picker-custom>
+        <div class="champ-avec-info">
+          <label for="id_logo_externe">URL du logo :</label>
+          <span class="info-bulle" title="Lien direct (.jpg, .png, .webp) ou lien Google Drive. Rien n'est stocké sur le portail.">ℹ️</span>
+        </div>
+        {{ form_espace.logo_externe }}
+        {{ form_espace.logo_externe.errors }}
+        <span class="helptext">Lien image web ou Drive</span>
+      </div>
+
       <div class="form-champ">
-        {{ form_espace.telephone.label_tag }}
-        {{ form_espace.telephone }}
+        {{ form_espace.mode_fonctionnement.label_tag }}
+        {{ form_espace.mode_fonctionnement }}
+        {{ form_espace.mode_fonctionnement.errors }}
+      </div>
+
+      <div class="form-champ">
+        <label for="id_telephone">Téléphone :</label>
+        <div class="champ-tel-wrap">
+          <span class="tel-indicatif" id="tel-indicatif" title="Indicatif détecté automatiquement">🇫🇷 +33</span>
+          {{ form_espace.telephone }}
+        </div>
         {{ form_espace.telephone.errors }}
       </div>
     </div>
 
-    <div class="form-champ">
-      {{ form_espace.mode_fonctionnement.label_tag }}
-      {{ form_espace.mode_fonctionnement }}
-      {{ form_espace.mode_fonctionnement.errors }}
-    </div>
-
+    {# Ligne 4 : Présentation #}
     <div class="form-champ">
       {{ form_espace.description.label_tag }}
       {{ form_espace.description }}
@@ -317,6 +326,23 @@
   if (act) {
     act.addEventListener("change", majActivite);
     majActivite();
+  }
+
+  /* Alerte confirmation lors de l'activation du Mode Démo */
+  var demoCheck = document.getElementById("id_est_demo");
+  if (demoCheck) {
+    demoCheck.addEventListener("change", function () {
+      if (demoCheck.checked) {
+        var confirmer = confirm(
+          "🧪 Attention : vous activez le Mode Démo.\n\n" +
+          "Cette exploitation sera marquée comme fictive (test, formation, démo) sur tout le portail avec le badge 🧪 DÉMO.\n\n" +
+          "Confirmez-vous l'activation du mode Démo ?"
+        );
+        if (!confirmer) {
+          demoCheck.checked = false;
+        }
+      }
+    });
   }
 
 })();

@@ -4847,3 +4847,72 @@ html.dark .champ-dept-auto input {
     gap: 1rem;
   }
 }
+
+/* Ligne 1 : Nom de l'espace avec mini-preview logo intégrée */
+.nom-espace-logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.nom-espace-logo-wrap .mini-preview-nom {
+  flex-shrink: 0;
+}
+
+.nom-espace-logo-wrap .logo-mini-cadre {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 8px !important;
+}
+
+.nom-espace-logo-wrap .input-nom-espace-wrap {
+  flex: 1;
+}
+
+.nom-espace-logo-wrap .input-nom-espace-wrap input {
+  margin: 0 !important;
+}
+
+/* Champ téléphone avec badge indicatif régional */
+.champ-tel-wrap {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.tel-indicatif {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: var(--bg-alt, #eef5ea);
+  border: 1px solid var(--border, #cce5c8);
+  border-right: none;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+  color: var(--accent-dark, #2e5927);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.champ-tel-wrap input {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  margin: 0 !important;
+}
+
+html.dark .tel-indicatif {
+  background: #273322;
+  border-color: #3e5036;
+  color: #c5e1a5;
+}
+
+/* Responsive pour les trios */
+@media (max-width: 768px) {
+  .form-trio-activite,
+  .form-trio-contact {
+    grid-template-columns: 1fr !important;
+    gap: 0.5rem !important;
+  }
+}

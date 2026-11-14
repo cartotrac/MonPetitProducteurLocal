@@ -132,23 +132,64 @@
     maj();
   }
 
-  /* Téléphone : format numéro français valide avec contrôle et contour orange */
+  /* Téléphone : format numéro français/international avec pré-détection et contrôle */
   function initTelephone() {
     var inputs = [champ("id_telephone"), champ("id_tel")];
     inputs.forEach(function (input) {
       if (!input) return;
       var el = indicateur(input);
+      var badgeIndicatif = champ("tel-indicatif");
+
+      // Filtrer les caractères interdits : chiffres, +, espaces, tirets, parenthèses uniquement
+      input.addEventListener("keypress", function (e) {
+        if (!/[\d\s.+\-()]/.test(e.key) && e.key !== "Backspace" && e.key !== "Delete" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") {
+          e.preventDefault();
+        }
+      });
+
       function maj() {
         var v = (input.value || "").trim();
+        // Suppression automatique d'éventuelles lettres collées par copier-coller
+        var nettoyee = v.replace(/[^\d\s.+\-()]/g, "");
+        if (nettoyee !== v) {
+          input.value = nettoyee;
+          v = nettoyee;
+        }
+
         if (!v) {
           vide(el);
           input.classList.remove("input-saisie-alerte");
+          if (badgeIndicatif) { badgeIndicatif.textContent = "🇫🇷 +33"; }
           return;
         }
-        // Nettoyage des espaces, points, tirets
-        var propre = v.replace(/[\s.-]/g, "");
-        // Format téléphone : 10 chiffres (0X...) ou indicatif international (+33...)
-        var ok = /^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/.test(v) || /^\+?\d{8,15}$/.test(propre);
+
+        var propre = v.replace(/[\s.\-()]/g, "");
+
+        // Détection automatique de l'indicatif
+        if (badgeIndicatif) {
+          if (propre.startsWith("+32") || propre.startsWith("0032")) {
+            badgeIndicatif.textContent = "🇧🇪 +32";
+          } else if (propre.startsWith("+41") || propre.startsWith("0041")) {
+            badgeIndicatif.textContent = "🇨🇭 +41";
+          } else if (propre.startsWith("+352") || propre.startsWith("00352")) {
+            badgeIndicatif.textContent = "🇱🇺 +352";
+          } else if (propre.startsWith("+1") || propre.startsWith("001")) {
+            badgeIndicatif.textContent = "🇺🇸/🇨🇦 +1";
+          } else if (propre.startsWith("+34") || propre.startsWith("0034")) {
+            badgeIndicatif.textContent = "🇪🇸 +34";
+          } else if (propre.startsWith("+39") || propre.startsWith("0039")) {
+            badgeIndicatif.textContent = "🇮🇹 +39";
+          } else if (propre.startsWith("+49") || propre.startsWith("0049")) {
+            badgeIndicatif.textContent = "🇩🇪 +49";
+          } else if (propre.startsWith("+44") || propre.startsWith("0044")) {
+            badgeIndicatif.textContent = "🇬🇧 +44";
+          } else {
+            badgeIndicatif.textContent = "🇫🇷 +33";
+          }
+        }
+
+        // Format téléphone : 10 chiffres (0X...) ou indicatif international
+        var ok = /^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/.test(v) || /^\+?\d{9,15}$/.test(propre);
         if (!ok) {
           majEtat(el, false, "Numéro invalide (ex : 06 12 34 56 78 ou +33 6 ...)");
           input.classList.add("input-saisie-alerte");

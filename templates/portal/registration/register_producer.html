@@ -287,6 +287,23 @@
     act.addEventListener("change", majActivite);
     majActivite();
   }
+
+  /* Alerte confirmation lors de l'activation du Mode Démo à l'inscription */
+  var demoCheck = document.getElementById("id_est_demo");
+  if (demoCheck) {
+    demoCheck.addEventListener("change", function () {
+      if (demoCheck.checked) {
+        var confirmer = confirm(
+          "🧪 Attention : vous activez le Mode Démo.\n\n" +
+          "Cette exploitation sera marquée comme fictive (test, formation, démo) sur tout le portail avec le badge 🧪 DÉMO.\n\n" +
+          "Confirmez-vous l'activation du mode Démo ?"
+        );
+        if (!confirmer) {
+          demoCheck.checked = false;
+        }
+      }
+    });
+  }
 })();
 </script>
 {% endblock %}
