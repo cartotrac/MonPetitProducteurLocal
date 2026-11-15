@@ -108,6 +108,11 @@ def choix_espace_pro(request):
     if len(espaces) < 2:
         return redirect("portal:apres_connexion")
     if request.method == "POST":
+        if request.POST.get("action") == "nouveau":
+            # Création d'un NOUVEL espace pro rattaché au compte :
+            # le formulaire « espace seul » de register_exploitant
+            # reprend l'identité déjà enregistrée.
+            return redirect("portal:register_producer")
         if request.POST.get("action") == "client":
             request.session.pop("mppl_espace_actif", None)
             messages.success(request, "Vous continuez en Localien : "

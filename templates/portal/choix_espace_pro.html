@@ -16,6 +16,12 @@
     <span class="choix-texte">{{ e.exploitant.get_activite_display }}{% if e.exploitant.specialite %} · {{ e.exploitant.get_specialite_display }}{% endif %}{% if e.exploitant.ville %} — {{ e.exploitant.ville }}{% endif %}</span>
   </button>
   {% endfor %}
+  <button type="submit" name="action" value="nouveau" class="choix-carte">
+    <span class="choix-icone">➕</span>
+    <strong>Créer un nouvel espace pro</strong>
+    <span class="choix-texte">Exploitation, boutique, foodtruck ou traiteur
+      supplémentaire rattaché à votre compte.</span>
+  </button>
   <button type="submit" name="action" value="client" class="choix-carte">
     <span class="choix-icone">🧺</span>
     <strong>Continuer en Localien</strong>
