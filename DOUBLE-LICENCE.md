@@ -1,6 +1,6 @@
 # Modèle de Double Licence — MonPetitProducteurLocal
 
-> ⚠️ **Avertissement** : ce document est un résumé explicatif fourni en français pour la clarté et la transparence du projet. La licence anglaise [LICENSE-AGPL-3.0.txt](LICENSE-AGPL-3.0.txt) (GNU AGPL-3.0) constitue la référence légale opposable pour la voie libre.
+> ⚠️ **Avertissement** : ce document est un résumé explicatif fourni en français pour la clarté et la transparence du projet. La licence anglaise [LICENCE-AGPL-3.0.txt](LICENCE-AGPL-3.0.txt) (GNU AGPL-3.0) constitue la référence légale opposable pour la voie libre.
 
 ---
 
