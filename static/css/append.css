@@ -5000,3 +5000,115 @@ html.dark .tel-indicatif {
     gap: 0.5rem !important;
   }
 }
+
+
+/* ============================================================
+   REVUE V2 — BANDEAU, PIED DE PAGE, BLOCS LANDING (15/11/2026)
+   Bloc correctif placé en fin de fichier : il prime sur les
+   règles historiques qu'il ne supprime pas.
+   ============================================================ */
+
+/* ---- 1. Bandeau : correctif survol --------------------------------
+   Une règle historique passait le texte des éléments survolés en
+   #2c4a1a et forçait background: transparent — sur le header vert,
+   les boutons de session perdaient leur fond et devenaient
+   illisibles. On rétablit : couleur héritée au survol, et fond
+   conservé pour les boutons de session. */
+.nav-links a:hover,
+.nav-links .btn-link:hover,
+.nav-gestion-titre:hover { color: inherit; }
+.nav-links .btn-session-verte:hover { background: #d9ecd0 !important; }
+.nav-links .btn-session-rouge:hover { background: #f8dad7 !important; }
+html.dark .nav-links .btn-session-verte:hover { background: #2b4723 !important; }
+html.dark .nav-links .btn-session-rouge:hover { background: #4a2521 !important; }
+
+/* ---- 2. Bandeau : « Devenir Localien » et « Espace Pro » -----------
+   Harmonisés avec les pastilles de la landing (btn-hero-secondary) :
+   pastille blanche, texte vert foncé, bord vert, en clair comme
+   en sombre. Fini le lien nu et le simple contour blanc. */
+.nav-links .nav-compte,
+.nav-links .nav-btn-pro {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  background: #ffffff; color: var(--accent-dark) !important;
+  border: 2px solid #a5d6a7; border-radius: 999px;
+  font-size: 0.85rem; font-weight: 700; padding: 0.28rem 0.8rem;
+  text-decoration: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: all 0.18s ease;
+}
+.nav-links .nav-compte:hover,
+.nav-links .nav-btn-pro:hover {
+  background: var(--accent-light) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent-dark) !important;
+  transform: translateY(-1px);
+  text-decoration: none !important;
+}
+html.dark .nav-links .nav-compte,
+html.dark .nav-links .nav-btn-pro {
+  background: #22301c; color: #c5e1a5 !important; border-color: #49633c;
+}
+html.dark .nav-links .nav-compte:hover,
+html.dark .nav-links .nav-btn-pro:hover {
+  background: #2c3e24 !important; color: #eaf3d9 !important;
+}
+
+/* ---- 3. Pied de page -----------------------------------------------
+   Mode clair : fond dans la tonalité du header (dégradé vert),
+   texte clair lisible (l'ancien #33281a sur fond vert était
+   illisible). Mode sombre : fond vert très sombre, texte clair. */
+.site-footer {
+  background: linear-gradient(120deg, var(--accent-dark), var(--accent));
+  color: #eaf3e2 !important;
+}
+.site-footer p, .site-footer h4,
+.site-footer .footer-baseline { color: #eaf3e2 !important; }
+.site-footer .muted { color: #cfe0c2 !important; }
+.site-footer a, .site-footer .footer-plan a { color: #d7ecc8 !important; }
+.site-footer a:hover, .site-footer .footer-plan a:hover {
+  color: #ffffff !important; text-decoration: underline !important;
+}
+html.dark .site-footer {
+  background: linear-gradient(180deg, #10160d 0%, #0a0d08 100%);
+  border-top-color: #3b5a26;
+}
+html.dark .site-footer,
+html.dark .site-footer p,
+html.dark .site-footer h4 { color: #d9decf !important; }
+html.dark .site-footer .muted { color: #b7c0ab !important; }
+html.dark .site-footer a,
+html.dark .site-footer .footer-plan a,
+html.dark .site-footer a:hover { color: #aed581 !important; }
+
+/* ---- 4. Landing : adoucissement des deux derniers blocs ------------
+   « Bien commun & valeurs » et « CTA final » passaient en gros
+   dégradés vert foncé qui dénotaient du reste de la page. En mode
+   clair : fond vert très pâle, titres vert foncé, cartes bordées.
+   Le mode sombre conserve ses fonds sombres d'origine. */
+html:not(.dark) .home-valeurs,
+html:not(.dark) .home-cta-final {
+  background: linear-gradient(135deg, #f2f8ee 0%, #e3f0dc 100%);
+  border: 1px solid #cfe3c6;
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+html:not(.dark) .home-valeurs-header h2,
+html:not(.dark) .home-cta-final h2 { color: var(--accent-dark) !important; }
+html:not(.dark) .home-valeurs-header p { color: #54634c; }
+html:not(.dark) .home-cta-final p { color: #54634c; }
+html:not(.dark) .home-valeurs .valeur-carte { border: 1px solid #d5e6cc; }
+html:not(.dark) .home-cta-final .btn-outline-white {
+  background: #ffffff;
+  border-color: #a5d6a7;
+  color: var(--accent-dark) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+html:not(.dark) .home-cta-final .btn-outline-white:hover {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent-dark) !important;
+}
+html.dark .home-cta-final {
+  background: linear-gradient(120deg, #1c3a15 0%, #142a0f 100%);
+  border: 1px solid #354a29;
+}
