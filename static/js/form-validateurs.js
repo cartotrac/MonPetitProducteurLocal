@@ -19,7 +19,15 @@
   function indicateur(input) {
     var el = document.createElement("div");
     el.className = "saisie-indicateur";
-    input.parentNode.insertBefore(el, input.nextSibling);
+    /* Champ téléphone : l'indicateur se place SOUS le groupe
+       indicatif + boîte de saisie (jamais à côté, jamais entre
+       les deux), quel que soit l'écran. */
+    var groupe = input.closest ? input.closest(".champ-tel-wrap") : null;
+    if (groupe && groupe.parentNode) {
+      groupe.parentNode.insertBefore(el, groupe.nextSibling);
+    } else {
+      input.parentNode.insertBefore(el, input.nextSibling);
+    }
     return el;
   }
 
