@@ -5177,3 +5177,95 @@ html:not(.dark) .home-valeurs .valeur-carte p { color: #4c5b44; }
 .home-valeurs-collab a:hover { text-decoration: underline; }
 html.dark .home-valeurs-collab { color: #dcedc8; }
 html.dark .home-valeurs-collab a { color: #aed581; }
+
+
+/* ============================================================
+   REVUE V2.3 — ICÔNES DES CARTES VALEURS (ALIGNEMENT DÉFINITIF)
+   ET FEUILLE DE ROUTE PUBLIQUE (15/11/2026)
+   ============================================================ */
+
+/* Chaque icône vit dans une pastille carrée à taille fixe,
+   centrée en flex : l'alignement ne dépend plus des métriques
+   propres de l'emoji (🛡️ et ⚖️ rendaient différemment). */
+.valeur-carte h4 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 0.5rem;
+}
+.valeur-carte .valeur-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex: none;
+  font-size: 1.3rem;
+  line-height: 1;
+  margin: 0;
+  background: var(--accent-light);
+  border-radius: 8px;
+}
+html.dark .valeur-carte .valeur-icon { background: #2f3a26; }
+
+/* Feuille de route : trois étapes + lien vers le backlog GitHub */
+.home-roadmap-section { margin: 3.5rem 0; }
+.home-roadmap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.6rem;
+  margin-top: 2rem;
+}
+.roadmap-etape {
+  background: var(--card, #ffffff);
+  border: 1px solid var(--border, #e4e0d6);
+  border-radius: var(--radius, 14px);
+  padding: 1.4rem 1.5rem;
+  box-shadow: var(--shadow);
+  border-top: 4px solid var(--border, #e4e0d6);
+}
+.roadmap-etape h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.8rem;
+  font-size: 1.05rem;
+}
+.roadmap-etape ul { margin: 0; padding-left: 1.2rem; }
+.roadmap-etape li { margin: 0.35rem 0; font-size: 0.92rem; }
+.roadmap-fait { border-top-color: #2e7d32; }
+.roadmap-fait h3 { color: #1b5e20; }
+.roadmap-encours { border-top-color: #f5a623; }
+.roadmap-encours h3 { color: #8a5300; }
+.roadmap-horizon { border-top-color: #78909c; }
+.roadmap-horizon h3 { color: #455a64; }
+.home-roadmap-lien {
+  text-align: center;
+  margin: 2rem 0 0;
+}
+.home-roadmap-lien a {
+  display: inline-block;
+  font-weight: 700;
+  text-decoration: none;
+  padding: 0.55rem 1.2rem;
+  border-radius: 999px;
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  border: 1px solid #a5d6a7;
+}
+.home-roadmap-lien a:hover { background: #d9ecd0; text-decoration: none; }
+html.dark .roadmap-etape {
+  background: #26301f;
+  border-color: #3f4d34;
+  box-shadow: none;
+}
+html.dark .roadmap-fait h3 { color: #a5d6a7; }
+html.dark .roadmap-encours h3 { color: #fdba74; }
+html.dark .roadmap-horizon h3 { color: #b0bec5; }
+html.dark .home-roadmap-lien a {
+  background: #20361c;
+  color: #c5e1a5;
+  border-color: #49633c;
+}
+html.dark .home-roadmap-lien a:hover { background: #2b4723; }
