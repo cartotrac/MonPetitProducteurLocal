@@ -5470,3 +5470,28 @@ a.vignette-entete:hover .card-logo { transform: scale(1.06); }
 .champ-logo-forme-select { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
 .champ-logo-forme-select label { font-weight: 600; margin: 0; }
 html.dark .champ-logo-forme-select label { color: #e6e4da; }
+
+
+/* ================== REVUE V3.3 (2026-11-15) ==================
+   Uniformité : TOUS les messages de validité ✓/✗ (saisie-indicateur)
+   s'affichent SOUS la boîte de saisie, jamais à côté — y compris
+   dans les lignes flex (URL du logo avec bouton ☁️ Drive accolé).
+   Les conteneurs réseaux/mot de passe sont déjà en colonne ; la
+   ligne URL logo passe en wrap et l'indicateur prend une ligne
+   entière sous la saisie. */
+
+.logo-url-wrap { flex-wrap: wrap; }
+.logo-url-wrap .saisie-indicateur {
+  flex: 1 1 100%;
+  order: 5;
+  margin-top: 2px;
+}
+
+/* Filet de sécurité générique : dans TOUT conteneur flex, un
+   indicateur de saisie occupe sa propre ligne, sous le champ */
+.champ-tel-ligne .saisie-indicateur,
+.nom-espace-logo-wrap .saisie-indicateur {
+  flex: 1 1 100%;
+  order: 5;
+  margin-top: 2px;
+}
