@@ -38,13 +38,13 @@
     </div>
     {{ form_espace.est_demo.errors }}
 
-    {# Ligne 1 : Mini preview logo + Nom espace pro | SIRET #}
-    <div class="form-duo form-duo-entete-pro">
+    {# Ligne 1 : Mini preview logo + Nom espace pro | SIRET | Téléphone #}
+    <div class="form-trio form-trio-entete-pro">
       <div class="form-champ champ-nom-avec-logo">
         <label for="id_nom_espace">{{ form_espace.nom_espace.label }} :</label>
         <div class="nom-espace-logo-wrap">
           <div class="param-logo-apercu-cadre mini-preview-nom" data-photo-apercu="id_logo_externe">
-            <div class="image-picker-cadre logo-mini-cadre">
+            <div class="image-picker-cadre logo-mini-cadre logo-forme-{{ exploitant.logo_forme|lower }}">
               <img class="image-picker-img" alt="Logo">
               <div class="image-picker-placeholder">🖼️</div>
               <div class="image-picker-erreur">❌</div>
@@ -62,6 +62,15 @@
         {{ form_espace.siret }}
         {{ form_espace.siret.errors }}
         <span class="helptext">{{ form_espace.siret.help_text }}</span>
+      </div>
+
+      <div class="form-champ">
+        <label for="id_telephone">Téléphone :</label>
+        <div class="champ-tel-wrap">
+          <span class="tel-indicatif" id="tel-indicatif" title="Indicatif détecté automatiquement">🇫🇷 +33</span>
+          {{ form_espace.telephone }}
+        </div>
+        {{ form_espace.telephone.errors }}
       </div>
     </div>
 
@@ -85,8 +94,8 @@
       </div>
     </div>
 
-    {# Ligne 3 : URL Logo | Mode de fonctionnement | Téléphone #}
-    <div class="form-trio form-trio-contact">
+    {# Ligne 3 : URL Logo (avec bouton Drive et forme) | Mode de fonctionnement #}
+    <div class="form-duo form-duo-contact">
       <div class="form-champ" data-picker-custom>
         <div class="champ-avec-info">
           <label for="id_logo_externe">URL du logo :</label>
@@ -95,6 +104,9 @@
         {{ form_espace.logo_externe }}
         {{ form_espace.logo_externe.errors }}
         <span class="helptext">Lien image web ou Drive</span>
+        <div class="photo-outils">
+          <a class="btn btn-outline btn-mini" href="https://drive.google.com/drive/my-drive" target="_blank" rel="noopener">☁️ Drive</a>
+        </div>
         <div class="champ-logo-forme">
           <label for="id_logo_forme">Forme du logo :</label>
           {{ form_espace.logo_forme }}
@@ -106,15 +118,6 @@
         {{ form_espace.mode_fonctionnement.label_tag }}
         {{ form_espace.mode_fonctionnement }}
         {{ form_espace.mode_fonctionnement.errors }}
-      </div>
-
-      <div class="form-champ">
-        <label for="id_telephone">Téléphone :</label>
-        <div class="champ-tel-wrap">
-          <span class="tel-indicatif" id="tel-indicatif" title="Indicatif détecté automatiquement">🇫🇷 +33</span>
-          {{ form_espace.telephone }}
-        </div>
-        {{ form_espace.telephone.errors }}
       </div>
     </div>
 

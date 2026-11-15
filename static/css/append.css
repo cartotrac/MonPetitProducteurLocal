@@ -5342,3 +5342,69 @@ html.dark .champ-logo-forme label { color: #e6e4da; }
   height: 14px;
   flex: none;
 }
+
+
+/* ================== REVUE V3.1 (2026-11-15) ==================
+   Paramètres espace : téléphone en 1re ligne (à droite du SIRET),
+   indicatif 🇫🇷 bien ACCOLÉ à la boîte de saisie (l'input en
+   width:100% le repoussait à la ligne), bouton ☁️ Drive sous l'URL
+   du logo, pastille Mode Démo alignée avec le titre du bloc,
+   mini-apercu du logo suivant la forme choisie. Vignettes : le bloc
+   logo + titre devient LE lien vers la vitrine publique. */
+
+/* Ligne 1 pro : nom, SIRET et téléphone alignés verticalement */
+.form-trio-entete-pro { align-items: start; }
+@media (max-width: 768px) {
+  .form-trio-entete-pro,
+  .form-duo-contact { grid-template-columns: 1fr; }
+}
+
+/* Indicatif téléphonique collé au champ : l'input flex et non plus
+   width:100% (qui le renvoyait sous la pastille) */
+.champ-tel-wrap input {
+  width: auto !important;
+  flex: 1 1 auto;
+  min-width: 0;
+  border-left: none;
+}
+
+/* Titre du bloc (🏷️ Mon foodtruck…) et pastille 🧪 Mode Démo
+   alignés verticalement */
+.param-bloc-entete-flex { align-items: center; }
+
+/* Mini-apercu du logo dans la ligne « Nom » : suit la forme */
+.nom-espace-logo-wrap .logo-mini-cadre.logo-forme-rond {
+  border-radius: 50% !important;
+}
+.nom-espace-logo-wrap .logo-mini-cadre.logo-forme-carre {
+  border-radius: 4px !important;
+}
+.nom-espace-logo-wrap .logo-mini-cadre.logo-forme-arrondi {
+  border-radius: 10px !important;
+}
+
+/* Vignettes : le bloc logo + titre est un lien unique (le titre
+   seul l'était) — retour visuel au survol */
+a.vignette-entete {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.35rem;
+}
+a.vignette-entete .vignette-titre {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 0;
+}
+a.vignette-entete:hover { color: inherit; }
+a.vignette-entete:hover .vignette-titre h2 { text-decoration: underline; }
+a.vignette-entete .card-logo {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  object-fit: cover;
+  transition: transform 0.15s ease;
+}
+a.vignette-entete:hover .card-logo { transform: scale(1.06); }

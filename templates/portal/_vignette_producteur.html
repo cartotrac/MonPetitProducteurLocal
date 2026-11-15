@@ -12,13 +12,13 @@ Attend la variable « exploitant ».
               aria-label="{% if exploitant.slug in favoris_slugs %}Retirer {{ exploitant.nom_espace }} des favoris{% else %}Ajouter {{ exploitant.nom_espace }} aux favoris{% endif %}">{% if exploitant.slug in favoris_slugs %}⭐{% else %}☆{% endif %}</button>
     </form>
   {% endif %}
-  <div class="vignette-entete">
+  <a class="vignette-entete" href="{% url 'portal:producer_detail' exploitant.slug %}" title="Voir la vitrine de {{ exploitant.nom_espace }}">
   {% if exploitant.logo_url %}
     <img class="card-logo logo-forme-{{ exploitant.logo_forme|lower }}" src="{{ exploitant.logo_url }}" alt="Logo {{ exploitant.nom_espace }}">
   {% endif %}
   <div class="vignette-titre">
     <span class="badge badge-activite vignette-badge-activite" title="{{ exploitant.get_activite_display }}{% if exploitant.activite == 'FOODTRUCK' and exploitant.specialite %} — {{ exploitant.get_specialite_display }}{% endif %}" aria-label="{{ exploitant.get_activite_display }}">{{ exploitant.emoji_vitrine }}</span>
-    <h2><a href="{% url 'portal:producer_detail' exploitant.slug %}">{{ exploitant.nom_espace }}</a></h2>
+    <h2>{{ exploitant.nom_espace }}</h2>
     {% if exploitant.mode_production == 'AB' %}<span class="badge badge-ab">Bio (AB)</span>
     {% elif exploitant.mode_production == 'PERMA' %}<span class="badge badge-perma">Permaculture</span>
     {% elif exploitant.mode_production == 'PAYSAN' %}<span class="badge badge-paysan">Paysanne</span>
@@ -26,7 +26,7 @@ Attend la variable « exploitant ».
     {% elif exploitant.mode_production == 'CONV' %}<span class="badge badge-conventionnelle">Conventionnelle</span>
     {% endif %}
   </div>
-  </div>
+  </a>
   <p class="muted vignette-localite"><span>{{ exploitant.ville }}{% if exploitant.code_postal %} ({{ exploitant.code_postal }}){% elif exploitant.departement %} ({{ exploitant.departement }}){% endif %}</span>
     <a class="btn btn-sm btn-commander" href="{% url 'portal:order_create' exploitant.slug %}">🛒 Commander</a></p>
   <div class="vignette-reste">
