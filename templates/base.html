@@ -99,6 +99,9 @@
           <a href="{% url 'portal:my_orders' %}" class="{% if request.path == '/mes-commandes/' %}nav-actif{% endif %}">Mes commandes</a>
           <a href="{% url 'portal:mes_producteurs' %}" class="{% if request.path == '/mes-producteurs/' %}nav-actif{% endif %}">Mes producteurs</a>
           <a href="{% url 'portal:profil_client' %}" class="{% if request.path == '/profil/' %}nav-actif{% endif %}">Mon profil</a>
+          {% if not nb_espaces_pro %}
+          <a class="btn btn-outline nav-btn-pro" href="{% url 'portal:register_producer' %}" title="Créer mon espace pro : exploitation, boutique, traiteur ou foodtruck — votre identité de compte est reprise" aria-label="Créer mon espace pro">🧑‍🌾 Créer mon espace pro</a>
+          {% endif %}
         {% endif %}
         <form class="inline" method="post" action="{% url 'logout' %}">
           {% csrf_token %}<button class="btn btn-session btn-session-rouge" type="submit" title="Se déconnecter" aria-label="Se déconnecter"><span class="pastille-session pastille-verte" aria-hidden="true"></span></button>
