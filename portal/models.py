@@ -551,6 +551,19 @@ class Exploitant(models.Model):
             return ""
 
     @property
+    def logo_forme(self):
+        """Forme d'affichage du logo (vignettes de recherche et
+        vitrine) : cercle par défaut, carré ou arrondi au choix du
+        gérant — stockée dans ParametresVitrine.reseaux["logo_forme"],
+        valeur manquante = ROND."""
+        try:
+            forme = (self.parametres_vitrine.reseaux
+                     or {}).get("logo_forme", "ROND")
+        except Exception:
+            return "ROND"
+        return forme if forme in ("ROND", "CARRE", "ARRONDI") else "ROND"
+
+    @property
     def siret_valide(self):
         """SIRET syntaxiquement valide : 14 chiffres, clé de Luhn correcte.
         (Validation de forme, sans appel au registre national en V1.)"""

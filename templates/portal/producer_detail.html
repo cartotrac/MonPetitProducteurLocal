@@ -2,10 +2,6 @@
 {% load unites %}{% load l10n %}{% load static %}
 {% block title %}{{ exploitant.nom_espace }} — MonPetitProducteurLocal{% endblock %}
 {% block extra_style %}<style>:root { --accent: {{ vitrine.couleur_theme|default:'#2e7d32' }}; }
-/* Revue ergonomique v1 : créneaux en liste statique lisible (remplace le bandeau défilant) */
-.points-defile-bande { border-radius: 14px; align-items: flex-start; }
-.points-liste { display: flex; flex-wrap: wrap; gap: 0.35rem 0.6rem; flex: 1; }
-.points-liste .point-puce { white-space: nowrap; }
 /* Revue ergonomique v1 : bande d'inscription Localien pour les visiteurs non connectés */
 .bande-localien { display: flex; align-items: center; justify-content: space-between;
                   gap: 1rem; flex-wrap: wrap; margin-bottom: 1.2rem; padding: 0.7rem 1rem; }
@@ -15,7 +11,7 @@
   <div class="producer-hero-main">
     <div class="producer-avatar-wrap">
       {% if exploitant.logo_url %}
-        <img class="producer-logo" src="{{ exploitant.logo_url }}" alt="Logo {{ exploitant.nom_espace }}">
+        <img class="producer-logo logo-forme-{{ exploitant.logo_forme|lower }}" src="{{ exploitant.logo_url }}" alt="Logo {{ exploitant.nom_espace }}">
       {% else %}
         <div class="producer-logo placeholder">{{ exploitant.emoji_vitrine }}</div>
       {% endif %}
@@ -90,15 +86,21 @@
 {% if creneaux %}
 <div class="points-defile-bande">
   <span class="points-defile-titre">🗓️ {{ exploitant.vocab.points }} :</span>
-  <div class="points-liste">
-    {% for c in creneaux %}<span class="point-puce">{% if c.point_livraison %}{{ c.point_livraison.emoji_type }} {{ c.point_livraison.nom }} — {{ c.point_livraison.ville }}{% else %}Sans point dédié{% endif %} : {{ c.get_jour_display }} {{ c.heure_debut|time:"H:i" }}–{{ c.heure_fin|time:"H:i" }} ({{ c.get_frequence_display }})</span>{% endfor %}
+  <div class="points-defile">
+    <div class="points-defile-piste">
+      {% for c in creneaux %}<span class="point-puce">{% if c.point_livraison %}{{ c.point_livraison.emoji_type }} {{ c.point_livraison.nom }} — {{ c.point_livraison.ville }}{% else %}Sans point dédié{% endif %} : {{ c.get_jour_display }} {{ c.heure_debut|time:"H:i" }}–{{ c.heure_fin|time:"H:i" }} ({{ c.get_frequence_display }})</span>{% endfor %}
+      {% for c in creneaux %}<span class="point-puce">{% if c.point_livraison %}{{ c.point_livraison.emoji_type }} {{ c.point_livraison.nom }} — {{ c.point_livraison.ville }}{% else %}Sans point dédié{% endif %} : {{ c.get_jour_display }} {{ c.heure_debut|time:"H:i" }}–{{ c.heure_fin|time:"H:i" }} ({{ c.get_frequence_display }})</span>{% endfor %}
+    </div>
   </div>
 </div>
 {% elif points_livraison %}
 <div class="points-defile-bande">
   <span class="points-defile-titre">📍 {{ exploitant.vocab.points }} :</span>
-  <div class="points-liste">
-    {% for p in points_livraison %}<span class="point-puce">{{ p.emoji_type }} {{ p.nom }} — {{ p.ville }}{% if p.code_postal %} ({{ p.code_postal }}){% endif %}</span>{% endfor %}
+  <div class="points-defile">
+    <div class="points-defile-piste">
+      {% for p in points_livraison %}<span class="point-puce">{{ p.emoji_type }} {{ p.nom }} — {{ p.ville }}{% if p.code_postal %} ({{ p.code_postal }}){% endif %}</span>{% endfor %}
+      {% for p in points_livraison %}<span class="point-puce">{{ p.emoji_type }} {{ p.nom }} — {{ p.ville }}{% if p.code_postal %} ({{ p.code_postal }}){% endif %}</span>{% endfor %}
+    </div>
   </div>
 </div>
 {% endif %}
@@ -106,7 +108,6 @@
 
 {% if exploitant.description %}
 <div class="producer-desc card">
-  <h3>À propos de nous</h3>
   <p>{{ exploitant.description }}</p>
 </div>
 {% endif %}

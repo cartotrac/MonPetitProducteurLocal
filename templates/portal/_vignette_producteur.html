@@ -12,8 +12,9 @@ Attend la variable « exploitant ».
               aria-label="{% if exploitant.slug in favoris_slugs %}Retirer {{ exploitant.nom_espace }} des favoris{% else %}Ajouter {{ exploitant.nom_espace }} aux favoris{% endif %}">{% if exploitant.slug in favoris_slugs %}⭐{% else %}☆{% endif %}</button>
     </form>
   {% endif %}
+  <div class="vignette-entete">
   {% if exploitant.logo_url %}
-    <img class="card-logo" src="{{ exploitant.logo_url }}" alt="Logo {{ exploitant.nom_espace }}">
+    <img class="card-logo logo-forme-{{ exploitant.logo_forme|lower }}" src="{{ exploitant.logo_url }}" alt="Logo {{ exploitant.nom_espace }}">
   {% endif %}
   <div class="vignette-titre">
     <span class="badge badge-activite vignette-badge-activite" title="{{ exploitant.get_activite_display }}{% if exploitant.activite == 'FOODTRUCK' and exploitant.specialite %} — {{ exploitant.get_specialite_display }}{% endif %}" aria-label="{{ exploitant.get_activite_display }}">{{ exploitant.emoji_vitrine }}</span>
@@ -24,6 +25,7 @@ Attend la variable « exploitant ».
     {% elif exploitant.mode_production == 'RAISONNE' %}<span class="badge badge-raisonne">Raisonnée</span>
     {% elif exploitant.mode_production == 'CONV' %}<span class="badge badge-conventionnelle">Conventionnelle</span>
     {% endif %}
+  </div>
   </div>
   <p class="muted vignette-localite"><span>{{ exploitant.ville }}{% if exploitant.code_postal %} ({{ exploitant.code_postal }}){% elif exploitant.departement %} ({{ exploitant.departement }}){% endif %}</span>
     <a class="btn btn-sm btn-commander" href="{% url 'portal:order_create' exploitant.slug %}">🛒 Commander</a></p>

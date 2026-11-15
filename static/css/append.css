@@ -5269,3 +5269,76 @@ html.dark .home-roadmap-lien a {
   border-color: #49633c;
 }
 html.dark .home-roadmap-lien a:hover { background: #2b4723; }
+
+
+/* ================== REVUE V3 (2026-11-15) ==================
+   Vitrine : bandeau défilant des créneaux restauré (les règles
+   d'origine de style.css s'appliquent à nouveau), présentation
+   sans titre redondant. Vignettes : logo aligné avec le titre,
+   forme du logo paramétrable (cercle par défaut). Paramètres
+   espace : indicateur téléphone sous le champ, pastille Mode
+   Démo plus discrète. */
+
+/* Vignettes : logo et titre sur une même ligne, centrés */
+.vignette-entete {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.35rem;
+}
+.vignette-entete .card-logo {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  object-fit: cover;
+}
+.vignette-entete .vignette-titre {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Forme du logo : cercle (défaut), carré ou arrondi — classes posées
+   par les templates (vignettes de recherche et vitrine publique). */
+.logo-forme-rond { border-radius: 50%; }
+.logo-forme-carre { border-radius: 4px; }
+.logo-forme-arrondi { border-radius: 14px; }
+.producer-logo.logo-forme-carre { border-radius: 8px; }
+.producer-logo.logo-forme-arrondi { border-radius: 24px; }
+
+/* Paramètres espace : sélecteur de forme compact sous l'URL du logo */
+.champ-logo-forme { margin-top: 0.5rem; font-size: 0.85rem; }
+.champ-logo-forme label {
+  display: inline-block;
+  margin-right: 0.4rem;
+  font-weight: 600;
+}
+.champ-logo-forme select {
+  display: inline-block;
+  width: auto;
+  max-width: 100%;
+}
+html.dark .champ-logo-forme label { color: #e6e4da; }
+
+/* Indicateur ✓/✗ du téléphone : SOUS la boîte de saisie. La pastille
+   🇫🇷 occupe la gauche du champ : l'indicateur inséré après l'input
+   ne doit pas remonter à côté de la saisie. */
+.champ-tel-wrap { flex-wrap: wrap; }
+.champ-tel-wrap .saisie-indicateur {
+  flex: 1 1 100%;
+  order: 5;
+  margin-top: 2px;
+}
+
+/* Pastille « Mode Démo » de l'en-tête de rubrique : plus discrète */
+.badge-demo-top {
+  padding: 0.18rem 0.55rem;
+  border-radius: 8px;
+}
+.badge-demo-texte { font-size: 0.72rem; }
+.badge-demo-top .case-demo { gap: 0.3rem; }
+.badge-demo-top input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}

@@ -5002,6 +5002,12 @@ def param_rubrique(request, rubrique):
                     reseaux["logo_url"] = url
                 else:
                     reseaux.pop("logo_url", None)
+                forme = (form_espace.cleaned_data.get("logo_forme", "")
+                         or "ROND").strip().upper()
+                if forme in ("ROND", "CARRE", "ARRONDI"):
+                    reseaux["logo_forme"] = forme
+                else:
+                    reseaux.pop("logo_forme", None)
                 for cle in ("site_web", "facebook", "instagram"):
                     valeur = form_espace.cleaned_data.get(cle, "").strip()
                     if valeur:
@@ -5158,6 +5164,7 @@ def param_rubrique(request, rubrique):
         form_espace = ProfilExploitantForm(
             instance=exploitant,
             initial={"logo_externe": reseaux.get("logo_url", ""),
+                     "logo_forme": reseaux.get("logo_forme", "ROND"),
                      "site_web": reseaux.get("site_web", ""),
                      "facebook": reseaux.get("facebook", ""),
                      "instagram": reseaux.get("instagram", "")})

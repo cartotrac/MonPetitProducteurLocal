@@ -442,12 +442,19 @@ class ProfilExploitantForm(forms.ModelForm):
     """Édition de sa fiche par un maraîcher (badge SIRET inclus)."""
     logo_externe = forms.URLField(
         label="Lien logo externe", required=False)
+    logo_forme = forms.ChoiceField(
+        label="Forme du logo", required=False,
+        choices=[("ROND", "⭕ Cercle (défaut)"),
+                 ("CARRE", "⬛ Carré"),
+                 ("ARRONDI", "🔲 Coins arrondis")],
+        help_text="Affichage du logo sur les vignettes de recherche "
+                  "et la vitrine publique.")
     site_web = forms.URLField(
         label="Site web de l'exploitation", required=False)
     facebook = forms.URLField(label="Page Facebook", required=False)
     instagram = forms.URLField(label="Compte Instagram", required=False)
     field_order = ["nom_espace", "activite", "specialite", "siret", "mode_production",
-                   "logo_externe", "telephone", "mode_fonctionnement", "description",
+                   "logo_externe", "logo_forme", "telephone", "mode_fonctionnement", "description",
                    "adresse", "ville", "code_postal", "departement", "latitude",
                    "longitude", "est_demo"]
 
