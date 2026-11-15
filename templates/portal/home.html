@@ -23,7 +23,11 @@
   <div class="home-hero-actions">
     <a class="btn btn-hero-primary" href="{% url 'portal:producer_search' %}">
       <span class="btn-icone">🔍</span>
-      <span>Trouver autour de moi</span>
+      <span>Trouver mes producteurs</span>
+    </a>
+    <a class="btn btn-hero-secondary" href="{% url 'portal:register_client' %}" title="Créer un compte client gratuit : favoris, commandes suivies, recommande en un clic">
+      <span class="btn-icone">🧺</span>
+      <span>Devenir Localien</span>
     </a>
     <a class="btn btn-hero-secondary" href="{% url 'portal:register_producer' %}">
       <span class="btn-icone">🧑‍🌾</span>
@@ -339,6 +343,9 @@
     <div class="home-cta-buttons">
       <a class="btn btn-hero-primary" href="{% url 'portal:producer_search' %}">
         🔍 Trouver mes producteurs
+      </a>
+      <a class="btn btn-outline-white" href="{% url 'portal:register_client' %}">
+        🧺 Devenir Localien
       </a>
       <a class="btn btn-outline-white" href="{% url 'portal:register_producer' %}">
         🧑‍🌾 Inscrire mon activité pro

@@ -8,7 +8,7 @@
 {% block content %}
 <div class="entete-chercher">
   <div class="titre-recherche">
-    <h1 title="{% if visu == "restauration" %}🍽️ Mode restaurants, traiteurs &amp; foodtrucks{% elif visu == "marches" %}🎪 Mode marchés &amp; boutiques de producteurs — identifiés à partir des points et créneaux déclarés{% elif visu == "tout" %}🌍 Mode producteurs, restauration, marchés &amp; boutiques réunis sur la même carte{% else %}🚜🥬 Mode exploitations &amp; producteurs locaux{% endif %}">{% if visu == "restauration" %}🔍🍽️ Quelle offre de restauration à proximité !{% elif visu == "marches" %}🔍🎪 Trouver les Boutiques/Marchés producteurs !{% elif visu == "tout" %}🔍🌍 Tout l'univers locavores réunis !{% else %}🔍🚜🥬 Trouver mon Producteur local !{% endif %}</h1>
+    <h1 title="{% if visu == "restauration" %}🍽️ Mode restaurants, traiteurs &amp; foodtrucks{% elif visu == "marches" %}🎪 Mode marchés &amp; boutiques de producteurs — identifiés à partir des points et créneaux déclarés{% elif visu == "tout" %}🌍 Mode producteurs, restauration, marchés &amp; boutiques réunis sur la même carte{% else %}🚜🥬 Mode exploitations &amp; producteurs locaux{% endif %}">{% if visu == "restauration" %}🍽️ Restauration &amp; foodtrucks à proximité{% elif visu == "marches" %}🎪 Marchés &amp; boutiques de producteurs{% elif visu == "tout" %}🌍 Tout l'univers locavore réuni{% else %}🥬 Trouver mon producteur local{% endif %}</h1>
     
   </div>
   
@@ -19,26 +19,8 @@
 </div>
 
 
-<section class="map-section">
-  <div class="map-canvas-wrap{% if visu == "restauration" %} visu-restauration{% elif visu == "marches" %} visu-marches{% endif %}">
-    <h2 class="map-titre">🗺️ {% if visu == "restauration" %}Restaurants, traiteurs &amp; foodtrucks trouvés{% elif visu == "marches" %}Marchés &amp; boutiques identifiés{% elif visu == "tout" %}Tous les professionnels, marchés &amp; boutiques trouvés{% else %}Producteurs trouvés{% endif %}{% if carte_data %} ({{ carte_data|length }}){% endif %}</h2>
-      <div id="carte-recherche" class="map-canvas" data-mode="{% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% elif visu == "tout" %}tout{% else %}producteurs{% endif %}" data-zone="{{ dept }}" data-csrf="{{ csrf_token }}"></div>
-      {{ carte_data|json_script:"donnees-carte" }}
-      {{ home_carte|json_script:"home-carte" }}
-      {{ graph_locaux|json_script:"stats-serie-locaux" }}
-      {{ graph_restauration|json_script:"stats-serie-restauration" }}
-      {{ graph_marches|json_script:"stats-serie-marches" }}
-      {% if resultats_vides %}
-      <p class="muted">{% if visu == "marches" %}Aucun marché ou boutique identifié dans ces résultats :
-         les producteurs n'ont pas encore déclaré de stand de marché ou de
-         point de vente géolocalisé.{% else %}Aucun producteur géolocalisé dans ces résultats :
-         les espaces concernés n'ont pas renseigné de position sur la carte.{% endif %}</p>
-    {% endif %}
-  </div>
-</section>
-
 {% comment %}
-   Filtres : SOUS LA CARTE, dans l'ordre souhaité — 1) le filtre
+   Filtres : AU-DESSUS DE LA CARTE (on filtre d'abord, on lit la carte ensuite) — 1) le filtre
    d'activité (marchés/boutiques en mode marchés, renommé
    « Activités » avec les symboles 🎪 &amp; 🏪) ; 2) les deux filtres à
    saisir (recherche libre puis département/région/CP) ; 3) le filtre
@@ -85,7 +67,7 @@
   </details>
   {% endif %}
   <input type="text" name="q" placeholder="{% if visu == 'marches' %}Marché, boutique…{% elif visu == 'restauration' %}Plat, carte, nom…{% elif visu == 'tout' %}Produit, exploitation, plat, marché…{% else %}Produit, exploitation…{% endif %}"{% if q and resultats_vides %} class="filtre-vide"{% endif %} value="{{ q }}">
-  <input type="text" name="dept" placeholder="Département, région ou code postal…" title="Zoome la carte sur un département (nom ou numéro), une région ou un code postal — les vignettes suivent l'emprise"{% if dept and resultats_vides %} class="filtre-vide"{% endif %} value="{{ dept }}" size="14">
+  <input type="text" name="dept" placeholder="Où ? Département, région ou code postal…" title="Zoome la carte sur un département (nom ou numéro), une région ou un code postal — les vignettes suivent l'emprise"{% if dept and resultats_vides %} class="filtre-vide"{% endif %} value="{{ dept }}" size="14">
   {% if not visu %}
   <details class="filtre-multi">
     <summary>🌱 Modes de production{% if mode_choisi %} ({{ mode_choisi|length }}){% endif %} ▾</summary>
@@ -102,6 +84,26 @@
   {% endif %}
   {% if filtre_actif %}<a class="btn btn-sm btn-retirer-filtre" href="{% url 'portal:producer_search' %}?visu={{ visu }}{% if not demo %}&demo=0{% endif %}" title="Retirer tous les filtres actifs">✕ Retirer les filtres</a>{% endif %}
 </form>
+
+<section class="map-section">
+  <div class="map-canvas-wrap{% if visu == "restauration" %} visu-restauration{% elif visu == "marches" %} visu-marches{% endif %}">
+    <h2 class="map-titre">🗺️ {% if visu == "restauration" %}Restaurants, traiteurs &amp; foodtrucks trouvés{% elif visu == "marches" %}Marchés &amp; boutiques identifiés{% elif visu == "tout" %}Tous les professionnels, marchés &amp; boutiques trouvés{% else %}Producteurs trouvés{% endif %}{% if carte_data %} ({{ carte_data|length }}){% endif %}</h2>
+      <div id="carte-recherche" class="map-canvas" data-mode="{% if visu == "restauration" %}restauration{% elif visu == "marches" %}marches{% elif visu == "tout" %}tout{% else %}producteurs{% endif %}" data-zone="{{ dept }}" data-csrf="{{ csrf_token }}"></div>
+      {{ carte_data|json_script:"donnees-carte" }}
+      {{ home_carte|json_script:"home-carte" }}
+      {{ graph_locaux|json_script:"stats-serie-locaux" }}
+      {{ graph_restauration|json_script:"stats-serie-restauration" }}
+      {{ graph_marches|json_script:"stats-serie-marches" }}
+      {% if resultats_vides %}
+      <p class="muted">{% if visu == "marches" %}Aucun marché ou boutique identifié dans ces résultats :
+         les producteurs n'ont pas encore déclaré de stand de marché ou de
+         point de vente géolocalisé.{% else %}Aucun producteur géolocalisé dans ces résultats :
+         les espaces concernés n'ont pas renseigné de position sur la carte.{% endif %}</p>
+    {% endif %}
+  </div>
+</section>
+
+
 
 {% if visu == "marches" %}
 <div class="grid producers">
@@ -132,6 +134,7 @@
     <p>Aucun marché ou boutique de producteurs identifié pour l'instant :
        les producteurs n'ont pas encore déclaré de stand de marché ou de
        point de vente géolocalisé sur leur fiche.</p>
+    {% if filtre_actif %}<p><a class="btn btn-sm btn-retirer-filtre" href="{% url 'portal:producer_search' %}?visu={{ visu }}{% if not demo %}&demo=0{% endif %}">✕ Retirer les filtres et voir tous les marchés &amp; boutiques</a></p>{% endif %}
   {% endfor %}
 </div>
 {% else %}
@@ -180,6 +183,7 @@
     </div>
   {% empty %}
     <p>Aucun producteur ne correspond à votre recherche.</p>
+    {% if filtre_actif %}<p><a class="btn btn-sm btn-retirer-filtre" href="{% url 'portal:producer_search' %}?visu={{ visu }}{% if not demo %}&demo=0{% endif %}">✕ Retirer les filtres et voir tous les producteurs</a></p>{% endif %}
   {% endfor %}
 </div>
 <div class="pagination-barre">

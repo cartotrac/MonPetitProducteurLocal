@@ -7,6 +7,9 @@
   <title>{% block title %}MonPetitProducteurLocal{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}?v=12">
   <link rel="stylesheet" href="{% static 'css/append.css' %}?v=30">
+  <style>/* Revue ergonomique v1 : libellés visibles des boutons de session */
+  .nav-links .btn-session .session-libelle { font-size: 0.85rem; font-weight: 600; }
+  </style>
   <script>
   /* Mode sombre appliqué AVANT le premier rendu (dans le <head>) :
      sans cela, les boutons du bandeau s'affichent une fraction de
@@ -101,12 +104,12 @@
           <a href="{% url 'portal:profil_client' %}" class="{% if request.path == '/profil/' %}nav-actif{% endif %}">Mon profil</a>
         {% endif %}
         <form class="inline" method="post" action="{% url 'logout' %}">
-          {% csrf_token %}<button class="btn btn-session btn-session-rouge" type="submit" title="Se déconnecter" aria-label="Se déconnecter"><span class="pastille-session pastille-verte" aria-hidden="true"></span></button>
+          {% csrf_token %}<button class="btn btn-session btn-session-rouge" type="submit" title="Se déconnecter" aria-label="Se déconnecter"><span class="pastille-session pastille-verte" aria-hidden="true"></span><span class="session-libelle">Se déconnecter</span></button>
         </form>
       {% else %}
         <a href="{% url 'portal:register_client' %}" class="nav-compte" title="Créez votre compte Localien, c'est gratuit : commandez vos paniers, gardez vos producteurs favoris et suivez vos commandes" aria-label="Devenir Localien : créer un compte client gratuit">🧺 Devenir Localien</a>
         <a class="btn btn-outline nav-btn-pro" href="{% url 'portal:register_producer' %}" title="Créez votre espace producteur : exploitation, boutique, traiteur ou foodtruck" aria-label="Créer mon espace pro">🧑‍🌾 Espace Pro</a>
-        <a class="btn btn-session btn-session-verte" href="{% url 'login' %}" title="Se connecter" aria-label="Se connecter"><span class="pastille-session pastille-rouge" aria-hidden="true"></span></a>
+        <a class="btn btn-session btn-session-verte" href="{% url 'login' %}" title="Se connecter" aria-label="Se connecter"><span class="pastille-session pastille-rouge" aria-hidden="true"></span><span class="session-libelle">Se connecter</span></a>
       {% endif %}
     </div>
   </nav>
@@ -564,14 +567,6 @@
       </a>
       {% endif %}
 
-      <button class="btn-choix-oauth btn-choix-meta btn-disabled" type="button" title="Connexion Meta / Facebook bientôt disponible" aria-disabled="true">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true">
-          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-        </svg>
-        <span>Continuer avec Meta</span>
-        <span class="meta-badge">Bientôt</span>
-      </button>
-
       <a class="btn-choix-oauth btn-choix-email" href="{% url 'portal:register_client' %}">
         <span class="email-icon">✉️</span>
         <span>Avec un e-mail et un mot de passe</span>
@@ -601,14 +596,6 @@
         <span>Créer mon compte Pro en 1 clic avec Google</span>
       </a>
       {% endif %}
-
-      <button class="btn-choix-oauth btn-choix-meta btn-disabled" type="button" title="Connexion Meta / Facebook bientôt disponible" aria-disabled="true">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true">
-          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-        </svg>
-        <span>Créer mon compte Pro avec Meta</span>
-        <span class="meta-badge">Bientôt</span>
-      </button>
 
       <a class="btn-choix-oauth btn-choix-email" href="{% url 'portal:register_producer' %}">
         <span class="email-icon">✉️</span>
