@@ -5014,7 +5014,7 @@ html.dark .tel-indicatif {
    les boutons de session perdaient leur fond et devenaient
    illisibles. On rétablit : couleur héritée au survol, et fond
    conservé pour les boutons de session. */
-.nav-links a:hover,
+.nav-links a:not(.btn):hover,
 .nav-links .btn-link:hover,
 .nav-gestion-titre:hover { color: inherit; }
 .nav-links .btn-session-verte:hover { background: #d9ecd0 !important; }
@@ -5112,3 +5112,34 @@ html.dark .home-cta-final {
   background: linear-gradient(120deg, #1c3a15 0%, #142a0f 100%);
   border: 1px solid #354a29;
 }
+
+/* ============================================================
+   REVUE V2.1 — CARTES « VALEURS » EN MODE CLAIR (15/11/2026)
+   Les cartes gardaient leurs styles pour fond vert foncé
+   (texte blanc, fond translucide) : illisibles sur le nouveau
+   fond pâle. Mode clair : cartes blanches lisibles. Et l'icône
+   passe sur la même ligne que le titre, dans tous les modes.
+   ============================================================ */
+.valeur-carte .valeur-icon {
+  display: inline-block;
+  font-size: 1.5rem;
+  margin: 0 0.35rem 0 0;
+  vertical-align: middle;
+}
+.valeur-carte h4 {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+html:not(.dark) .home-valeurs .valeur-carte {
+  background: #ffffff;
+  border: 1px solid #d5e6cc;
+  box-shadow: var(--shadow);
+  backdrop-filter: none;
+}
+html:not(.dark) .home-valeurs .valeur-carte:hover {
+  background: #ffffff;
+  box-shadow: var(--shadow-lift);
+}
+html:not(.dark) .home-valeurs .valeur-carte h4 { color: var(--accent-dark); }
+html:not(.dark) .home-valeurs .valeur-carte p { color: #4c5b44; }
