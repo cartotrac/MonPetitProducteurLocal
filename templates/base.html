@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}MonPetitProducteurLocal{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}?v=12">
-  <link rel="stylesheet" href="{% static 'css/append.css' %}?v=38">
+  <link rel="stylesheet" href="{% static 'css/append.css' %}?v=39">
   <script>
   /* Mode sombre appliqué AVANT le premier rendu (dans le <head>) :
      sans cela, les boutons du bandeau s'affichent une fraction de
@@ -572,6 +572,11 @@
         <span>Avec un e-mail et un mot de passe</span>
       </a>
     </div>
+    <label class="choix-inscription-cgu">
+      <input type="checkbox" class="choix-cgu-case">
+      <span>J'accepte les <a href="{% url 'portal:conditions_utilisation' %}" target="_blank">conditions d'utilisation</a> et la <a href="{% url 'portal:politique_confidentialite' %}" target="_blank">politique de confidentialité</a>.</span>
+    </label>
+    <p class="choix-cgu-alerte" hidden>⚠️ Cochez l'acceptation des conditions pour continuer.</p>
   </div>
 </dialog>
 
@@ -602,6 +607,11 @@
         <span>Avec un e-mail et un mot de passe</span>
       </a>
     </div>
+    <label class="choix-inscription-cgu">
+      <input type="checkbox" class="choix-cgu-case">
+      <span>J'accepte les <a href="{% url 'portal:conditions_utilisation' %}" target="_blank">conditions d'utilisation</a> et la <a href="{% url 'portal:politique_confidentialite' %}" target="_blank">politique de confidentialité</a>.</span>
+    </label>
+    <p class="choix-cgu-alerte" hidden>⚠️ Cochez l'acceptation des conditions pour continuer.</p>
   </div>
 </dialog>
 
@@ -637,6 +647,31 @@
   connecterDlg('a[href*="inscription/client"]', "dlg-choix-client");
   // Intercepte les boutons/liens vers l'inscription pro (hors contenu de la modale)
   connecterDlg('a[href*="inscription/exploitant"]', "dlg-choix-pro");
+
+  // Consentement CGU dans le pop-up de choix : les deux voies
+  // (Google en 1 clic ou e-mail + mot de passe) restent bloquées
+  // tant que la case d'acceptation n'est pas cochée.
+  document.querySelectorAll(".dialog-choix-inscription").forEach(function (dlg) {
+    if (!dlg.querySelector(".choix-cgu-case")) return;
+    var cgu = dlg.querySelector(".choix-cgu-case");
+    var alerte = dlg.querySelector(".choix-cgu-alerte");
+    dlg.querySelectorAll(".btn-choix-oauth").forEach(function (lien) {
+      lien.addEventListener("click", function (e) {
+        if (!cgu.checked) {
+          e.preventDefault();
+          lien.classList.add("bloque-cgu");
+          if (alerte) { alerte.hidden = false; }
+          cgu.focus();
+        }
+      });
+    });
+    cgu.addEventListener("change", function () {
+      dlg.querySelectorAll(".btn-choix-oauth.bloque-cgu").forEach(function (l) {
+        l.classList.remove("bloque-cgu");
+      });
+      if (cgu.checked && alerte) { alerte.hidden = true; }
+    });
+  });
 
   // Boutons de fermeture
   document.querySelectorAll("[data-fermer-dlg]").forEach(function (btn) {

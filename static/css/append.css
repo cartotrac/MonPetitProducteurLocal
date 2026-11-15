@@ -5495,3 +5495,30 @@ html.dark .champ-logo-forme-select label { color: #e6e4da; }
   order: 5;
   margin-top: 2px;
 }
+
+
+/* ================== REVUE V3.4 (2026-11-15) ==================
+   Parcours d'inscription : le consentement CGU / politique de
+   confidentialité migre dans le pop-up de choix (valable pour la
+   voie Google ET la voie e-mail) ; les boutons du pop-up restent
+   bloqués tant que la case n'est pas cochée. */
+
+.choix-inscription-cgu {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.9rem 0 0;
+  font-size: 0.88rem;
+  text-align: left;
+}
+.choix-inscription-cgu input { width: auto; flex: none; margin-top: 3px; }
+.choix-inscription-cgu a { text-decoration: underline; }
+html.dark .choix-inscription-cgu { color: #e6e4da; }
+.choix-cgu-alerte {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #c0392b;
+}
+html.dark .choix-cgu-alerte { color: #ff9c93; }
+.btn-choix-oauth.bloque-cgu { opacity: 0.55; }
