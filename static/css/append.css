@@ -5143,3 +5143,37 @@ html:not(.dark) .home-valeurs .valeur-carte:hover {
 }
 html:not(.dark) .home-valeurs .valeur-carte h4 { color: var(--accent-dark); }
 html:not(.dark) .home-valeurs .valeur-carte p { color: #4c5b44; }
+
+
+/* ============================================================
+   REVUE V2.2 — CARTES « VALEURS » : ALIGNEMENT ICÔNE/TITRE,
+   4E CARTE (DOUBLE LICENCE) ET BLOC COLLABORATIF (15/11/2026)
+   L'icône vit désormais DANS le titre (home.html) : alignement
+   flex robuste, même quand le titre passe sur deux lignes.
+   ============================================================ */
+.valeur-carte h4 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 0.5rem;
+}
+.valeur-carte .valeur-icon {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.5rem;
+  margin: 0;
+  line-height: 1;
+}
+.home-valeurs-collab {
+  text-align: center;
+  max-width: 760px;
+  margin: 2.2rem auto 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #54634c;
+}
+.home-valeurs-collab a { color: var(--accent-dark); font-weight: 600; }
+.home-valeurs-collab a:hover { text-decoration: underline; }
+html.dark .home-valeurs-collab { color: #dcedc8; }
+html.dark .home-valeurs-collab a { color: #aed581; }
