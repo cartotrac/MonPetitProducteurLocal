@@ -24,6 +24,30 @@
         <h2 class="auth-section-title">👤 Mes informations personnelles</h2>
         <p class="muted auth-section-desc">Votre e-mail servira d'identifiant de connexion. Vos coordonnées aident les producteurs à préparer vos commandes.</p>
 
+        <div class="auth-sous-bloc">
+          <h3 class="auth-sous-titre">🔐 Identifiants de connexion (obligatoires)</h3>
+          <div class="form-champ">
+            {{ form.email.label_tag }}
+            {{ form.email }}
+            {{ form.email.errors }}
+            {% if form.email.help_text %}<span class="helptext">{{ form.email.help_text }}</span>{% endif %}
+          </div>
+          <div class="form-duo auth-pwd-row">
+            <div class="form-champ">
+              {{ form.password1.label_tag }}
+              {{ form.password1 }}
+              {{ form.password1.errors }}
+              {% if form.password1.help_text %}<span class="helptext">{{ form.password1.help_text }}</span>{% endif %}
+            </div>
+            <div class="form-champ">
+              {{ form.password2.label_tag }}
+              {{ form.password2 }}
+              {{ form.password2.errors }}
+              {% if form.password2.help_text %}<span class="helptext">{{ form.password2.help_text }}</span>{% endif %}
+            </div>
+          </div>
+        </div>
+
         <div class="profil-mise-en-page">
           <div class="profil-champs">
             <div class="form-duo">
@@ -39,24 +63,16 @@
               </div>
             </div>
 
-            <div class="form-duo">
-              <div class="form-champ">
-                {{ form.email.label_tag }}
-                {{ form.email }}
-                {{ form.email.errors }}
-                {% if form.email.help_text %}<span class="helptext">{{ form.email.help_text }}</span>{% endif %}
-              </div>
-              <div class="form-champ">
-                {{ form.telephone.label_tag }}
-                <div class="champ-tel-wrap">
-                  <div class="champ-tel-ligne">
-                    <span class="tel-indicatif" id="tel-indicatif" title="Indicatif détecté automatiquement">🇫🇷 +33</span>
-                    {{ form.telephone }}
-                  </div>
+            <div class="form-champ">
+              {{ form.telephone.label_tag }}
+              <div class="champ-tel-wrap">
+                <div class="champ-tel-ligne">
+                  <span class="tel-indicatif" id="tel-indicatif" title="Indicatif détecté automatiquement">🇫🇷 +33</span>
+                  {{ form.telephone }}
                 </div>
-                {{ form.telephone.errors }}
-                {% if form.telephone.help_text %}<span class="helptext">{{ form.telephone.help_text }}</span>{% endif %}
               </div>
+              {{ form.telephone.errors }}
+              {% if form.telephone.help_text %}<span class="helptext">{{ form.telephone.help_text }}</span>{% endif %}
             </div>
           </div>
 
@@ -77,21 +93,6 @@
                 <a class="btn btn-outline btn-mini" href="https://drive.google.com/drive/my-drive" target="_blank" rel="noopener">☁️ Ouvrir Drive</a>
               </div>
             </div>
-          </div>
-        </div>
-
-        <div class="form-duo auth-pwd-row">
-          <div class="form-champ">
-            {{ form.password1.label_tag }}
-            {{ form.password1 }}
-            {{ form.password1.errors }}
-            {% if form.password1.help_text %}<span class="helptext">{{ form.password1.help_text }}</span>{% endif %}
-          </div>
-          <div class="form-champ">
-            {{ form.password2.label_tag }}
-            {{ form.password2 }}
-            {{ form.password2.errors }}
-            {% if form.password2.help_text %}<span class="helptext">{{ form.password2.help_text }}</span>{% endif %}
           </div>
         </div>
       </div>

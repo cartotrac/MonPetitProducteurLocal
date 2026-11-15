@@ -5522,3 +5522,32 @@ html.dark .choix-inscription-cgu { color: #e6e4da; }
 }
 html.dark .choix-cgu-alerte { color: #ff9c93; }
 .btn-choix-oauth.bloque-cgu { opacity: 0.55; }
+
+
+/* ================== REVUE V3.5 (2026-11-15) ==================
+   Inscriptions client et pro : carte élargie (940px, le
+   formulaire n'est plus plafonné à 720px), bloc « Identifiants
+   de connexion (obligatoires) » en tête (e-mail en pleine
+   largeur, puis les deux mots de passe) et dessous le profil
+   (prénom, nom, téléphone, photo) dans la même mise en page que
+   Paramètres → Mon profil. Le champ téléphone est volontairement
+   plus court sur ces pages. */
+
+.auth-card-wide { max-width: 940px; }
+.auth-card .form.auth-form { max-width: none; }
+.auth-sous-bloc {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.2rem;
+}
+.auth-sous-titre {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 0.4rem;
+  color: var(--accent-dark);
+}
+.auth-card .champ-tel-wrap { max-width: 280px; }
+html.dark .auth-sous-bloc { background: #172013; border-color: #2e3d25; }
+html.dark .auth-sous-titre { color: #dcedc8; }
