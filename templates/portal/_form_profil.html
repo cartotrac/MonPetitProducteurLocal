@@ -20,7 +20,13 @@ crée PAS d'aperçu supplémentaire — l'aperçu de la page
     <div class="form-champ">{{ form.alias.label_tag }} {{ form.alias }}
       {{ form.alias.errors }}
       <span class="helptext">{{ form.alias.help_text }}</span></div>
-    <div class="form-champ">{{ form.telephone.label_tag }} {{ form.telephone }}
+    <div class="form-champ">{{ form.telephone.label_tag }}
+      <div class="champ-tel-wrap">
+        <div class="champ-tel-ligne">
+          <span class="tel-indicatif" id="tel-indicatif" title="Indicatif détecté automatiquement">🇫🇷 +33</span>
+          {{ form.telephone }}
+        </div>
+      </div>
       {{ form.telephone.errors }}
       <span class="helptext">Vos identifiants de connexion (e-mail,
         identifiant) se modifient dans la section 🔐 Sécurité

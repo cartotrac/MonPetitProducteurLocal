@@ -79,16 +79,12 @@ class InscriptionExploitantForm(UserCreationForm):
         label="", required=False,
         widget=forms.HiddenInput(
             attrs={"tabindex": -1, "autocomplete": "off"}))
-    accepte_conditions = forms.BooleanField(
-        label="J'accepte les conditions d'utilisation et la politique "
-              "de confidentialité",
-        required=True)
 
     field_order = ["nom_espace", "est_demo", "activite", "specialite",
                    "adresse", "ville", "code_postal", "departement",
                    "latitude", "longitude", "first_name", "last_name",
                    "email", "telephone", "photo_externe", "pieux",
-                   "accepte_conditions", "password1", "password2"]
+                   "password1", "password2"]
 
     class Meta:
         model = User
@@ -223,21 +219,17 @@ class InscriptionFermeSeuleForm(forms.Form):
         widget=forms.NumberInput(attrs={"step": "any"}),
         help_text="Position sur la carte (optionnel)")
 
-    # Honeypot anti-bots + consentement CGU (cf. InscriptionClientForm) :
-    # le compte Google crée ici son espace pro sans retaper son identité,
-    # mais les conditions d'utilisation s'appliquent aussi à lui.
+    # Honeypot anti-bots : le consentement CGU / politique de
+    # confidentialité est recueilli dans le pop-up de choix (valable
+    # pour la voie Google ET la voie e-mail) avant d'arriver ici.
     pieux = forms.CharField(
         label="", required=False,
         widget=forms.HiddenInput(
             attrs={"tabindex": -1, "autocomplete": "off"}))
-    accepte_conditions = forms.BooleanField(
-        label="J'accepte les conditions d'utilisation et la politique "
-              "de confidentialité",
-        required=True)
 
     field_order = ["nom_espace", "est_demo", "activite", "specialite",
                    "adresse", "ville", "code_postal", "departement",
-                   "latitude", "longitude", "pieux", "accepte_conditions"]
+                   "latitude", "longitude", "pieux"]
 
     def clean(self):
         donnees = super().clean()
@@ -308,13 +300,9 @@ class InscriptionClientForm(UserCreationForm):
         label="", required=False,
         widget=forms.HiddenInput(
             attrs={"tabindex": -1, "autocomplete": "off"}))
-    accepte_conditions = forms.BooleanField(
-        label="J'accepte les conditions d'utilisation et la politique "
-              "de confidentialité",
-        required=True)
 
     field_order = ["first_name", "last_name", "email", "telephone",
-                   "photo_externe", "pieux", "accepte_conditions",
+                   "photo_externe", "pieux",
                    "password1", "password2"]
 
     class Meta:

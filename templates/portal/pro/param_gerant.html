@@ -24,7 +24,13 @@
           <div class="form-champ">{{ form_gerant.nom.label_tag }} {{ form_gerant.nom }}
             {{ form_gerant.nom.errors }}</div>
         </div>
-        <div class="form-champ">{{ form_gerant.telephone.label_tag }} {{ form_gerant.telephone }}
+        <div class="form-champ">{{ form_gerant.telephone.label_tag }}
+          <div class="champ-tel-wrap">
+            <div class="champ-tel-ligne">
+              <span class="tel-indicatif" id="tel-indicatif" title="Indicatif détecté automatiquement">🇫🇷 +33</span>
+              {{ form_gerant.telephone }}
+            </div>
+          </div>
           {{ form_gerant.telephone.errors }}</div>
       </div>
       <div class="profil-photo">
@@ -55,4 +61,5 @@
 {% endblock %}
 {% block extrajs %}
 <script src="{% static 'js/photo-picker.js' %}" defer></script>
+<script src="{% static 'js/form-validateurs.js' %}" defer></script>
 {% endblock %}
