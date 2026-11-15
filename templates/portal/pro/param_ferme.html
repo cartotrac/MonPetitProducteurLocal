@@ -44,7 +44,7 @@
         <label for="id_nom_espace">{{ form_espace.nom_espace.label }} :</label>
         <div class="nom-espace-logo-wrap">
           <div class="param-logo-apercu-cadre mini-preview-nom" data-photo-apercu="id_logo_externe">
-            <div class="image-picker-cadre logo-mini-cadre">
+            <div class="image-picker-cadre logo-mini-cadre forme-{{ exploitant.logo_forme }}" id="apercu-logo-forme">
               <img class="image-picker-img" alt="Logo">
               <div class="image-picker-placeholder">🖼️</div>
               <div class="image-picker-erreur">❌</div>
@@ -95,6 +95,11 @@
         {{ form_espace.logo_externe }}
         {{ form_espace.logo_externe.errors }}
         <span class="helptext">Lien image web ou Drive</span>
+        <div class="champ-logo-forme">
+          {{ form_espace.logo_forme.label_tag }}
+          {{ form_espace.logo_forme }}
+          {{ form_espace.logo_forme.errors }}
+        </div>
       </div>
 
       <div class="form-champ">
@@ -389,6 +394,19 @@
     });
   }
 
+})();
+
+/* Forme du logo : l'aperçu miniature suit le choix du select. */
+(function () {
+  var selectForme = document.getElementById("id_logo_forme");
+  var apercu = document.getElementById("apercu-logo-forme");
+  if (selectForme && apercu) {
+    selectForme.addEventListener("change", function () {
+      apercu.className = apercu.className
+        .replace(/forme-\S+/g, "").trim()
+        + " forme-" + (selectForme.value || "CERCLE").toLowerCase();
+    });
+  }
 })();
 </script>
 {% endblock %}

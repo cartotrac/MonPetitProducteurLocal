@@ -551,6 +551,16 @@ class Exploitant(models.Model):
             return ""
 
     @property
+    def logo_forme(self):
+        """Forme du logo miniature (vignettes) choisie dans Paramètres
+        Mon espace : « cercle » par défaut."""
+        try:
+            return (self.parametres_vitrine.logo_forme
+                    or ParametresVitrine.FormeLogo.CERCLE).lower()
+        except Exception:
+            return "cercle"
+
+    @property
     def siret_valide(self):
         """SIRET syntaxiquement valide : 14 chiffres, clé de Luhn correcte.
         (Validation de forme, sans appel au registre national en V1.)"""
@@ -1394,8 +1404,22 @@ class ConfigMessagerie(models.Model):
 class ParametresVitrine(models.Model):
     """Personnalisation de la vitrine publique (issue #4)."""
 
+    class FormeLogo(models.TextChoices):
+        """Forme du logo miniature affiché sur les vignettes (page
+        Trouver, favoris) et en tête de vitrine — choisi par le pro."""
+        CERCLE = "CERCLE", "Circulaire"
+        LOSANGE = "LOSANGE", "Losange"
+        CARRE = "CARRE", "Carré"
+        ARRONDI = "ARRONDI", "Carré arrondi"
+        OVALE = "OVALE", "Ovale"
+
     exploitant = models.OneToOneField(Exploitant, on_delete=models.CASCADE,
                                       related_name="parametres_vitrine")
+    logo_forme = models.CharField(
+        "Forme du logo miniature", max_length=10,
+        choices=FormeLogo.choices, default=FormeLogo.CERCLE,
+        help_text=("Forme du logo miniature affiché sur les vignettes "
+                   "(page Trouver, favoris, marchés)."))
     titre_accroche = models.CharField("Titre d'accroche", max_length=150,
                                       blank=True)
     texte_accroche = models.TextField("Texte d'accroche", blank=True)

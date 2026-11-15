@@ -4,7 +4,8 @@ from django.contrib.auth.forms import (AuthenticationForm,
 from django.contrib.auth.models import User
 
 from .models import (Annonce, Bulletin, Categorie, Exploitant, Produit,
-                    ProfilClient, RetourUtilisateur, SemaineRecolte)
+                    ProfilClient, RetourUtilisateur, SemaineRecolte,
+                    ParametresVitrine)
 
 
 def _aide_mot_de_passe(form):
@@ -442,12 +443,17 @@ class ProfilExploitantForm(forms.ModelForm):
     """Édition de sa fiche par un maraîcher (badge SIRET inclus)."""
     logo_externe = forms.URLField(
         label="Lien logo externe", required=False)
+    logo_forme = forms.ChoiceField(
+        label="Forme du logo miniature", required=False,
+        choices=ParametresVitrine.FormeLogo.choices,
+        initial=ParametresVitrine.FormeLogo.CERCLE,
+        help_text="Forme du logo sur les vignettes (page Trouver, favoris…).")
     site_web = forms.URLField(
         label="Site web de l'exploitation", required=False)
     facebook = forms.URLField(label="Page Facebook", required=False)
     instagram = forms.URLField(label="Compte Instagram", required=False)
     field_order = ["nom_espace", "activite", "specialite", "siret", "mode_production",
-                   "logo_externe", "telephone", "mode_fonctionnement", "description",
+                   "logo_externe", "logo_forme", "telephone", "mode_fonctionnement", "description",
                    "adresse", "ville", "code_postal", "departement", "latitude",
                    "longitude", "est_demo"]
 

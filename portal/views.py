@@ -489,7 +489,9 @@ def _recherche_producteurs(q, dept, modes, activites,
         exploitants = exploitants.filter(mode_production__in=modes)
     if activites:
         exploitants = exploitants.filter(activite__in=activites)
-    return exploitants
+    # La forme du logo miniature (ParametresVitrine) est lue dans les
+    # vignettes : un seul JOIN au lieu d'une requête par exploitant.
+    return exploitants.select_related("parametres_vitrine")
 
 
 def _serie_stats(champ, lignes):
@@ -1166,11 +1168,13 @@ def mes_producteurs(request):
     vignettes reprennent la présentation de la page de recherche
     (horaires au survol inclus)."""
     favoris = list(Favori.objects.filter(user=request.user)
-                   .select_related("exploitant"))
+                   .select_related("exploitant",
+                                   "exploitant__parametres_vitrine"))
     exploitant_ids = [f.exploitant_id for f in favoris]
     deja_commandes = (Exploitant.objects.filter(
         visible=True, commandes__client=request.user)
         .exclude(pk__in=exploitant_ids)
+        .select_related("parametres_vitrine")
         .distinct().order_by("nom_espace"))
     est_pro = exploitant_actif(request) is not None
     favoris_slugs = list(Favori.objects.filter(
@@ -4997,6 +5001,9 @@ def param_rubrique(request, rubrique):
                     reseaux["logo_url"] = url
                 else:
                     reseaux.pop("logo_url", None)
+                vitrine.logo_forme = (
+                    form_espace.cleaned_data.get("logo_forme")
+                    or ParametresVitrine.FormeLogo.CERCLE)
                 for cle in ("site_web", "facebook", "instagram"):
                     valeur = form_espace.cleaned_data.get(cle, "").strip()
                     if valeur:
@@ -5153,6 +5160,7 @@ def param_rubrique(request, rubrique):
         form_espace = ProfilExploitantForm(
             instance=exploitant,
             initial={"logo_externe": reseaux.get("logo_url", ""),
+                     "logo_forme": vitrine.logo_forme,
                      "site_web": reseaux.get("site_web", ""),
                      "facebook": reseaux.get("facebook", ""),
                      "instagram": reseaux.get("instagram", "")})

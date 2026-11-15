@@ -5000,3 +5000,45 @@ html.dark .tel-indicatif {
     gap: 0.5rem !important;
   }
 }
+
+/* ===== Vignettes : logo miniature aligné sur la ligne de titre,
+   zone logo + nom d'enseigne cliquable (accès à l'espace pro) ===== */
+.vignette-titre .vignette-identite {
+  display: flex; align-items: center; gap: 0.5rem;
+  flex: 1; min-width: 0;
+  text-decoration: none; color: inherit;
+}
+.vignette-identite h2 { transition: color 0.15s ease; }
+.vignette-identite:hover h2 { color: var(--accent, #2e7d32); }
+.vignette-logo-mini {
+  width: 34px; height: 34px; flex-shrink: 0;
+  object-fit: cover; border-radius: 50%;
+  border: 1px solid var(--border, #e0e0e0);
+  background: #fff;
+}
+/* Formes du logo miniature (choix du pro dans Paramètres Mon espace) */
+.vignette-logo-mini.forme-cercle { border-radius: 50%; }
+.vignette-logo-mini.forme-losange {
+  border-radius: 0;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+.vignette-logo-mini.forme-carre { border-radius: 0; }
+.vignette-logo-mini.forme-arrondi { border-radius: 10px; }
+.vignette-logo-mini.forme-ovale { border-radius: 50%; }
+html.dark .vignette-logo-mini { border-color: #3e5036; background: #273322; }
+
+/* ===== Paramètres Mon espace : sélecteur de forme du logo ===== */
+.champ-logo-forme { margin-top: 0.35rem; }
+.champ-logo-forme label { font-size: 0.85rem; }
+.champ-logo-forme select { max-width: 220px; }
+.logo-mini-cadre.forme-cercle { border-radius: 50% !important; }
+.logo-mini-cadre.forme-losange {
+  border-radius: 0 !important;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+.logo-mini-cadre.forme-carre { border-radius: 0 !important; }
+.logo-mini-cadre.forme-arrondi { border-radius: 10px !important; }
+.logo-mini-cadre.forme-ovale { border-radius: 50% !important; }
+
+/* ===== Fiche publique : description sans titre « À propos de nous » ===== */
+.producer-desc p { margin: 0; }

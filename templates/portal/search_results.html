@@ -147,12 +147,14 @@
                   aria-label="{% if exploitant.slug in favoris_slugs %}Retirer {{ exploitant.nom_espace }} des favoris{% else %}Ajouter {{ exploitant.nom_espace }} aux favoris{% endif %}">{% if exploitant.slug in favoris_slugs %}⭐{% else %}☆{% endif %}</button>
         </form>
       {% endif %}
-      {% if exploitant.logo_url %}
-        <img class="card-logo" src="{{ exploitant.logo_url }}" alt="Logo {{ exploitant.nom_espace }}">
-      {% endif %}
       <div class="vignette-titre">
         <span class="badge badge-activite vignette-badge-activite" title="{{ exploitant.get_activite_display }}{% if exploitant.specialite %} — {{ exploitant.get_specialite_display }}{% endif %}" aria-label="{{ exploitant.get_activite_display }}">{{ exploitant.emoji_vitrine }}</span>
-        <h2><a href="{% url 'portal:producer_detail' exploitant.slug %}">{{ exploitant.nom_espace }}</a></h2>
+        <a class="vignette-identite" href="{% url 'portal:producer_detail' exploitant.slug %}" title="Voir l'espace de {{ exploitant.nom_espace }}">
+          {% if exploitant.logo_url %}
+            <img class="card-logo vignette-logo-mini forme-{{ exploitant.logo_forme }}" src="{{ exploitant.logo_url }}" alt="Logo {{ exploitant.nom_espace }}">
+          {% endif %}
+          <h2>{{ exploitant.nom_espace }}</h2>
+        </a>
         {% if exploitant.mode_production == 'AB' %}<span class="badge badge-ab">Bio (AB)</span>
         {% elif exploitant.mode_production == 'PERMA' %}<span class="badge badge-perma">Permaculture</span>
         {% elif exploitant.mode_production == 'PAYSAN' %}<span class="badge badge-paysan">Paysanne</span>
