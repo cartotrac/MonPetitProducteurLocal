@@ -1,6 +1,6 @@
 # 🌱 MonPetitProducteurLocal
 
-[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE-AGPL-3.0.txt)
 [![Double Licence](https://img.shields.io/badge/Licence-Double%20(Libre%20%2F%20SaaS)-green.svg)](DOUBLE-LICENCE.md)
 
 **Portail web libre de mise en relation et de gestion pour les producteurs et pros locaux — maraîchers, arboriculteurs, éleveurs, fromagers, apiculteurs, foodtrucks, traiteurs, restaurants… — et leurs clients : vitrine, commandes, paniers hebdomadaires et communication directe (e-mail/SMS).**
@@ -95,7 +95,7 @@ Sur le serveur, depuis la racine du projet : `bash scripts/deploy_prod.sh` (+ `-
 
 MonPetitProducteurLocal est proposé sous un modèle de **Double Licence** :
 
-1. **La Voie Libre & Bien Commun (GNU AGPL-3.0)** : le code source est ouvert et librement utilisable pour auto-héberger une instance pour votre territoire ([LICENSE](LICENSE) — texte légal anglais de référence). En contrepartie de la clause Affero, toute instance accessible en réseau comportant des modifications doit impérativement redistribuer ses sources sous AGPL-3.0.
+1. **La Voie Libre & Bien Commun (GNU AGPL-3.0)** : le code source est ouvert et librement utilisable pour auto-héberger une instance pour votre territoire ([LICENSE-AGPL-3.0.txt](LICENSE-AGPL-3.0.txt) — texte légal anglais de référence). En contrepartie de la clause Affero, toute instance accessible en réseau comportant des modifications doit impérativement redistribuer ses sources sous AGPL-3.0.
 2. **La Voie Commerciale / SaaS Éthique** : pour les collectivités, réseaux ou partenaires souhaitant exploiter la plateforme sous forme d'abonnement ou de service managé sans obligation de redistribution réciproque du code ou avec garanties de service dédiées, une licence commerciale est accordée par l'éditeur (**Cartotrac**).
 
 👉 Consultez le détail des conditions et de la gouvernance dans [DOUBLE-LICENCE.md](DOUBLE-LICENCE.md) (le modèle de double licence expliqué en français) et la charte de contribution ([CONTRIBUTING.md](CONTRIBUTING.md)).
