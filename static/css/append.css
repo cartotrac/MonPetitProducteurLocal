@@ -5700,3 +5700,23 @@ html.dark .filtre-tout-cocher { color: #aed581; }
   margin-left: auto;
   flex: none;
 }
+
+
+/* ================== REVUE V3.10 (2026-11-16) ==================
+   Filtres recherche : rang d'actions UNIQUE en tête de menu —
+   « Tout cocher »/« Tout décocher » (un seul visible, selon la
+   majorité des cases cochées) + « ✓ Appliquer » à droite ; plus
+   de doublon « Appliquer » en bas. Les choix se répartissent sur
+   DEUX colonnes (cases à cocher alignées à gauche, icône et
+   libellé à côté) ; titres de groupe et ligne d'aide traversent
+   les deux colonnes. */
+
+.filtre-multi-menu {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  column-gap: 1.6rem;
+  align-content: start;
+}
+.filtre-multi-menu .filtre-multi-actions,
+.filtre-multi-menu .filtre-groupe-titre,
+.filtre-multi-menu .muted { grid-column: 1 / -1; }

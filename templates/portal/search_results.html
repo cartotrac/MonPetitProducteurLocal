@@ -37,12 +37,11 @@
       <div class="filtre-multi-actions">
         <button type="button" class="filtre-tout-cocher" hidden>✓ Tout cocher</button>
         <button type="button" class="filtre-tout-decocher" hidden>✕ Tout décocher</button>
-        <button type="button" class="btn btn-sm btn-appliquer-filtres btn-appliquer-haut" hidden>✓ Appliquer</button>
+        <button type="button" class="btn btn-sm btn-appliquer-filtres btn-appliquer-haut">✓ Appliquer</button>
       </div>
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="MARCHE"{% if 'MARCHE' in type_marche_choisi %} checked{% endif %}> 🎪 Marchés</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="BOUTIQUE"{% if 'BOUTIQUE' in type_marche_choisi %} checked{% endif %}> 🏪 Boutiques de producteurs</label>
       <p class="muted">Tout décocher = marchés et boutiques.</p>
-      <button type="button" class="btn btn-sm btn-appliquer-filtres">✓ Appliquer</button>
     </div>
   </details>
   {% endif %}
@@ -53,7 +52,7 @@
       <div class="filtre-multi-actions">
         <button type="button" class="filtre-tout-cocher" hidden>✓ Tout cocher</button>
         <button type="button" class="filtre-tout-decocher" hidden>✕ Tout décocher</button>
-        <button type="button" class="btn btn-sm btn-appliquer-filtres btn-appliquer-haut" hidden>✓ Appliquer</button>
+        <button type="button" class="btn btn-sm btn-appliquer-filtres btn-appliquer-haut">✓ Appliquer</button>
       </div>
       {# Mode All-in-1 : activités regroupées par catégorie thématique. #}
       {% if visu == "tout" %}<div class="filtre-groupe-titre">🚜🥬 Producteurs</div>{% endif %}
@@ -72,7 +71,6 @@
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="MARCHE"{% if 'MARCHE' in type_marche_choisi %} checked{% endif %}> 🎪 Marchés</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="BOUTIQUE"{% if 'BOUTIQUE' in type_marche_choisi %} checked{% endif %}> 🏪 Boutiques de producteurs</label>{% endif %}
       <p class="muted">Plusieurs choix possibles — tout décocher = toutes les activités.</p>
-      <button type="button" class="btn btn-sm btn-appliquer-filtres">✓ Appliquer</button>
     </div>
   </details>
   {% endif %}
@@ -85,7 +83,7 @@
       <div class="filtre-multi-actions">
         <button type="button" class="filtre-tout-cocher" hidden>✓ Tout cocher</button>
         <button type="button" class="filtre-tout-decocher" hidden>✕ Tout décocher</button>
-        <button type="button" class="btn btn-sm btn-appliquer-filtres btn-appliquer-haut" hidden>✓ Appliquer</button>
+        <button type="button" class="btn btn-sm btn-appliquer-filtres btn-appliquer-haut">✓ Appliquer</button>
       </div>
       <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="AB"{% if 'AB' in mode_choisi %} checked{% endif %}> Bio (AB)</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="PERMA"{% if 'PERMA' in mode_choisi %} checked{% endif %}> Permaculture</label>
@@ -93,7 +91,6 @@
       <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="RAISONNE"{% if 'RAISONNE' in mode_choisi %} checked{% endif %}> Raisonnée</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="CONV"{% if 'CONV' in mode_choisi %} checked{% endif %}> Conventionnelle</label>
       <p class="muted">Plusieurs choix possibles — tout décocher = tous les modes.</p>
-      <button type="button" class="btn btn-sm btn-appliquer-filtres">✓ Appliquer</button>
     </div>
   </details>
   {% endif %}
@@ -353,26 +350,24 @@ window.mpplSoumettre = function (form, garderVue) {
       menus.forEach(function (menu) { menu.open = false; });
     }
   });
-  /* « ✓ Tout cocher » / « ✕ Tout décocher » : modification SANS
-     rechargement, visibilité CONDITIONNELLE — « Tout décocher »
-     disparaît quand rien n'est coché, « Tout cocher » quand tout
-     l'est ; le bouton « ✓ Appliquer » apparaît en haut du menu dès
-     qu'une modification est en attente. */
+  /* Un seul bouton visible à la fois, selon la MAJORITÉ des
+     cases cochées : plus de la moitié cochée => « ✕ Tout
+     décocher », sinon « ✓ Tout cocher ». Modification SANS
+     rechargement ; « ✓ Appliquer » reste en tête du menu. */
   function majEtatBoutons(menu) {
     var cases = menu.querySelectorAll("input[type=checkbox]");
     var cochees = menu.querySelectorAll("input[type=checkbox]:checked");
+    var majorite = cochees.length * 2 > cases.length;
     var cocher = menu.querySelector(".filtre-tout-cocher");
     var decocher = menu.querySelector(".filtre-tout-decocher");
-    if (cocher) { cocher.hidden = cochees.length === cases.length; }
-    if (decocher) { decocher.hidden = cochees.length === 0; }
+    if (cocher) { cocher.hidden = majorite; }
+    if (decocher) { decocher.hidden = !majorite; }
   }
   function marquerEnAttente(menu) {
     menu.querySelectorAll(".btn-appliquer-filtres").forEach(function (b) {
       b.classList.add("en-attente");
       b.textContent = "✓ Appliquer les filtres";
     });
-    var haut = menu.querySelector(".btn-appliquer-haut");
-    if (haut) { haut.hidden = false; }
   }
   barre.querySelectorAll(".filtre-tout-cocher, .filtre-tout-decocher")
       .forEach(function (bouton) {
@@ -407,16 +402,14 @@ window.mpplSoumettre = function (form, garderVue) {
       b.classList.add("en-attente");
       b.textContent = "✓ Appliquer les filtres";
     });
-    form.querySelectorAll(".btn-appliquer-haut").forEach(function (b) {
-      b.hidden = false;
-    });
     form.querySelectorAll("details.filtre-multi").forEach(function (menu) {
       var cases = menu.querySelectorAll("input[type=checkbox]");
       var cochees = menu.querySelectorAll("input[type=checkbox]:checked");
+      var majorite = cochees.length * 2 > cases.length;
       var cocher = menu.querySelector(".filtre-tout-cocher");
       var decocher = menu.querySelector(".filtre-tout-decocher");
-      if (cocher) { cocher.hidden = cochees.length === cases.length; }
-      if (decocher) { decocher.hidden = cochees.length === 0; }
+      if (cocher) { cocher.hidden = majorite; }
+      if (decocher) { decocher.hidden = !majorite; }
     });
   }
   form.querySelectorAll("input[type=checkbox]").forEach(function (caseFiltre) {
