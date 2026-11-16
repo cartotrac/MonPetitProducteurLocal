@@ -5741,3 +5741,19 @@ html.dark .filtre-tout-cocher { color: #aed581; }
 .filtre-multi-liste .filtre-groupe-titre { grid-column: 1 / -1; }
 .filtre-refus,
 .filtre-refus:focus { outline: 2px solid #c0392b; }
+
+
+/* ================== REVUE V3.12 (2026-11-16) ==================
+   Filtres recherche : le bloc des choix colle les cases à cocher
+   aux bords du menu (moins de vide à gauche et à droite) ; le
+   bouton carte « ✕ Retirer les filtres » remet toutes les cases
+   à l'état initial (tout coché) et n'apparaît que si un menu
+   dévie de l'état initial ou qu'une recherche/zone est saisie. */
+
+.filtre-multi-liste { margin: 0 -0.35rem; }
+.filtre-multi-liste .filtre-multi-choix {
+  padding: 0.22rem 0.1rem;
+}
+.filtre-multi-liste .filtre-multi-choix input[type="checkbox"] {
+  justify-self: start;
+}

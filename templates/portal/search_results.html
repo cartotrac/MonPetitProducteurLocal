@@ -441,16 +441,24 @@ window.mpplSoumettre = function (form, garderVue) {
 
 <script>
 /* Filtres ACTIFS : bouton « ✕ Retirer les filtres » posé sur la
-   carte, sous la colonne des modes (à droite). Un clic retire la
-   COMBINAISON complète — cases cochées, recherche libre, zone — et
-   relance la recherche. Visible seulement s'il y a un filtre actif. */
+   carte, sous la colonne des modes (à droite). Un clic REMET TOUTES
+   les cases à l'état initial (tout coché, presets de vue), vide la
+   recherche libre et la zone, puis relance la recherche. Visible
+   seulement si un menu dévie de l'état initial ou qu'une
+   recherche/zone est saisie. */
 (function () {
   var form = document.querySelector(".search-bar");
   if (!form || typeof L === "undefined" || typeof carte === "undefined") {
     return;
   }
-  var actifs = form.querySelectorAll(
-    "input[type=checkbox]:checked").length;
+  var actifs = 0;
+  /* État initial = TOUTES les cases cochées : un menu n'est un
+     filtre actif que s'il dévie de cet état. */
+  form.querySelectorAll("details.filtre-multi").forEach(function (menu) {
+    var cases = menu.querySelectorAll("input[type=checkbox]").length;
+    var cochees = menu.querySelectorAll("input[type=checkbox]:checked").length;
+    if (cochees !== cases) { actifs += 1; }
+  });
   ["q", "dept"].forEach(function (nom) {
     var champ = form.querySelector('input[name="' + nom + '"]');
     if (champ && champ.value.trim()) { actifs += 1; }
@@ -467,7 +475,7 @@ window.mpplSoumettre = function (form, garderVue) {
     b.title = "Retirer tous les filtres actifs (combinaison complète)";
     b.addEventListener("click", function () {
       form.querySelectorAll("input[type=checkbox]").forEach(
-        function (c) { c.checked = false; });
+        function (c) { c.checked = true; });
       ["q", "dept"].forEach(function (nom) {
         var champ = form.querySelector('input[name="' + nom + '"]');
         if (champ) { champ.value = ""; }
