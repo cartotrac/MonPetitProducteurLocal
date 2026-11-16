@@ -40,8 +40,8 @@
       </div>
       <div class="filtre-alerte-min" hidden>⚠️ Sélectionner au moins un item pour appliquer le filtre !</div>
       <div class="filtre-multi-liste">
-      <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="MARCHE"{% if 'MARCHE' in type_marche_affiche %} checked{% endif %}> 🎪 Marchés</label>
-      <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="BOUTIQUE"{% if 'BOUTIQUE' in type_marche_affiche %} checked{% endif %}> 🏪 Boutiques de producteurs</label>
+      <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="MARCHE"{% if 'MARCHE' in type_marche_affiche %} checked{% endif %}><span class="filtre-libelle">🎪 Marchés</span></label>
+      <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="BOUTIQUE"{% if 'BOUTIQUE' in type_marche_affiche %} checked{% endif %}><span class="filtre-libelle">🏪 Boutiques de producteurs</span></label>
       </div>
       <p class="muted">Au moins un choix doit rester coché (les deux ensemble affichent tout).</p>
     </div>
@@ -61,18 +61,18 @@
       {% if visu == "tout" %}<div class="filtre-groupe-titre">🚜🥬 Producteurs</div>{% endif %}
       {% for code, libelle in activites %}
         {% if code != "FOODTRUCK" and code != "TRAITEUR" and code != "RESTAURANT" %}
-        <label class="filtre-multi-choix"><input type="checkbox" name="activite" value="{{ code }}"{% if code in activite_affichee %} checked{% endif %}> <span class="filtre-icone" aria-hidden="true">{% if code == "MARAICHER" %}🥬{% elif code == "ARBORICULTEUR" %}🍎{% elif code == "ELEVEUR" %}🚜{% elif code == "FROMAGER" %}🧀{% elif code == "APICULTEUR" %}🍯{% elif code == "MICRO_BRASSEUR" %}🍺{% elif code == "CONSERVERIE" %}🥫{% elif code == "FOODTRUCK" %}🚚{% elif code == "TRAITEUR" %}🥗{% elif code == "RESTAURANT" %}🍽️{% else %}🌾{% endif %}</span> {{ libelle }}</label>
+        <label class="filtre-multi-choix"><input type="checkbox" name="activite" value="{{ code }}"{% if code in activite_affichee %} checked{% endif %}><span class="filtre-libelle"><span class="filtre-icone" aria-hidden="true">{% if code == "MARAICHER" %}🥬{% elif code == "ARBORICULTEUR" %}🍎{% elif code == "ELEVEUR" %}🚜{% elif code == "FROMAGER" %}🧀{% elif code == "APICULTEUR" %}🍯{% elif code == "MICRO_BRASSEUR" %}🍺{% elif code == "CONSERVERIE" %}🥫{% elif code == "FOODTRUCK" %}🚚{% elif code == "TRAITEUR" %}🥗{% elif code == "RESTAURANT" %}🍽️{% else %}🌾{% endif %}</span> {{ libelle }}</span></label>
         {% endif %}
       {% endfor %}
       {% if visu == "tout" %}<div class="filtre-groupe-titre">🍽️ Restauration</div>{% endif %}
       {% for code, libelle in activites %}
         {% if code == "FOODTRUCK" or code == "TRAITEUR" or code == "RESTAURANT" %}
-        <label class="filtre-multi-choix"><input type="checkbox" name="activite" value="{{ code }}"{% if code in activite_affichee %} checked{% endif %}> <span class="filtre-icone" aria-hidden="true">{% if code == "MARAICHER" %}🥬{% elif code == "ARBORICULTEUR" %}🍎{% elif code == "ELEVEUR" %}🚜{% elif code == "FROMAGER" %}🧀{% elif code == "APICULTEUR" %}🍯{% elif code == "MICRO_BRASSEUR" %}🍺{% elif code == "CONSERVERIE" %}🥫{% elif code == "FOODTRUCK" %}🚚{% elif code == "TRAITEUR" %}🥗{% elif code == "RESTAURANT" %}🍽️{% else %}🌾{% endif %}</span> {{ libelle }}</label>
+        <label class="filtre-multi-choix"><input type="checkbox" name="activite" value="{{ code }}"{% if code in activite_affichee %} checked{% endif %}><span class="filtre-libelle"><span class="filtre-icone" aria-hidden="true">{% if code == "MARAICHER" %}🥬{% elif code == "ARBORICULTEUR" %}🍎{% elif code == "ELEVEUR" %}🚜{% elif code == "FROMAGER" %}🧀{% elif code == "APICULTEUR" %}🍯{% elif code == "MICRO_BRASSEUR" %}🍺{% elif code == "CONSERVERIE" %}🥫{% elif code == "FOODTRUCK" %}🚚{% elif code == "TRAITEUR" %}🥗{% elif code == "RESTAURANT" %}🍽️{% else %}🌾{% endif %}</span> {{ libelle }}</span></label>
         {% endif %}
       {% endfor %}
       {% if visu == "tout" %}<div class="filtre-groupe-titre">🎪 Marchés &amp; Boutiques</div>
-      <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="MARCHE"{% if 'MARCHE' in type_marche_affiche %} checked{% endif %}> 🎪 Marchés</label>
-      <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="BOUTIQUE"{% if 'BOUTIQUE' in type_marche_affiche %} checked{% endif %}> 🏪 Boutiques de producteurs</label>{% endif %}
+      <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="MARCHE"{% if 'MARCHE' in type_marche_affiche %} checked{% endif %}><span class="filtre-libelle">🎪 Marchés</span></label>
+      <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="BOUTIQUE"{% if 'BOUTIQUE' in type_marche_affiche %} checked{% endif %}><span class="filtre-libelle">🏪 Boutiques de producteurs</span></label>{% endif %}
       </div>
       <p class="muted">Plusieurs choix possibles — au moins une activité doit rester cochée.</p>
     </div>
@@ -90,11 +90,11 @@
       </div>
       <div class="filtre-alerte-min" hidden>⚠️ Sélectionner au moins un item pour appliquer le filtre !</div>
       <div class="filtre-multi-liste">
-      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="AB"{% if 'AB' in mode_affiche %} checked{% endif %}> Bio (AB)</label>
-      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="PERMA"{% if 'PERMA' in mode_affiche %} checked{% endif %}> Permaculture</label>
-      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="PAYSAN"{% if 'PAYSAN' in mode_affiche %} checked{% endif %}> Agriculture paysanne</label>
-      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="RAISONNE"{% if 'RAISONNE' in mode_affiche %} checked{% endif %}> Raisonnée</label>
-      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="CONV"{% if 'CONV' in mode_affiche %} checked{% endif %}> Conventionnelle</label>
+      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="AB"{% if 'AB' in mode_affiche %} checked{% endif %}><span class="filtre-libelle">Bio (AB)</span></label>
+      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="PERMA"{% if 'PERMA' in mode_affiche %} checked{% endif %}><span class="filtre-libelle">Permaculture</span></label>
+      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="PAYSAN"{% if 'PAYSAN' in mode_affiche %} checked{% endif %}><span class="filtre-libelle">Agriculture paysanne</span></label>
+      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="RAISONNE"{% if 'RAISONNE' in mode_affiche %} checked{% endif %}><span class="filtre-libelle">Raisonnée</span></label>
+      <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="CONV"{% if 'CONV' in mode_affiche %} checked{% endif %}><span class="filtre-libelle">Conventionnelle</span></label>
       </div>
       <p class="muted">Plusieurs choix possibles — au moins un mode doit rester coché.</p>
     </div>
@@ -431,7 +431,7 @@ window.mpplSoumettre = function (form, garderVue) {
 })();
 </script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="{% static 'js/search-map.js' %}"></script>
+  <script src="{% static 'js/search-map.js' %}?v=2"></script>
 
 <script>
 /* Filtres ACTIFS : bouton « ✕ Retirer les filtres » posé sur la

@@ -5809,3 +5809,20 @@ html.dark .filtre-alerte-min {
   color: #ff9c93;
   border-color: #ff9c93;
 }
+
+
+/* ================== REVUE V3.15 (2026-11-16) ==================
+   Filtres recherche : l'attribut hidden des boutons du rang
+   d'actions est STRICT (les styles .btn ne peuvent plus le
+   masquer) — « ✓ Appliquer » n'apparaît donc ni à l'état initial
+   ni après un « Tout décocher ». Chaque item : icône et libellé
+   regroupés dans un même élément .filtre-libelle (accolés,
+   insécables). Carto : changement de mode réinitialise AUSSI les
+   cases « mode de production » — le passage direct producteurs
+   → All-in-1 n'envoyait plus les modes tout-cochés dans l'URL,
+   ce qui vidait les marchés & boutiques au premier clic (logique
+   hybride « filtres pro sans type de marché »). */
+
+.filtre-multi-actions [hidden] { display: none !important; }
+.filtre-libelle { white-space: nowrap; }
+.filtre-libelle .filtre-icone { margin-right: 0.15rem; }
