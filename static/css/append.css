@@ -5551,3 +5551,27 @@ html.dark .choix-cgu-alerte { color: #ff9c93; }
 .auth-card .champ-tel-wrap { max-width: 280px; }
 html.dark .auth-sous-bloc { background: #172013; border-color: #2e3d25; }
 html.dark .auth-sous-titre { color: #dcedc8; }
+
+
+/* ================== REVUE V3.6 (2026-11-16) ==================
+   Page équipe : le compte utilisé pour la connexion en cours est
+   mis en évidence dans la liste (fond, liseré vert, badge « votre
+   accès actuel ») — propriétaire comme membre rattaché. Pied de
+   page : la carte « Instance animée localement par » est centrée
+   (texte ET logo). */
+
+.equipe-compte-courant {
+  background: var(--accent-light, #eaf3df);
+  border-left: 4px solid var(--accent, #7cb342);
+  padding: 0.45rem 0.7rem;
+  border-radius: 8px;
+  margin: 0.25rem 0;
+}
+html.dark .equipe-compte-courant {
+  background: #22301b;
+  border-left-color: #7cb342;
+}
+.equipe-compte-courant .badge-encours { margin-left: 0.35rem; }
+
+.footer-admin-card { text-align: center; }
+.footer-admin-identity { justify-content: center; }

@@ -10,11 +10,13 @@
 
 <h2>Comptes rattachés</h2>
 <ul>
-  <li>👑 <strong>{{ exploitant.user.get_full_name|default:exploitant.user.username }}</strong>
-      — {{ exploitant.user.email }} <span class="muted">(propriétaire)</span></li>
+  <li{% if exploitant.user == request.user %} class="equipe-compte-courant"{% endif %}>👑 <strong>{{ exploitant.user.get_full_name|default:exploitant.user.username }}</strong>
+      — {{ exploitant.user.email }} <span class="muted">(propriétaire)</span>
+      {% if exploitant.user == request.user %}<span class="badge badge-encours">👁️ votre accès actuel</span>{% endif %}</li>
   {% for membre in membres %}
-    <li>👤 <strong>{{ membre.user.get_full_name|default:membre.user.username }}</strong>
+    <li{% if membre.user == request.user %} class="equipe-compte-courant"{% endif %}>👤 <strong>{{ membre.user.get_full_name|default:membre.user.username }}</strong>
         — {{ membre.user.email }}
+        {% if membre.user == request.user %}<span class="badge badge-encours">👁️ votre accès actuel</span>{% endif %}
         {% if membre.telephone %}· 📞 {{ membre.telephone }}{% endif %}
         <span class="muted">(ajouté le {{ membre.ajoute_le|date:"d/m/Y" }})</span>
         {% if membre.user.is_superuser %}
