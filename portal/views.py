@@ -808,11 +808,29 @@ def producer_search(request):
             c for c in Exploitant.Activite.choices
             if (c[0] in activites_restauration)
             == (visu == "restauration")]
-    # Le bouton « Filtrer » passe en rouge (et un « ✕ Retirer »
-    # apparaît) dès qu'un filtre — texte, zone spatiale ou cases
-    # cochées — est actif.
-    filtre_actif = bool(q or dept or mode_choisi
-                        or activite_choisie or type_marche_choisi)
+    # État initial « TOUTES les cases cochées » : les listes
+    # d'AFFICHAGE reprennent les choix de l'URL, ou la totalité
+    # quand aucun paramètre n'est passé — à l'arrivée sur la page
+    # (mode producteurs ou vue thématique), tous les items sont
+    # cochés et AUCUN bouton de retrait n'apparaît : c'est l'état
+    # SANS filtre. Un jeu de cases égal à la totalité reste aussi
+    # sans filtre (même requête, boutons masqués).
+    toutes_activites = [c[0] for c in activite_cases]
+    tous_modes = [c[0] for c in
+                  Exploitant._meta.get_field(
+                      "mode_production").choices]
+    activite_affichee = activite_choisie or toutes_activites
+    mode_affiche = mode_choisi or tous_modes
+    type_marche_affiche = (type_marche_choisi
+                           or ["MARCHE", "BOUTIQUE"])
+    # Filtre actif seulement si un jeu DÉVIE de l'état initial
+    # (ou texte / zone spatiale saisis).
+    filtre_actif = bool(
+        q or dept
+        or (mode_choisi and set(mode_choisi) != set(tous_modes))
+        or (activite_choisie
+            and set(activite_choisie) != set(toutes_activites))
+        or (type_marche_choisi and len(type_marche_choisi) == 1))
     # Pagination des vignettes : 25 par page par défaut, réglable
     # 10 / 25 / 50 / 100 via « par_page ». La CARTE conserve toujours
     # le jeu complet des résultats filtrés : seule la grille des
@@ -891,7 +909,10 @@ def producer_search(request):
         "graph_marches": graphs["marches"],
         "q": q, "dept": dept,
         "mode_choisi": mode_choisi, "activite_choisie": activite_choisie,
+        "mode_affiche": mode_affiche,
+        "activite_affichee": activite_affichee,
         "type_marche_choisi": type_marche_choisi,
+        "type_marche_affiche": type_marche_affiche,
         "filtre_actif": filtre_actif,
         "favoris_slugs": favoris_slugs,
     })

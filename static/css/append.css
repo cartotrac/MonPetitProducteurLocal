@@ -5757,3 +5757,23 @@ html.dark .filtre-tout-cocher { color: #aed581; }
 .filtre-multi-liste .filtre-multi-choix input[type="checkbox"] {
   justify-self: start;
 }
+
+
+/* ================== REVUE V3.13 (2026-11-16) ==================
+   Filtres recherche : état initial = TOUTES les cases cochées
+   (listes d'affichage côté vue), sans bouton « Retirer les
+   filtres » (carte ou barre) tant qu'aucun jeu ne dévie de
+   l'état initial. Les items repassent sur UNE SEULE colonne
+   (fiable quel que soit l'écran) : chaque ligne est un flex
+   resserré — case à cocher, icône, libellé sur la même ligne,
+   sans espace superflu. */
+
+.filtre-multi-liste { display: block; }
+.filtre-multi-liste .filtre-multi-choix {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  gap: 0.3rem;
+  padding: 0.22rem 0.05rem;
+}
