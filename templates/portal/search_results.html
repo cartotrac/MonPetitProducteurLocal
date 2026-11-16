@@ -50,13 +50,13 @@
       {% if visu == "tout" %}<div class="filtre-groupe-titre">🚜🥬 Producteurs</div>{% endif %}
       {% for code, libelle in activites %}
         {% if code != "FOODTRUCK" and code != "TRAITEUR" and code != "RESTAURANT" %}
-        <label class="filtre-multi-choix"><input type="checkbox" name="activite" value="{{ code }}"{% if code in activite_choisie %} checked{% endif %}> {{ libelle }}</label>
+        <label class="filtre-multi-choix"><input type="checkbox" name="activite" value="{{ code }}"{% if code in activite_choisie %} checked{% endif %}> <span class="filtre-icone" aria-hidden="true">{% if code == "MARAICHER" %}🥬{% elif code == "ARBORICULTEUR" %}🍎{% elif code == "ELEVEUR" %}🚜{% elif code == "FROMAGER" %}🧀{% elif code == "APICULTEUR" %}🍯{% elif code == "MICRO_BRASSEUR" %}🍺{% elif code == "CONSERVERIE" %}🥫{% elif code == "FOODTRUCK" %}🚚{% elif code == "TRAITEUR" %}🥗{% elif code == "RESTAURANT" %}🍽️{% else %}🌾{% endif %}</span> {{ libelle }}</label>
         {% endif %}
       {% endfor %}
       {% if visu == "tout" %}<div class="filtre-groupe-titre">🍽️ Restauration</div>{% endif %}
       {% for code, libelle in activites %}
         {% if code == "FOODTRUCK" or code == "TRAITEUR" or code == "RESTAURANT" %}
-        <label class="filtre-multi-choix"><input type="checkbox" name="activite" value="{{ code }}"{% if code in activite_choisie %} checked{% endif %}> {{ libelle }}</label>
+        <label class="filtre-multi-choix"><input type="checkbox" name="activite" value="{{ code }}"{% if code in activite_choisie %} checked{% endif %}> <span class="filtre-icone" aria-hidden="true">{% if code == "MARAICHER" %}🥬{% elif code == "ARBORICULTEUR" %}🍎{% elif code == "ELEVEUR" %}🚜{% elif code == "FROMAGER" %}🧀{% elif code == "APICULTEUR" %}🍯{% elif code == "MICRO_BRASSEUR" %}🍺{% elif code == "CONSERVERIE" %}🥫{% elif code == "FOODTRUCK" %}🚚{% elif code == "TRAITEUR" %}🥗{% elif code == "RESTAURANT" %}🍽️{% else %}🌾{% endif %}</span> {{ libelle }}</label>
         {% endif %}
       {% endfor %}
       {% if visu == "tout" %}<div class="filtre-groupe-titre">🎪 Marchés &amp; Boutiques</div>
@@ -69,7 +69,7 @@
   <input type="text" name="q" placeholder="{% if visu == 'marches' %}Marché, boutique…{% elif visu == 'restauration' %}Plat, carte, nom…{% elif visu == 'tout' %}Produit, exploitation, plat, marché…{% else %}Produit, exploitation…{% endif %}"{% if q and resultats_vides %} class="filtre-vide"{% endif %} value="{{ q }}">
   <input type="text" name="dept" placeholder="Où ? Département, région ou code postal…" title="Zoome la carte sur un département (nom ou numéro), une région ou un code postal — les vignettes suivent l'emprise"{% if dept and resultats_vides %} class="filtre-vide"{% endif %} value="{{ dept }}" size="14">
   {% if not visu %}
-  <details class="filtre-multi">
+  <details class="filtre-multi filtre-mode-prod">
     <summary>🌱 Modes de production{% if mode_choisi %} ({{ mode_choisi|length }}){% endif %} ▾</summary>
     <div class="filtre-multi-menu">
       <button type="button" class="filtre-tout-decocher">✕ Tout décocher</button>
@@ -150,18 +150,24 @@
                   aria-label="{% if exploitant.slug in favoris_slugs %}Retirer {{ exploitant.nom_espace }} des favoris{% else %}Ajouter {{ exploitant.nom_espace }} aux favoris{% endif %}">{% if exploitant.slug in favoris_slugs %}⭐{% else %}☆{% endif %}</button>
         </form>
       {% endif %}
-      {% if exploitant.logo_url %}
-        <img class="card-logo" src="{{ exploitant.logo_url }}" alt="Logo {{ exploitant.nom_espace }}">
-      {% endif %}
-      <div class="vignette-titre">
-        <span class="badge badge-activite vignette-badge-activite" title="{{ exploitant.get_activite_display }}{% if exploitant.specialite %} — {{ exploitant.get_specialite_display }}{% endif %}" aria-label="{{ exploitant.get_activite_display }}">{{ exploitant.emoji_vitrine }}</span>
-        <h2><a href="{% url 'portal:producer_detail' exploitant.slug %}">{{ exploitant.nom_espace }}</a></h2>
-        {% if exploitant.mode_production == 'AB' %}<span class="badge badge-ab">Bio (AB)</span>
-        {% elif exploitant.mode_production == 'PERMA' %}<span class="badge badge-perma">Permaculture</span>
-        {% elif exploitant.mode_production == 'PAYSAN' %}<span class="badge badge-paysan">Paysanne</span>
-        {% elif exploitant.mode_production == 'RAISONNE' %}<span class="badge badge-raisonne">Raisonnée</span>
-        {% elif exploitant.mode_production == 'CONV' %}<span class="badge badge-conventionnelle">Conventionnelle</span>
-        {% endif %}
+      <div class="vignette-entete-bloc">
+        <a class="vignette-entete" href="{% url 'portal:producer_detail' exploitant.slug %}" title="Voir la vitrine de {{ exploitant.nom_espace }}">
+          {% if exploitant.logo_url %}
+            <img class="card-logo logo-forme-{{ exploitant.logo_forme|lower }}" src="{{ exploitant.logo_url }}" alt="Logo {{ exploitant.nom_espace }}">
+          {% else %}
+            <span class="card-logo card-logo-emoji logo-forme-{{ exploitant.logo_forme|lower }}" title="{{ exploitant.get_activite_display }}">{{ exploitant.emoji_activite }}</span>
+          {% endif %}
+          <span class="vignette-titre"><h2>{{ exploitant.nom_espace }}</h2></span>
+        </a>
+        <p class="vignette-sous-titre">
+          <span title="{{ exploitant.get_activite_display }}{% if exploitant.specialite %} — {{ exploitant.get_specialite_display }}{% endif %}">{{ exploitant.emoji_vitrine }}</span>
+          {% if exploitant.mode_production == 'AB' %}<span class="badge badge-ab" title="Agriculture Biologique (AB)">Bio</span>
+          {% elif exploitant.mode_production == 'PERMA' %}<span class="badge badge-perma" title="Permaculture">Perma.</span>
+          {% elif exploitant.mode_production == 'PAYSAN' %}<span class="badge badge-paysan" title="Agriculture paysanne">Paysanne</span>
+          {% elif exploitant.mode_production == 'RAISONNE' %}<span class="badge badge-raisonne" title="Agriculture raisonnée">Raisonnée</span>
+          {% elif exploitant.mode_production == 'CONV' %}<span class="badge badge-conventionnelle" title="Conventionnelle">Conv.</span>
+          {% endif %}
+        </p>
       </div>
       <p class="muted vignette-localite"><span>{{ exploitant.ville }}{% if exploitant.code_postal %} ({{ exploitant.code_postal }}){% elif exploitant.departement %} ({{ exploitant.departement }}){% endif %}</span>
         <a class="btn btn-sm btn-commander" href="{% url 'portal:order_create' exploitant.slug %}">🛒 Commander</a></p>
@@ -223,9 +229,10 @@
    la position avant rechargement, puis elle est restaurée — la page
    ne remonte plus en haut à chaque interaction. */
 /* Repositionnement DÉTERMINISTE : après tout re-soumission
-   (mode, filtres, démo), la page se cale sur le TITRE DE LA CARTE —
+   (mode, filtres, démo), la page se cale sur le TITRE DE PAGE —
    toujours exactement au même endroit, aucune dérive possible d'un
-   clic à l'autre, quel que soit le contenu au-dessus de la carte. */
+   clic à l'autre — les FILTRES restent ainsi visibles juste sous
+   le titre, prêts à être ajustés. */
 /* Emprise de la carte (centre + zoom) conservée d'un rechargement
    à l'autre : les filtres d'activité et la bascule Démo/Réel ne
    recadrent PLUS la carte (le bouton de cadrage général reste
@@ -266,7 +273,7 @@ window.mpplSoumettre = function (form, garderVue) {
     var p = sessionStorage.getItem("mppl_scroll_recherche");
     if (p) {
       sessionStorage.removeItem("mppl_scroll_recherche");
-      var cible = document.querySelector(".map-canvas-wrap");
+      var cible = document.querySelector(".entete-chercher");
       if (cible) {
         var y = cible.getBoundingClientRect().top + window.scrollY - 8;
         window.scrollTo(0, Math.max(0, y));

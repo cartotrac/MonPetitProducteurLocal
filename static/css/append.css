@@ -5575,3 +5575,47 @@ html.dark .equipe-compte-courant {
 
 .footer-admin-card { text-align: center; }
 .footer-admin-identity { justify-content: center; }
+
+
+/* ================== REVUE V3.7 (2026-11-16) ==================
+   Page recherche : après un changement de mode ou un filtre, la
+   page se cale sur le TITRE DE PAGE (les filtres restent visibles
+   juste dessous) ; filtres : cases à cocher alignées à gauche et
+   compactes, icône d'activité devant chaque libellé, menu « Modes
+   de production » aligné à droite (ne sort plus de la page) ;
+   vignettes : logo (forme paramétrée) ou pastille d'activité à
+   gauche du nom, bloc logo+nom cliquable vers la vitrine, seconde
+   ligne emojis + mode de production raccourci. */
+
+.filtre-multi-choix { justify-content: flex-start; }
+.filtre-multi-choix input { margin: 0; flex: none; width: auto; }
+.filtre-icone { flex: none; }
+.filtre-mode-prod .filtre-multi-menu { left: auto; right: 0; }
+
+/* Forme du logo sur les vignettes de recherche */
+.card-logo.logo-forme-rond { border-radius: 50% !important; }
+.card-logo.logo-forme-carre { border-radius: 4px !important; }
+.card-logo.logo-forme-arrondi { border-radius: 10px !important; }
+/* Pas de logo : pastille de remplacement avec l'emoji d'activité */
+.card-logo-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  flex: none;
+  font-size: 1.55rem;
+  background: var(--accent-light, #eaf3df);
+  color: var(--accent-dark, #33691e);
+}
+html.dark .card-logo-emoji { background: #22301b; color: #dcedc8; }
+/* Seconde ligne de l'entête : emojis activité/spécialité + badge */
+.vignette-sous-titre {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+}
+.vignette-sous-titre .badge { font-size: 0.72rem; }
