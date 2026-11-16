@@ -35,9 +35,10 @@
     <summary>Activités 🎪 &amp; 🏪{% if type_marche_choisi %} ({{ type_marche_choisi|length }}){% endif %} ▾</summary>
     <div class="filtre-multi-menu">
       <div class="filtre-multi-actions">
-        <button type="button" class="filtre-tout-cocher" hidden>✓ Tout cocher</button>
-        <button type="button" class="btn btn-sm btn-appliquer-filtres btn-appliquer-haut">✓ Appliquer</button>
+        <button type="button" class="filtre-tout-decocher" hidden>✕ Tout décocher</button>
+        <button type="button" class="btn btn-sm btn-appliquer-filtres btn-appliquer-haut" hidden>✓ Appliquer</button>
       </div>
+      <div class="filtre-alerte-min" hidden>⚠️ Sélectionner au moins un item pour appliquer le filtre !</div>
       <div class="filtre-multi-liste">
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="MARCHE"{% if 'MARCHE' in type_marche_affiche %} checked{% endif %}> 🎪 Marchés</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="BOUTIQUE"{% if 'BOUTIQUE' in type_marche_affiche %} checked{% endif %}> 🏪 Boutiques de producteurs</label>
@@ -51,9 +52,10 @@
     <summary>{% if visu == "restauration" %}🍽️{% else %}🥬{% endif %} Activités{% if activite_choisie %} ({{ activite_choisie|length }}){% endif %} ▾</summary>
     <div class="filtre-multi-menu">
       <div class="filtre-multi-actions">
-        <button type="button" class="filtre-tout-cocher" hidden>✓ Tout cocher</button>
-        <button type="button" class="btn btn-sm btn-appliquer-filtres btn-appliquer-haut">✓ Appliquer</button>
+        <button type="button" class="filtre-tout-decocher" hidden>✕ Tout décocher</button>
+        <button type="button" class="btn btn-sm btn-appliquer-filtres btn-appliquer-haut" hidden>✓ Appliquer</button>
       </div>
+      <div class="filtre-alerte-min" hidden>⚠️ Sélectionner au moins un item pour appliquer le filtre !</div>
       <div class="filtre-multi-liste">
       {# Mode All-in-1 : activités regroupées par catégorie thématique. #}
       {% if visu == "tout" %}<div class="filtre-groupe-titre">🚜🥬 Producteurs</div>{% endif %}
@@ -83,9 +85,10 @@
     <summary>🌱 Modes de production{% if mode_choisi %} ({{ mode_choisi|length }}){% endif %} ▾</summary>
     <div class="filtre-multi-menu">
       <div class="filtre-multi-actions">
-        <button type="button" class="filtre-tout-cocher" hidden>✓ Tout cocher</button>
-        <button type="button" class="btn btn-sm btn-appliquer-filtres btn-appliquer-haut">✓ Appliquer</button>
+        <button type="button" class="filtre-tout-decocher" hidden>✕ Tout décocher</button>
+        <button type="button" class="btn btn-sm btn-appliquer-filtres btn-appliquer-haut" hidden>✓ Appliquer</button>
       </div>
+      <div class="filtre-alerte-min" hidden>⚠️ Sélectionner au moins un item pour appliquer le filtre !</div>
       <div class="filtre-multi-liste">
       <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="AB"{% if 'AB' in mode_affiche %} checked{% endif %}> Bio (AB)</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="PERMA"{% if 'PERMA' in mode_affiche %} checked{% endif %}> Permaculture</label>
@@ -353,44 +356,48 @@ window.mpplSoumettre = function (form, garderVue) {
       menus.forEach(function (menu) { menu.open = false; });
     }
   });
-  /* Plus de « Tout décocher » : au moins un choix doit rester
-     coché par menu (la dernière case active résiste à un clic de
-     décochage). « ✓ Tout cocher » n'apparaît que si l'état
-     APPLIQUÉ du filtre a au moins un choix décoché — évalué au
-     chargement de la page, pas en pleine manipulation. */
+  /* Plus de « Tout cocher » (le retrait des filtres remet tout
+     coché, depuis la carte ou la barre). « ✕ Tout décocher » est
+     visible tant qu'au moins DEUX items sont cochés. « ✓ Appliquer »
+     n'apparaît que si l'état dévie du preset initial (au moins un
+     item décoché) ET qu'un item au moins reste coché. Si TOUT est
+     décoché, un message imposant exige de sélectionner au moins un
+     item. */
   function majEtatBoutons(menu) {
-    var cases = menu.querySelectorAll("input[type=checkbox]");
-    var cochees = menu.querySelectorAll("input[type=checkbox]:checked");
-    var cocher = menu.querySelector(".filtre-tout-cocher");
-    if (cocher) { cocher.hidden = cochees.length === cases.length; }
+    var cases = menu.querySelectorAll("input[type=checkbox]").length;
+    var cochees = menu.querySelectorAll("input[type=checkbox]:checked").length;
+    var decocher = menu.querySelector(".filtre-tout-decocher");
+    var appliquer = menu.querySelector(".btn-appliquer-haut");
+    var alerte = menu.querySelector(".filtre-alerte-min");
+    if (decocher) { decocher.hidden = cochees < 2; }
+    if (appliquer) { appliquer.hidden = !(cochees >= 1 && cochees < cases); }
+    if (alerte) { alerte.hidden = cochees >= 1; }
   }
-  function marquerEnAttente(menu) {
-    menu.querySelectorAll(".btn-appliquer-filtres").forEach(function (b) {
-      b.classList.add("en-attente");
-      b.textContent = "✓ Appliquer les filtres";
-    });
-  }
-  barre.querySelectorAll(".filtre-tout-cocher")
+  barre.querySelectorAll(".filtre-tout-decocher")
       .forEach(function (bouton) {
     bouton.addEventListener("click", function () {
       var menu = bouton.closest(".filtre-multi-menu");
-      var tout = bouton.classList.contains("filtre-tout-cocher");
       menu.querySelectorAll("input[type=checkbox]")
-          .forEach(function (c) { c.checked = tout; });
-      marquerEnAttente(menu);
+          .forEach(function (c) { c.checked = false; });
       majEtatBoutons(menu);
     });
   });
-  /* État initial des boutons conditionnels, au chargement. */
-  barre.querySelectorAll("details.filtre-multi").forEach(majEtatBoutons);
+  /* Chaque coche / décoche met à jour boutons et message ;
+     l'état initial est évalué au chargement. */
+  barre.querySelectorAll("details.filtre-multi").forEach(function (menu) {
+    menu.querySelectorAll("input[type=checkbox]").forEach(function (c) {
+      c.addEventListener("change", function () { majEtatBoutons(menu); });
+    });
+    majEtatBoutons(menu);
+  });
 })();
 </script>
 <script>
 /* Filtres à application différée : cocher ou décocher une case ne
    recharge PLUS la page — on peut combiner plusieurs choix (menus
    activité, marchés, mode de production) sans refresh intermédiaire
-   ; la recherche part au bouton « ✓ Appliquer » du menu (mis en
-   évidence dès la première modification). Les champs texte
+   ; la recherche part au bouton « ✓ Appliquer » du menu (apparu
+   dès le premier item décoché, masqué tant que tout est coché). Les champs texte
    (recherche libre, zone) se soumettent toujours à la sortie du
    champ. Un champ texte actif qui n'affiche AUCUNE entité est
    entouré de rouge (filtre-vide). */
@@ -406,19 +413,6 @@ window.mpplSoumettre = function (form, garderVue) {
   }
   form.querySelectorAll("input[type=checkbox]").forEach(function (caseFiltre) {
     caseFiltre.addEventListener("change", modifsEnAttente);
-    /* Minimum un choix coché : la dernière case du menu ne peut
-       pas être décochée (retour visuel bref en rouge). */
-    caseFiltre.addEventListener("click", function () {
-      var menu = caseFiltre.closest("details.filtre-multi");
-      if (!menu || caseFiltre.checked) { return; }
-      if (!menu.querySelector("input[type=checkbox]:checked")) {
-        caseFiltre.checked = true;
-        caseFiltre.classList.add("filtre-refus");
-        setTimeout(function () {
-          caseFiltre.classList.remove("filtre-refus");
-        }, 1200);
-      }
-    });
   });
   boutonsAppliquer.forEach(function (b) {
     b.addEventListener("click", function () { window.mpplSoumettre(form); });

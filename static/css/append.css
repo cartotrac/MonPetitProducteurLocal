@@ -5777,3 +5777,35 @@ html.dark .filtre-tout-cocher { color: #aed581; }
   gap: 0.3rem;
   padding: 0.22rem 0.05rem;
 }
+
+
+/* ================== REVUE V3.14 (2026-11-16) ==================
+   Filtres recherche : plus de « Tout cocher » (le retrait des
+   filtres remet tout coché). « ✕ Tout décocher » visible dès que
+   deux items au moins sont cochés ; « ✓ Appliquer » n'apparaît
+   qu'après décochage d'au moins un item. Tout décoché : message
+   imposant exigeant au moins un item. Mise en page : bloc des
+   boutons d'action PUIS bloc liste, tous deux calés sur le MÊME
+   bord gauche (aucun espace superflu autour des cases à cocher). */
+
+.filtre-multi-menu { padding: 0.4rem 0.5rem; }
+.filtre-multi-actions { padding: 0 0 0.4rem; margin: 0; }
+.filtre-tout-decocher { padding: 0.15rem 0; }
+.filtre-multi-liste { margin: 0; }
+.filtre-multi-liste .filtre-multi-choix { padding: 0.22rem 0; }
+.filtre-alerte-min {
+  margin: 0.2rem 0 0.3rem;
+  padding: 0.45rem 0.5rem;
+  border: 1px solid #c0392b;
+  border-radius: 6px;
+  background: #fdecea;
+  color: #c0392b;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.filtre-alerte-min[hidden] { display: none; }
+html.dark .filtre-alerte-min {
+  background: #3b1d1a;
+  color: #ff9c93;
+  border-color: #ff9c93;
+}
