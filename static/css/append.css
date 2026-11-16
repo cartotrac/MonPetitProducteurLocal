@@ -5720,3 +5720,24 @@ html.dark .filtre-tout-cocher { color: #aed581; }
 .filtre-multi-menu .filtre-multi-actions,
 .filtre-multi-menu .filtre-groupe-titre,
 .filtre-multi-menu .muted { grid-column: 1 / -1; }
+
+
+/* ================== REVUE V3.11 (2026-11-16) ==================
+   Filtres recherche : plus de « Tout décocher » — au moins un
+   choix doit rester coché par menu (la dernière case active
+   résiste au clic, entourage rouge bref). « ✓ Tout cocher » ne
+   s'affiche que si l'état APPLIQUÉ a un choix décoché. Les choix
+   vivent dans leur PROPRE bloc deux colonnes (.filtre-multi-liste),
+   indépendant du rang d'actions : largeurs de colonnes non
+   conditionnées par les boutons ni leurs libellés. */
+
+.filtre-multi-menu { display: block; }
+.filtre-multi-liste {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  column-gap: 1.6rem;
+  align-content: start;
+}
+.filtre-multi-liste .filtre-groupe-titre { grid-column: 1 / -1; }
+.filtre-refus,
+.filtre-refus:focus { outline: 2px solid #c0392b; }

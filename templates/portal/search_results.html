@@ -36,12 +36,13 @@
     <div class="filtre-multi-menu">
       <div class="filtre-multi-actions">
         <button type="button" class="filtre-tout-cocher" hidden>✓ Tout cocher</button>
-        <button type="button" class="filtre-tout-decocher" hidden>✕ Tout décocher</button>
         <button type="button" class="btn btn-sm btn-appliquer-filtres btn-appliquer-haut">✓ Appliquer</button>
       </div>
+      <div class="filtre-multi-liste">
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="MARCHE"{% if 'MARCHE' in type_marche_choisi %} checked{% endif %}> 🎪 Marchés</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="BOUTIQUE"{% if 'BOUTIQUE' in type_marche_choisi %} checked{% endif %}> 🏪 Boutiques de producteurs</label>
-      <p class="muted">Tout décocher = marchés et boutiques.</p>
+      </div>
+      <p class="muted">Au moins un choix doit rester coché (les deux ensemble affichent tout).</p>
     </div>
   </details>
   {% endif %}
@@ -51,9 +52,9 @@
     <div class="filtre-multi-menu">
       <div class="filtre-multi-actions">
         <button type="button" class="filtre-tout-cocher" hidden>✓ Tout cocher</button>
-        <button type="button" class="filtre-tout-decocher" hidden>✕ Tout décocher</button>
         <button type="button" class="btn btn-sm btn-appliquer-filtres btn-appliquer-haut">✓ Appliquer</button>
       </div>
+      <div class="filtre-multi-liste">
       {# Mode All-in-1 : activités regroupées par catégorie thématique. #}
       {% if visu == "tout" %}<div class="filtre-groupe-titre">🚜🥬 Producteurs</div>{% endif %}
       {% for code, libelle in activites %}
@@ -70,7 +71,8 @@
       {% if visu == "tout" %}<div class="filtre-groupe-titre">🎪 Marchés &amp; Boutiques</div>
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="MARCHE"{% if 'MARCHE' in type_marche_choisi %} checked{% endif %}> 🎪 Marchés</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="BOUTIQUE"{% if 'BOUTIQUE' in type_marche_choisi %} checked{% endif %}> 🏪 Boutiques de producteurs</label>{% endif %}
-      <p class="muted">Plusieurs choix possibles — tout décocher = toutes les activités.</p>
+      </div>
+      <p class="muted">Plusieurs choix possibles — au moins une activité doit rester cochée.</p>
     </div>
   </details>
   {% endif %}
@@ -82,15 +84,16 @@
     <div class="filtre-multi-menu">
       <div class="filtre-multi-actions">
         <button type="button" class="filtre-tout-cocher" hidden>✓ Tout cocher</button>
-        <button type="button" class="filtre-tout-decocher" hidden>✕ Tout décocher</button>
         <button type="button" class="btn btn-sm btn-appliquer-filtres btn-appliquer-haut">✓ Appliquer</button>
       </div>
+      <div class="filtre-multi-liste">
       <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="AB"{% if 'AB' in mode_choisi %} checked{% endif %}> Bio (AB)</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="PERMA"{% if 'PERMA' in mode_choisi %} checked{% endif %}> Permaculture</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="PAYSAN"{% if 'PAYSAN' in mode_choisi %} checked{% endif %}> Agriculture paysanne</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="RAISONNE"{% if 'RAISONNE' in mode_choisi %} checked{% endif %}> Raisonnée</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="CONV"{% if 'CONV' in mode_choisi %} checked{% endif %}> Conventionnelle</label>
-      <p class="muted">Plusieurs choix possibles — tout décocher = tous les modes.</p>
+      </div>
+      <p class="muted">Plusieurs choix possibles — au moins un mode doit rester coché.</p>
     </div>
   </details>
   {% endif %}
@@ -350,18 +353,16 @@ window.mpplSoumettre = function (form, garderVue) {
       menus.forEach(function (menu) { menu.open = false; });
     }
   });
-  /* Un seul bouton visible à la fois, selon la MAJORITÉ des
-     cases cochées : plus de la moitié cochée => « ✕ Tout
-     décocher », sinon « ✓ Tout cocher ». Modification SANS
-     rechargement ; « ✓ Appliquer » reste en tête du menu. */
+  /* Plus de « Tout décocher » : au moins un choix doit rester
+     coché par menu (la dernière case active résiste à un clic de
+     décochage). « ✓ Tout cocher » n'apparaît que si l'état
+     APPLIQUÉ du filtre a au moins un choix décoché — évalué au
+     chargement de la page, pas en pleine manipulation. */
   function majEtatBoutons(menu) {
     var cases = menu.querySelectorAll("input[type=checkbox]");
     var cochees = menu.querySelectorAll("input[type=checkbox]:checked");
-    var majorite = cochees.length * 2 > cases.length;
     var cocher = menu.querySelector(".filtre-tout-cocher");
-    var decocher = menu.querySelector(".filtre-tout-decocher");
-    if (cocher) { cocher.hidden = majorite; }
-    if (decocher) { decocher.hidden = !majorite; }
+    if (cocher) { cocher.hidden = cochees.length === cases.length; }
   }
   function marquerEnAttente(menu) {
     menu.querySelectorAll(".btn-appliquer-filtres").forEach(function (b) {
@@ -369,7 +370,7 @@ window.mpplSoumettre = function (form, garderVue) {
       b.textContent = "✓ Appliquer les filtres";
     });
   }
-  barre.querySelectorAll(".filtre-tout-cocher, .filtre-tout-decocher")
+  barre.querySelectorAll(".filtre-tout-cocher")
       .forEach(function (bouton) {
     bouton.addEventListener("click", function () {
       var menu = bouton.closest(".filtre-multi-menu");
@@ -402,18 +403,22 @@ window.mpplSoumettre = function (form, garderVue) {
       b.classList.add("en-attente");
       b.textContent = "✓ Appliquer les filtres";
     });
-    form.querySelectorAll("details.filtre-multi").forEach(function (menu) {
-      var cases = menu.querySelectorAll("input[type=checkbox]");
-      var cochees = menu.querySelectorAll("input[type=checkbox]:checked");
-      var majorite = cochees.length * 2 > cases.length;
-      var cocher = menu.querySelector(".filtre-tout-cocher");
-      var decocher = menu.querySelector(".filtre-tout-decocher");
-      if (cocher) { cocher.hidden = majorite; }
-      if (decocher) { decocher.hidden = !majorite; }
-    });
   }
   form.querySelectorAll("input[type=checkbox]").forEach(function (caseFiltre) {
     caseFiltre.addEventListener("change", modifsEnAttente);
+    /* Minimum un choix coché : la dernière case du menu ne peut
+       pas être décochée (retour visuel bref en rouge). */
+    caseFiltre.addEventListener("click", function () {
+      var menu = caseFiltre.closest("details.filtre-multi");
+      if (!menu || caseFiltre.checked) { return; }
+      if (!menu.querySelector("input[type=checkbox]:checked")) {
+        caseFiltre.checked = true;
+        caseFiltre.classList.add("filtre-refus");
+        setTimeout(function () {
+          caseFiltre.classList.remove("filtre-refus");
+        }, 1200);
+      }
+    });
   });
   boutonsAppliquer.forEach(function (b) {
     b.addEventListener("click", function () { window.mpplSoumettre(form); });
