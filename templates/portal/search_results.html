@@ -38,6 +38,7 @@
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="MARCHE"{% if 'MARCHE' in type_marche_choisi %} checked{% endif %}> 🎪 Marchés</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="BOUTIQUE"{% if 'BOUTIQUE' in type_marche_choisi %} checked{% endif %}> 🏪 Boutiques de producteurs</label>
       <p class="muted">Tout décocher = marchés et boutiques.</p>
+      <button type="button" class="btn btn-sm btn-appliquer-filtres">✓ Appliquer</button>
     </div>
   </details>
   {% endif %}
@@ -63,6 +64,7 @@
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="MARCHE"{% if 'MARCHE' in type_marche_choisi %} checked{% endif %}> 🎪 Marchés</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="type_marche" value="BOUTIQUE"{% if 'BOUTIQUE' in type_marche_choisi %} checked{% endif %}> 🏪 Boutiques de producteurs</label>{% endif %}
       <p class="muted">Plusieurs choix possibles — tout décocher = toutes les activités.</p>
+      <button type="button" class="btn btn-sm btn-appliquer-filtres">✓ Appliquer</button>
     </div>
   </details>
   {% endif %}
@@ -79,6 +81,7 @@
       <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="RAISONNE"{% if 'RAISONNE' in mode_choisi %} checked{% endif %}> Raisonnée</label>
       <label class="filtre-multi-choix"><input type="checkbox" name="mode" value="CONV"{% if 'CONV' in mode_choisi %} checked{% endif %}> Conventionnelle</label>
       <p class="muted">Plusieurs choix possibles — tout décocher = tous les modes.</p>
+      <button type="button" class="btn btn-sm btn-appliquer-filtres">✓ Appliquer</button>
     </div>
   </details>
   {% endif %}
@@ -339,29 +342,47 @@ window.mpplSoumettre = function (form, garderVue) {
     }
   });
   /* « ✕ Tout décocher » : première ligne de chaque menu — décoche
-     toutes les cases du menu PUIS soumet le formulaire : les filtres
-     sont dynamiques, il n'y a plus de bouton « Filtrer ». */
+     toutes les cases du menu SANS recharger : la modification reste
+     en attente jusqu'au bouton « ✓ Appliquer » du menu. */
   barre.querySelectorAll(".filtre-tout-decocher").forEach(function (bouton) {
     bouton.addEventListener("click", function () {
       bouton.closest(".filtre-multi-menu")
         .querySelectorAll("input[type=checkbox]")
         .forEach(function (caseFiltre) { caseFiltre.checked = false; });
-      barre.submit();
+      var appl = bouton.closest(".filtre-multi-menu")
+                        .querySelector(".btn-appliquer-filtres");
+      if (appl) {
+        appl.classList.add("en-attente");
+        appl.textContent = "✓ Appliquer les filtres";
+      }
     });
   });
 })();
 </script>
 <script>
-/* Filtres dynamiques : plus de bouton « Filtrer » — cocher ou
-   décocher une case soumet le formulaire immédiatement ; les champs
-   texte (recherche libre, zone) se soumettent à la sortie du champ
-   dès que la valeur saisie a changé. Un champ texte actif qui
-   n'affiche AUCUNE entité est entouré de rouge (filtre-vide). */
+/* Filtres à application différée : cocher ou décocher une case ne
+   recharge PLUS la page — on peut combiner plusieurs choix (menus
+   activité, marchés, mode de production) sans refresh intermédiaire
+   ; la recherche part au bouton « ✓ Appliquer » du menu (mis en
+   évidence dès la première modification). Les champs texte
+   (recherche libre, zone) se soumettent toujours à la sortie du
+   champ. Un champ texte actif qui n'affiche AUCUNE entité est
+   entouré de rouge (filtre-vide). */
 (function () {
   var form = document.querySelector(".search-bar");
   if (!form) { return; }
+  var boutonsAppliquer = form.querySelectorAll(".btn-appliquer-filtres");
+  function modifsEnAttente() {
+    boutonsAppliquer.forEach(function (b) {
+      b.classList.add("en-attente");
+      b.textContent = "✓ Appliquer les filtres";
+    });
+  }
   form.querySelectorAll("input[type=checkbox]").forEach(function (caseFiltre) {
-    caseFiltre.addEventListener("change", function () { window.mpplSoumettre(form); });
+    caseFiltre.addEventListener("change", modifsEnAttente);
+  });
+  boutonsAppliquer.forEach(function (b) {
+    b.addEventListener("click", function () { window.mpplSoumettre(form); });
   });
   ["q", "dept"].forEach(function (nom) {
     var champ = form.querySelector('input[name="' + nom + '"]');

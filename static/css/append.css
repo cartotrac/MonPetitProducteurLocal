@@ -5619,3 +5619,39 @@ html.dark .card-logo-emoji { background: #22301b; color: #dcedc8; }
   font-size: 1.05rem;
 }
 .vignette-sous-titre .badge { font-size: 0.72rem; }
+
+
+/* ================== REVUE V3.8 (2026-11-16) ==================
+   Filtres recherche : chaque choix tient sur UNE ligne (boîte à
+   cocher à gauche, libellé insécable) et le menu s'adapte à son
+   contenu ; la soumission est DIFFÉRÉE : on coche plusieurs choix
+   puis on applique via le bouton « ✓ Appliquer » (mis en évidence
+   dès la première modification). Vitrine publique : les blocs
+   récolte / carte-boutique (div .cal-courante.card) passent en
+   mode sombre comme les sections équivalentes. */
+
+.filtre-multi-menu {
+  min-width: max-content;
+  max-width: calc(100vw - 2rem);
+}
+.filtre-multi-choix { flex-wrap: nowrap; white-space: nowrap; }
+.btn-appliquer-filtres { margin-top: 0.5rem; width: 100%; }
+.btn-appliquer-filtres.en-attente {
+  background: #2e7d32;
+  color: #fff;
+  font-weight: 700;
+}
+html.dark .btn-appliquer-filtres.en-attente { background: #558b2f; }
+
+/* Vitrine : blocs récolte & carte-boutique en mode sombre (les
+   règles existantes ne visaient que section.cal-courante, la
+   vitrine utilise div.cal-courante.card) */
+html.dark .cal-courante.card {
+  background: #20301c !important;
+  color: #e6e4da !important;
+  border-color: #4e6b3a !important;
+}
+html.dark .cal-courante.card h2,
+html.dark .cal-courante.card h3,
+html.dark .cal-courante.card p,
+html.dark .cal-courante.card .muted { color: #e6e4da !important; }
