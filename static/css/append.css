@@ -5655,3 +5655,48 @@ html.dark .cal-courante.card h2,
 html.dark .cal-courante.card h3,
 html.dark .cal-courante.card p,
 html.dark .cal-courante.card .muted { color: #e6e4da !important; }
+
+
+/* ================== REVUE V3.9 (2026-11-16) ==================
+   Filtres recherche : la grille des choix passe à TROIS colonnes
+   (case à cocher, icône, libellé) — depuis l'ajout des icônes, la
+   grille à deux colonnes rejetait le libellé sur une seconde
+   ligne. Rang d'actions en tête de menu : « ✓ Tout cocher » /
+   « ✕ Tout décocher » à visibilité conditionnelle + bouton
+   « ✓ Appliquer » en haut (pas besoin de faire défiler). */
+
+.filtre-multi-menu .filtre-multi-choix {
+  grid-template-columns: auto auto 1fr;
+}
+.filtre-multi-actions {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 0 0.1rem 0.4rem;
+  border-bottom: 1px solid #e0e8da;
+  margin-bottom: 0.35rem;
+}
+html.dark .filtre-multi-actions { border-bottom-color: #55624a; }
+.filtre-tout-cocher {
+  background: none;
+  border: 0;
+  color: #2e7d32;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.15rem 0.1rem;
+}
+.filtre-tout-cocher:hover { text-decoration: underline; }
+html.dark .filtre-tout-cocher { color: #aed581; }
+.filtre-tout-decocher {
+  border-bottom: 0;
+  margin: 0;
+  width: auto;
+}
+.filtre-multi-actions .btn-appliquer-filtres {
+  width: auto;
+  margin: 0;
+  margin-left: auto;
+  flex: none;
+}
