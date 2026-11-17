@@ -130,8 +130,7 @@
           <header class="gestion-cat-tete">
             {% if cat.pk %}
               <span class="gestion-poignee" title="Glissez pour réordonner les catégories">⠿</span>
-              <input class="gestion-cat-nom" type="text" name="nom_cat_{{ cat.pk }}" value="{{ cat.nom }}" maxlength="80" title="Libellé de la catégorie">
-              <button type="submit" name="action" value="categorie_renommer:{{ cat.pk }}" class="btn btn-sm" title="Enregistrer ce nouveau libellé">✏️</button>
+              <input class="gestion-cat-nom" type="text" name="nom_cat_{{ cat.pk }}" value="{{ cat.nom }}" maxlength="80" title="Libellé de la catégorie — enregistré par le 💾 Tout enregistrer en bas de page">
               <button type="submit" name="mouvement" value="categorie:{{ cat.pk }}:haut" class="btn btn-sm" title="Catégorie vers le haut">▲</button>
               <button type="submit" name="mouvement" value="categorie:{{ cat.pk }}:bas" class="btn btn-sm" title="Catégorie vers le bas">▼</button>
               <button type="submit" name="action" value="categorie_supprimer:{{ cat.pk }}"
@@ -152,7 +151,9 @@
                   <input type="url" class="cat-media-url" placeholder="Coller un lien (Drive, cloud, photo en ligne…)">
                   <button type="button" class="btn btn-sm cat-media-ajouter" title="Ajouter ce lien à la catégorie">➕ Ajouter le média</button>
                 </div>
-                <button type="submit" name="action" value="categorie_medias:{{ cat.pk }}" class="btn btn-sm">💾 Enregistrer les médias</button>
+                <p class="muted cat-medias-aide">Ajoutez ou retirez des lignes, puis
+                   enregistrez avec le 💾 <strong>Tout enregistrer</strong> en bas de
+                   page (commun aux produits, catégories et médias).</p>
               </details>
             {% else %}
               <h3 class="gestion-cat-titre">Sans catégorie</h3>
@@ -186,7 +187,7 @@
                 <label class="gestion-champ"><span>Prix €</span>
                   <input type="text" name="prix_{{ produit.pk }}" value="{% if produit.prix %}{{ produit.prix }}{% endif %}" size="6" inputmode="decimal"></label>
                 <label class="gestion-champ gestion-champ-large"><span>Descriptif</span>
-                  <textarea name="desc_{{ produit.pk }}" rows="1" maxlength="500" placeholder="Descriptif court pour la vitrine">{{ produit.description }}</textarea></label>
+                  <textarea name="desc_{{ produit.pk }}" rows="3" maxlength="500" class="gestion-desc" placeholder="Descriptif court pour la vitrine">{{ produit.description }}</textarea></label>
                 <label class="gestion-champ gestion-champ-large"><span>Média</span>
                   <input type="url" name="media_{{ produit.pk }}" value="{{ produit.image_externe }}" placeholder="Lien photo externe (drive, cloud…)"></label>
                 <span class="gestion-actions">
@@ -218,17 +219,22 @@
       {% endif %}
 
       <p class="save-bar gestion-save">
-        <button class="btn btn-enregistrer" type="submit" name="enregistrer" value="1">💾 Enregistrer le catalogue</button>
+        <button class="btn btn-enregistrer" type="submit" name="enregistrer" value="1" title="Enregistre en une fois : produits (libellés, unités, prix, descriptifs, médias), catégories (libellés, médias) et l'ordre affiché">💾 Tout enregistrer</button>
+        <span id="gestion-indice-modifs" class="badge badge-encours" hidden>✏️ Modifications non enregistrées</span>
         <button type="submit" name="action" value="produits_retirer"
                 onclick="if(!confirm('Retirer du catalogue les produits cochés ? Les commandes passées sont conservées.'))event.preventDefault();"
                 class="btn btn-outline btn-sm">🗑 Retirer les produits cochés</button>
         <span id="gestion-indice-ordre" class="badge badge-encours" hidden>Ordre modifié — cliquez sur 💾 Enregistrer</span>
       </p>
-      <p class="muted">Glisser-déposer : saisissez la poignée ⠿ d'un produit pour le
-         déplacer (au sein d'une catégorie ou vers une autre), ou celle d'une
-         catégorie pour réordonner. Le bouton 💾 enregistre en une fois
-         libellés, unités, prix, descriptifs, médias et ordre. « Autre… »
-         ouvre une unité personnalisée. Prix ou descriptif vide = effacé.</p>
+      <p class="muted">Un seul bouton 💾 <strong>Tout enregistrer</strong> :
+         produits (libellés, unités, prix, descriptifs, médias), catégories
+         (libellés, médias) et l'ordre affiché, en une fois. Tout champ
+         modifié passe en surbrillance orange et le badge « ✏️ Modifications
+         non enregistrées » apparaît jusqu'à la sauvegarde. Glisser-déposer :
+         saisissez la poignée ⠿ d'un produit pour le déplacer (au sein d'une
+         catégorie ou vers une autre), ou celle d'une catégorie pour
+         réordonner. « Autre… » ouvre une unité personnalisée. Prix ou
+         descriptif vide = effacé.</p>
     </div>
   </form>
 <script>
@@ -338,6 +344,29 @@
 })();
 </script>
 <script>
+/* Suivi des modifications : tout champ édité dans le bloc produits
+   (libellés, unités, prix, descriptifs, médias de produits ou de
+   catégories) passe en surbrillance et le badge « ✏️ Modifications
+   non enregistrées » apparaît dans la barre 💾 jusqu'à la
+   sauvegarde — plus d'incertitude sur ce qui est appliqué. */
+(function () {
+  var zone = document.getElementById("bloc-produits");
+  var indice = document.getElementById("gestion-indice-modifs");
+  if (!zone || !indice) { return; }
+  function toucher(cible) {
+    var tag = cible && cible.tagName;
+    if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") {
+      cible.classList.add("champ-modifie");
+      indice.hidden = false;
+    }
+  }
+  zone.addEventListener("input", function (e) { toucher(e.target); });
+  zone.addEventListener("change", function (e) { toucher(e.target); });
+  var form = document.getElementById("form-produits");
+  form.addEventListener("submit", function () { indice.hidden = true; });
+})();
+</script>
+<script>
 /* Médias de catégorie : ajout et retrait UN PAR UN (un champ url
    par média) — plus de saisie multiligne. « ➕ Ajouter le média »
    ajoute une ligne avec vignette, « ✖ » la retire ; 💾 enregistre
@@ -347,6 +376,8 @@
     var retire = e.target.closest(".cat-media-retirer");
     if (retire) {
       retire.closest(".cat-media-ligne").remove();
+      var ind = document.getElementById("gestion-indice-modifs");
+      if (ind) { ind.hidden = false; }
       return;
     }
     var ajoute = e.target.closest(".cat-media-ajouter");
@@ -382,6 +413,8 @@
     liste.appendChild(ligne);
     saisie.value = "";
     saisie.placeholder = "Coller un lien (Drive, cloud, photo en ligne…)";
+    var ind = document.getElementById("gestion-indice-modifs");
+    if (ind) { ind.hidden = false; }
   });
 })();
 </script>
