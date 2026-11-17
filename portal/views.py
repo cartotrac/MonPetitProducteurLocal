@@ -1830,8 +1830,7 @@ def produit_modifier(request, pk):
         form = ProduitForm(instance=produit,
                            exploitant=exploitant_actif(request))
     return render(request, "portal/pro/product_form.html",
-                  {"form": form, "titre": "Modifier le produit",
-                   "categories_url": "portal:categories_manage"})
+                  {"form": form, "titre": "Modifier le produit"})
 
 
 @login_required
@@ -4216,64 +4215,6 @@ def catalogue_copier(request):
             return redirect(f"{reverse('portal:catalogue_standard')}"
                             f"?activite={activite}")
     return redirect("portal:catalogue_standard")
-
-
-@login_required
-@exploitant_requis
-@proprietaire_requis
-def categories_manage(request):
-    """Gestion des catégories de l'exploitant (issue #5) : créer,
-    renommer, réordonner, supprimer. Supprimer ne touche pas les produits
-    (ils passent « sans catégorie»)."""
-    exploitant = exploitant_actif(request)
-    if request.method == "POST":
-        action = request.POST.get("action")
-        if action == "creer":
-            nom = request.POST.get("nom", "").strip()
-            if nom:
-                cat, cree = Categorie.objects.get_or_create(
-                    exploitant=exploitant, nom=nom[:80])
-                if cree:
-                    cat.position = exploitant.categories.count()
-                    cat.save()
-                    messages.success(request,
-                                     f"Catégorie « {cat.nom} » créée.")
-                else:
-                    messages.info(request, "Cette catégorie existe déjà.")
-        elif action == "renommer":
-            cat = get_object_or_404(Categorie, pk=request.POST.get("pk"),
-                                   exploitant=exploitant)
-            nom = request.POST.get("nom", "").strip()
-            if nom:
-                cat.nom = nom[:80]
-                cat.save()
-                messages.success(request, "Catégorie renommée.")
-        elif action == "supprimer":
-            cat = get_object_or_404(Categorie, pk=request.POST.get("pk"),
-                                   exploitant=exploitant)
-            nb = cat.produits.count()
-            nom = cat.nom
-            cat.delete()
-            message = f"Catégorie « {nom} » supprimée"
-            if nb:
-                message += (f" — {nb} produit(s) désormais sans catégorie "
-                            "(reclassez-les en les modifiant).")
-            messages.info(request, message + ".")
-        elif action in ("monter", "descendre"):
-            cat = get_object_or_404(Categorie, pk=request.POST.get("pk"),
-                                    exploitant=exploitant)
-            voisines = list(exploitant.categories.order_by("position", "nom"))
-            i = voisines.index(cat)
-            j = i - 1 if action == "monter" else i + 1
-            if 0 <= j < len(voisines):
-                voisines[i], voisines[j] = voisines[j], voisines[i]
-                for k, c in enumerate(voisines):
-                    c.position = k
-                    c.save()
-        return redirect("portal:categories_manage")
-    categories = exploitant.categories.order_by("position", "nom")
-    return render(request, "portal/pro/categories.html",
-                  {"categories": categories})
 
 
 # ---------------------------------------------------------------- client

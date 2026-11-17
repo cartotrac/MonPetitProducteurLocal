@@ -77,7 +77,6 @@ urlpatterns = [
          name="catalogue_standard_ancien"),
     path("catalogue-standard/copier/", views.catalogue_copier,
          name="catalogue_copier_ancien"),
-    path("categories/", views.categories_manage, name="categories_manage"),
     # Publications saisonnières (ex « espace-recolte ») : les
     # anciens chemins restent en alias (marque-pages, liens externes).
     path("publications-saisonnieres/", views.harvest_list,
