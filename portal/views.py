@@ -3663,6 +3663,54 @@ def _latlon(brut):
         return None
 
 
+def _sauver_lignes_carte(request, carte):
+    """Sauvegarde EN PLACE des lignes d'une carte (édition type
+    « Catalogues ») : prix, stocks, sections, descriptifs et noms des
+    lignes libres. Appliquée par le 💾 Enregistrer ET par les actions
+    de ligne (▲ ▼ ✕) : aucun ajustement n'est perdu en réordonnant ou
+    en retirant une ligne. Saisie invalide = valeur précédent gardée."""
+    nb = 0
+    for ligne in carte.lignes.all():
+        modifie = False
+        brut_prix = (request.POST.get(f"prix_{ligne.pk}", "")
+                     .strip().replace(",", "."))
+        brut_stock = (request.POST.get(f"stock_{ligne.pk}", "")
+                      .strip().replace(",", "."))
+        try:
+            prix = Decimal(brut_prix) if brut_prix else None
+        except InvalidOperation:
+            prix = ligne.prix
+        try:
+            stock = Decimal(brut_stock) if brut_stock else None
+        except InvalidOperation:
+            stock = ligne.stock
+        if prix != ligne.prix:
+            ligne.prix = prix
+            modifie = True
+        if stock != ligne.stock:
+            ligne.stock = stock
+            modifie = True
+        section = (request.POST.get(f"section_{ligne.pk}", "")
+                   or "").strip()
+        if section != ligne.section:
+            ligne.section = section[:80]
+            modifie = True
+        desc = (request.POST.get(f"desc_{ligne.pk}", "") or "").strip()
+        if desc != ligne.description:
+            ligne.description = desc
+            modifie = True
+        if ligne.produit is None:
+            nom_libre = (request.POST.get(f"nom_{ligne.pk}", "")
+                         or "").strip()
+            if nom_libre and nom_libre != ligne.nom_libre:
+                ligne.nom_libre = nom_libre[:150]
+                modifie = True
+        if modifie:
+            ligne.save()
+            nb += 1
+    return nb
+
+
 @login_required
 @exploitant_requis
 def cartes_manage(request):
@@ -3697,6 +3745,36 @@ def cartes_manage(request):
                 messages.error(request, "Donnez un nom à la carte.")
         elif carte is None:
             messages.error(request, "Carte introuvable.")
+        elif action == "enregistrer" or action.startswith("ligne_"):
+            # Édition en place : le 💾 ET les actions de ligne (▲ ▼ ✕)
+            # appliquent d'abord tous les champs édités de la carte.
+            nb_modifs = _sauver_lignes_carte(request, carte)
+            morceaux = action.split(":", 1)
+            pk_ligne = morceaux[1] if len(morceaux) > 1 else "0"
+            ligne = LigneCarte.objects.filter(pk=pk_ligne or 0,
+                                              carte=carte).first()
+            if morceaux[0] == "enregistrer":
+                messages.success(request, "Carte « " + carte.nom
+                                 + " » enregistrée : " + str(nb_modifs)
+                                 + " ligne(s) modifiée(s) — prix, stocks, "
+                                 "sections, descriptifs.")
+            elif ligne is None:
+                messages.error(request, "Ligne introuvable sur la carte.")
+            elif morceaux[0] == "ligne_supprimer":
+                nom_ligne = ligne.nom
+                ligne.delete()
+                messages.info(request, "Ligne « " + nom_ligne
+                              + " » retirée de la carte (vos autres "
+                              "saisies ont été appliquées).")
+            else:
+                voisines = list(carte.lignes.order_by("position", "id"))
+                i = voisines.index(ligne)
+                j = (max(0, i - 1) if morceaux[0] == "ligne_monter"
+                     else min(len(voisines) - 1, i + 1))
+                voisines[i], voisines[j] = voisines[j], voisines[i]
+                for n, l in enumerate(voisines, 1):
+                    l.position = n
+                    l.save(update_fields=["position"])
         elif action == "activer":
             carte.activer()
             messages.success(request, "Carte « " + carte.nom + " » "
