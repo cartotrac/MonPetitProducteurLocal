@@ -2054,28 +2054,30 @@ def produit_edition_rapide(request):
                 messages.error(request, "Activez un autre catalogue "
                                "avant de supprimer celui-ci.")
                 return redirect(_destination(cible.pk))
-            pks = list(cible.produits.values_list("pk", flat=True))
-            cites = (Produit.objects
-                     .filter(pk__in=pks,
-                             lignes_commande__isnull=False).exists()
-                     or Produit.objects
-                     .filter(pk__in=pks,
-                             lignes_panier__isnull=False).exists())
-            if cites:
-                messages.error(request, "« " + cible.nom + " » ne peut "
-                               "pas être supprimé : ses produits sont "
-                               "cités dans des commandes ou paniers "
-                               "passés (historique conservé). Archivez-"
-                               "le plutôt : il ne paraîtra plus nulle "
-                               "part mais reste réactivable.")
-                return redirect(_destination(cible.pk))
             nom = cible.nom
-            nb = len(pks)
+            nb = 0
+            conserves = 0
             with transaction.atomic():
+                for p in cible.produits.all():
+                    nb += 1
+                    if p.lignes_commande.exists() or p.lignes_panier.exists():
+                        # Produit cité dans l'historique des commandes /
+                        # paniers livrés : détaché et conservé hors
+                        # catalogue (il ne paraît plus nulle part),
+                        # l'historique reste intact.
+                        p.categorie = None
+                        p.catalogue = None
+                        p.actif = False
+                        p.save()
+                        conserves += 1
                 cible.delete()
-            messages.info(request, f"Catalogue « {nom} » supprimé "
-                          f"définitivement ({nb} produit(s) et ses "
-                          "catégories).")
+            message = (f"Catalogue « {nom} » supprimé définitivement "
+                       f"({nb} produit(s), catégories comprises).")
+            if conserves:
+                message += (f" {conserves} produit(s) déjà commandés "
+                            "conservé(s) hors catalogue pour "
+                            "l'historique.")
+            messages.info(request, message)
             if not retour_produits:
                 return redirect("portal:dashboard")
             return redirect(reverse("portal:product_list"))
