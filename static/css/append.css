@@ -6133,3 +6133,31 @@ html.dark #bloc-produits .champ-modifie {
   border-color: #d99a2b;
   box-shadow: 0 0 0 1px #d99a2b inset;
 }
+
+/* ===== REVUE V3.21 — Publications depuis le catalogue actif ===== */
+/* Produits « disponibles » d'une publication saisonnière : rangées
+   discrètes, révélées par le bouton ➕ (import sélectif). */
+.harvest-cat .recolte-dispo {
+  background: rgba(0, 0, 0, 0.035);
+}
+html.dark .harvest-cat .recolte-dispo {
+  background: rgba(255, 255, 255, 0.05);
+}
+.harvest-cat .recolte-dispo input {
+  opacity: 0.9;
+}
+/* Médias héros de catégorie dans l'en-tête de section */
+.harvest-cat h3 img.recolte-media-cat {
+  width: 44px; height: 32px; object-fit: cover;
+  border-radius: 6px; vertical-align: middle;
+  margin-left: 4px;
+}
+/* Bouton « importer les produits non affichés » sous la catégorie */
+.harvest-cat .recolte-ajouter-tout {
+  margin-top: 0.4rem;
+}
+/* Import de catégorie sur les cartes / boutiques */
+.cartes-bloc .carte-import-categorie,
+form.form select[name="categorie_id"] {
+  max-width: 24rem;
+}
