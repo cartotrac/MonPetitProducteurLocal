@@ -1993,15 +1993,20 @@ def produit_edition_rapide(request):
                         attributs=cat.attributs)
                 nb = 0
                 for p in cible.produits.order_by("position", "id"):
-                    Produit.objects.create(
+                    produit = Produit.objects.create(
                         exploitant=exploitant, nom=p.nom,
                         unite_vente=p.unite_vente, prix=p.prix,
                         description=p.description,
-                        image_externe=p.image_externe, emoji=p.emoji,
+                        emoji=p.emoji,
                         perso=p.perso, origine_standard=p.origine_standard,
                         position=p.position, actif=p.actif,
                         categorie=correspondances.get(p.categorie_id),
                         catalogue=copie)
+                    # image_externe est une PROPRIÉTÉ du modèle Produit
+                    # (média externe rangé dans les attributs), pas un
+                    # champ : passage par le helper dédié après create().
+                    _enregistrer_image_externe(produit, p.image_externe)
+                    produit.save()
                     nb += 1
             messages.success(request, f"Catalogue « {cible.nom} » "
                              f"dupliqué en « {copie.nom} » ({nb} "
