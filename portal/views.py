@@ -32,7 +32,8 @@ from .forms import (AnnonceForm, BulletinForm, InscriptionClientForm,
                     ProfilGerantForm, ProfilPersonnelForm)
 from .marches import identifier_marches
 from .meteo import meteo_synthese
-from .models import (Annonce, Bulletin, Carte, Categorie, ClientImporte,
+from .models import (Annonce, Bulletin, Carte, Catalogue, Categorie,
+                    ClientImporte,
                     Commande, CreneauLivraison, Exploitant, Favori,
                     LigneCarte,
                     LigneCommande, LignePanier, LigneRecolte,
@@ -1730,17 +1731,45 @@ def dashboard(request):
                             .exclude(statut=Panier.Statut.RECU).count(),
     })
 
+def _catalogue_actif(exploitant):
+    """Catalogue ACTIF de l'espace pro — un seul à la fois : celui
+    proposé à l'édition rapide et qui alimente les publications
+    (récoltes, cartes, boutiques). Créé au besoin (espace antérieur
+    à la migration 0012 ou espace neuf), auquel tout l'existant est
+    rattaché."""
+    catalogue = (Catalogue.objects
+                 .filter(exploitant=exploitant, actif=True, archive=False)
+                 .first())
+    if catalogue is None:
+        catalogue = (Catalogue.objects
+                     .filter(exploitant=exploitant, archive=False)
+                     .order_by("position", "id").first())
+    if catalogue is None:
+        catalogue = Catalogue.objects.create(
+            exploitant=exploitant, nom="Catalogue principal",
+            actif=True, position=1)
+        Categorie.objects.filter(exploitant=exploitant).update(
+            catalogue=catalogue)
+        Produit.objects.filter(exploitant=exploitant).update(
+            catalogue=catalogue)
+    return catalogue
+
+
 @login_required
 @exploitant_requis
 @proprietaire_requis
 def product_list(request):
-    """Page « Produits » dédiée (bandeau pro → Gestion → Produits) :
-    édition complète du catalogue — libellé, unité, prix, ordre,
-    catégories, ajout/retrait en lot — pendant que le dashboard ne
-    garde que la gestion des catégories et le déplacement des
-    produits entre catégories."""
+    """Page « Catalogues » (bandeau pro → Gestion → Catalogue) :
+    le CATALOGUE ACTIF de l'espace pro — un seul à la fois — édité
+    en place (libellés, unités, prix, descriptifs, médias, ordre),
+    avec le sélecteur des autres catalogues (activation, renommage,
+    archivage réversible) et l'ajout de produits ou de catégories
+    en tête de page. Réservée au gérant de l'espace (ou support) :
+    les comptes rattachés travaillent dans les pages publications."""
     exploitant = exploitant_actif(request)
-    produits = (exploitant.produits.filter(actif=True)
+    catalogue = _catalogue_actif(exploitant)
+    produits = (exploitant.produits.filter(actif=True,
+                                           catalogue=catalogue)
                 .select_related("categorie", "origine_standard")
                 .order_by("categorie__position", "categorie__nom",
                           "position", "nom"))
@@ -1754,36 +1783,20 @@ def product_list(request):
     paires = [(cat, groupes[cat]) for cat in ordre]
     return render(request, "portal/pro/produits.html", {
         "exploitant": exploitant,
+        "catalogue": catalogue,
+        "catalogues": list(Catalogue.objects.filter(
+            exploitant=exploitant, archive=False)
+            .order_by("position", "id")),
+        "catalogues_archives": list(Catalogue.objects.filter(
+            exploitant=exploitant, archive=True)
+            .order_by("position", "id")),
         "paires": paires,
-        "categories": list(Categorie.objects.filter(exploitant=exploitant)
-                           .order_by("position", "nom")),
+        "categories": list(Categorie.objects.filter(
+            exploitant=exploitant, catalogue=catalogue)
+            .order_by("position", "nom")),
         "unite_choices": Produit.Unite.choices,
         "sans_present": any(cat is None for cat, _ in paires),
     })
-
-
-@login_required
-@exploitant_requis
-@proprietaire_requis
-def produit_creer(request):
-    exploitant = exploitant_actif(request)
-    if request.method == "POST":
-        form = ProduitForm(request.POST, request.FILES, exploitant=exploitant)
-        if form.is_valid():
-            produit = form.save(commit=False)
-            produit.exploitant = exploitant
-            produit.perso = True
-            produit.emoji = produit.emoji or emoji_pour_nom(produit.nom)
-            _enregistrer_image_externe(produit,
-                                        request.POST.get("image_externe", ""))
-            produit.save()
-            messages.success(request, f"Produit « {produit.nom} » ajouté.")
-            return redirect("portal:product_list")
-    else:
-        form = ProduitForm(exploitant=exploitant)
-    return render(request, "portal/pro/product_form.html",
-                  {"form": form, "titre": "Ajouter un produit",
-                   "categories_url": "portal:categories_manage"})
 
 
 @login_required
@@ -1814,14 +1827,17 @@ def produit_modifier(request, pk):
 @exploitant_requis
 @proprietaire_requis
 def produit_edition_rapide(request):
-    """Page Catalogue : libellé, unité, prix et descriptif
+    """Page Catalogue : libellé, unité, prix, descriptif et médias
     modifiés en place, ET ergonomie complète — ajout de produit, ajout
-    de catégorie, reclassement des produits (▲▼, changement de
-    catégorie) et des catégories, sans quitter la page."""
+    de catégorie, reclassement des produits (▲▼, glisser-déposer,
+    changement de catégorie) et des catégories, gestion des
+    catalogues (activation, renommage, archivage) — sans quitter
+    la page. Tout porte sur le catalogue ACTIF de l'espace."""
     exploitant = exploitant_actif(request)
+    catalogue = _catalogue_actif(exploitant)
 
     def _produits_de_la_categorie(categorie):
-        qs = exploitant.produits.filter(actif=True)
+        qs = exploitant.produits.filter(actif=True, catalogue=catalogue)
         if categorie:
             qs = qs.filter(categorie=categorie)
         else:
@@ -1868,8 +1884,95 @@ def produit_edition_rapide(request):
                 pk = int(cible_pk)
             except ValueError:
                 return None
-            return Categorie.objects.filter(pk=pk,
+            return Categorie.objects.filter(
+                pk=pk, exploitant=exploitant,
+                catalogue=catalogue).first()
+
+        def _cible_catalogue():
+            try:
+                pk = int(cible_pk)
+            except ValueError:
+                return None
+            return Catalogue.objects.filter(pk=pk,
                                             exploitant=exploitant).first()
+
+        if nature_action == "catalogue_creer":
+            nom = request.POST.get("nouveau_catalogue", "").strip()
+            if not nom:
+                messages.error(request, "Nom de catalogue vide.")
+                return redirect(destination)
+            position = (Catalogue.objects.filter(exploitant=exploitant)
+                        .aggregate(m=Max("position"))["m"] or 0)
+            catalogue_nouveau = Catalogue.objects.create(
+                exploitant=exploitant, nom=nom[:120],
+                position=position + 1)
+            messages.success(request, f"Catalogue « {catalogue_nouveau.nom} » "
+                             "créé (inactif) — activez-le pour l'éditer.")
+            return redirect(destination)
+        if nature_action == "catalogue_renommer":
+            cible = _cible_catalogue()
+            if cible is None:
+                messages.error(request, "Catalogue introuvable.")
+                return redirect(destination)
+            nom = (request.POST.get(f"nom_catalogue_{cible.pk}", "")
+                   or "").strip()
+            if nom:
+                cible.nom = nom[:120]
+                cible.save()
+                messages.success(request, f"Catalogue renommé "
+                                 f"« {cible.nom} ».")
+            else:
+                messages.error(request, "Nom de catalogue vide.")
+            return redirect(destination)
+        if nature_action == "catalogue_activer":
+            cible = _cible_catalogue()
+            if cible is None:
+                messages.error(request, "Catalogue introuvable.")
+                return redirect(destination)
+            (Catalogue.objects.filter(exploitant=exploitant)
+             .update(actif=False))
+            cible.actif = True
+            cible.archive = False
+            cible.save()
+            messages.success(request, f"Catalogue actif : « {cible.nom} » — "
+                             "il alimente maintenant vos publications.")
+            return redirect(destination)
+        if nature_action == "catalogue_archiver":
+            cible = _cible_catalogue()
+            if cible is None:
+                messages.error(request, "Catalogue introuvable.")
+                return redirect(destination)
+            cible.archive = True
+            cible.actif = False
+            cible.save()
+            suivant = (Catalogue.objects
+                      .filter(exploitant=exploitant, archive=False)
+                      .order_by("position", "id").first())
+            if suivant is not None:
+                suivant.actif = True
+                suivant.save()
+            messages.info(request, f"Catalogue « {cible.nom} » archivé "
+                          "(réactivable à tout moment, rien n'est "
+                          "supprimé).")
+            return redirect(destination)
+        if nature_action == "categorie_medias":
+            cat = _cible_categorie()
+            if cat is None:
+                messages.error(request, "Catégorie introuvable.")
+                return redirect(destination)
+            medias = [u.strip() for u in
+                      request.POST.get(f"medias_cat_{cat.pk}",
+                                       "").splitlines() if u.strip()]
+            attributs = dict(cat.attributs or {})
+            if medias:
+                attributs["medias"] = medias
+            else:
+                attributs.pop("medias", None)
+            cat.attributs = attributs
+            cat.save()
+            messages.success(request, f"Médias de « {cat.nom} » "
+                             "enregistrés.")
+            return redirect(destination)
 
         if nature_action == "categorie_renommer":
             cat = _cible_categorie()
@@ -1900,7 +2003,8 @@ def produit_edition_rapide(request):
             messages.info(request, message + ".")
             return redirect(destination)
         if nature_action == "categorie_ajouter":
-            nom = request.POST.get("nouvelle_categorie", "").strip()
+            nom = request.POST.get("nouvelle_categorie_seule",
+                                   "").strip()
             if not nom:
                 messages.error(request, "Nom de catégorie vide.")
                 return redirect(destination)
@@ -1913,7 +2017,8 @@ def produit_edition_rapide(request):
             position = (Categorie.objects.filter(exploitant=exploitant)
                         .aggregate(m=Max("position"))["m"] or 0)
             categorie = Categorie.objects.create(
-                exploitant=exploitant, nom=nom[:80], position=position + 1)
+                exploitant=exploitant, nom=nom[:80], position=position + 1,
+                catalogue=catalogue)
             messages.success(request, f"Catégorie « {categorie.nom} » créée.")
             return redirect(destination)
         if nature_action == "produit_retirer":
@@ -1960,7 +2065,8 @@ def produit_edition_rapide(request):
                 cat = get_object_or_404(Categorie, pk=pk,
                                         exploitant=exploitant)
                 voisines = list(Categorie.objects.filter(
-                    exploitant=exploitant).order_by("position", "nom"))
+                    exploitant=exploitant,
+                    catalogue=catalogue).order_by("position", "nom"))
                 autre = _voisin(voisines, cat, sens)
                 if autre:
                     cat.position, autre.position = autre.position, cat.position
@@ -1995,7 +2101,8 @@ def produit_edition_rapide(request):
                                "catégorie.")
             else:
                 cat = get_object_or_404(Categorie, pk=cat_pk,
-                                        exploitant=exploitant)
+                                        exploitant=exploitant,
+                                        catalogue=catalogue)
                 produit.categorie = cat
                 dernier = _produits_de_la_categorie(cat)
                 produit.position = (max((p.position for p in dernier),
@@ -2037,7 +2144,7 @@ def produit_edition_rapide(request):
                         .aggregate(m=Max("position"))["m"] or 0)
                     categorie = Categorie.objects.create(
                         exploitant=exploitant, nom=nouvelle_cat[:80],
-                        position=position + 1)
+                        position=position + 1, catalogue=catalogue)
             elif cat_pk:
                 categorie = get_object_or_404(Categorie, pk=cat_pk,
                                               exploitant=exploitant)
@@ -2049,7 +2156,8 @@ def produit_edition_rapide(request):
                      for p in _produits_de_la_categorie(categorie)),
                     default=0) + 1)
                 produit = Produit.objects.create(
-                    exploitant=exploitant, nom=nom[:150], categorie=categorie,
+                    exploitant=exploitant, nom=nom[:150],
+                    categorie=categorie, catalogue=catalogue,
                     unite_vente=unite, prix=prix, position=position,
                     perso=True, emoji=emoji_pour_nom(nom[:150]))
                 messages.success(request, f"Produit « {produit.nom} » "
@@ -2061,8 +2169,8 @@ def produit_edition_rapide(request):
         # replacés d'un coup, en même temps que les modifications.
         brut_ordre = request.POST.get("ordre", "")
         if brut_ordre and request.POST.get("enregistrer", ""):
-            cats = {c.pk: c for c in
-                    Categorie.objects.filter(exploitant=exploitant)}
+            cats = {c.pk: c for c in Categorie.objects.filter(
+                exploitant=exploitant, catalogue=catalogue)}
             for index, bloc_ordre in enumerate(brut_ordre.split("|")):
                 cle, _, liste_pk = bloc_ordre.partition(":")
                 try:
@@ -2084,7 +2192,8 @@ def produit_edition_rapide(request):
 
         # Enregistrement en masse : libellé, unité, prix, média
         erreurs, modifies = [], 0
-        for produit in exploitant.produits.filter(actif=True):
+        for produit in exploitant.produits.filter(actif=True,
+                                                  catalogue=catalogue):
             if f"nom_{produit.pk}" not in request.POST:
                 continue
             nom = request.POST.get(f"nom_{produit.pk}", "").strip()
@@ -3896,15 +4005,18 @@ def catalogue_copier(request):
     l'exploitant : catégorie créée si besoin, prix optionnel, traçabilité
     origine_standard (issue #1)."""
     exploitant = exploitant_actif(request)
+    catalogue = _catalogue_actif(exploitant)
     if request.method == "POST":
         ids = request.POST.getlist("std")
         copies = 0
         for std in ProduitStandard.objects.filter(pk__in=ids):
             if Produit.objects.filter(exploitant=exploitant,
-                                      origine_standard=std).exists():
+                                      origine_standard=std,
+                                      catalogue=catalogue).exists():
                 continue
             cat, _cree = Categorie.objects.get_or_create(
-                exploitant=exploitant, nom=std.categorie)
+                exploitant=exploitant, nom=std.categorie,
+                defaults={"catalogue": catalogue})
             if _cree:
                 cat.position = exploitant.categories.count()
                 cat.save()
@@ -3919,6 +4031,7 @@ def catalogue_copier(request):
                 prix = std.prix_indicatif
             Produit.objects.create(
                 exploitant=exploitant, nom=std.nom, categorie=cat,
+                catalogue=catalogue,
                 description="", unite_vente=std.unite_vente,
                 attributs={"saisons": std.saisons},
                 origine_standard=std, prix=prix, actif=True,
