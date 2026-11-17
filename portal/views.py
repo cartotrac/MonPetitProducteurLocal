@@ -1576,6 +1576,28 @@ def _calendrier_recoltes(exploitant, ancre=None):
     return calendrier, precedent, suivant
 
 
+def _groupes_publication(groupes, ordre):
+    """Sections de saisie d'une publication (saisonnière ou vitrine) :
+    une par catégorie du CATALOGUE ACTIF, avec ses médias héros et
+    deux listes de produits — ceux retenus dans la publication
+    (quantité/prix saisis ou repris) et ceux encore disponibles à
+    l'import sélectif (➕, préchargés du prix de référence, de
+    l'unité, du descriptif et du média du catalogue)."""
+    paires = []
+    for cat in ordre:
+        rows = groupes[cat]
+        nb_choisis = sum(1 for r in rows if r.get("choisi"))
+        paires.append({
+            "categorie": cat,
+            "nom": cat.nom if cat else "Sans catégorie",
+            "medias": list(cat.medias) if cat else [],
+            "rows": rows,
+            "nb_choisis": nb_choisis,
+            "nb_dispo": len(rows) - nb_choisis,
+        })
+    return paires
+
+
 def _edition_recolte(exploitant, semaine, lundi_defaut):
     """Données de la zone d'édition d'une publication saisonnière :
     lignes par catégorie, valeurs préremplies depuis la publication
@@ -1596,25 +1618,30 @@ def _edition_recolte(exploitant, semaine, lundi_defaut):
             if l.produit_id not in valeurs:
                 valeurs[l.produit_id] = (l.quantite_estimee,
                                          l.prix_unitaire, True)
-    produits = (exploitant.produits.filter(actif=True)
+    # Produits du CATALOGUE ACTIF uniquement : les publications
+    # partent du catalogue ✅ de l'espace (produits et catégories,
+    # prix de référence, unités, descriptifs et médias préchargés).
+    catalogue = _catalogue_actif(exploitant)
+    produits = (exploitant.produits.filter(actif=True, catalogue=catalogue)
                 .select_related("categorie", "origine_standard")
                 .order_by("categorie__position", "categorie__nom", "nom"))
     groupes, ordre = {}, []
     for p in produits:
-        nom_cat = p.categorie.nom if p.categorie else "Sans catégorie"
-        if nom_cat not in groupes:
-            groupes[nom_cat] = []
-            ordre.append(nom_cat)
+        cat = p.categorie
+        if cat not in groupes:
+            groupes[cat] = []
+            ordre.append(cat)
         v = valeurs.get(p.pk)
         prix_affiche = (v[1] if v and v[1] is not None else None) or p.prix
-        groupes[nom_cat].append({
+        groupes[cat].append({
             "produit": p,
             "qty": v[0] if v else None,
             "price": prix_affiche,
             "reprise": bool(v and v[2]),
+            "choisi": v is not None,
             "step": "0.01" if p.unite_vente == "KG" else "1",
         })
-    return [(nom, groupes[nom]) for nom in ordre], source
+    return _groupes_publication(groupes, ordre), source
 
 
 @login_required
@@ -2515,7 +2542,9 @@ def harvest_manage(request, semaine_id=None, nouvelle=False):
         semaine.note = request.POST.get("note", "")
         semaine.publiee = bool(request.POST.get("publiee"))
         semaine.save()
-        for produit in exploitant.produits.filter(actif=True):
+        catalogue = _catalogue_actif(exploitant)
+        for produit in exploitant.produits.filter(
+                actif=True, catalogue=catalogue):
             qty = request.POST.get(f"qty_{produit.pk}", "").strip()
             prix = request.POST.get(f"price_{produit.pk}", "").strip()
             if not qty or not prix:
@@ -2567,29 +2596,34 @@ def harvest_manage(request, semaine_id=None, nouvelle=False):
                 valeurs[l.produit_id] = (l.quantite_estimee,
                                          l.prix_unitaire, True)
 
-    # ---- Produits regroupés par catégorie (position de l'exploitant) ----
-    produits = (exploitant.produits.filter(actif=True)
+    # ---- Produits regroupés par catégorie DU CATALOGUE ACTIF : la
+    # publication part du catalogue ✅ ; les produits non retenus
+    # restent importables (➕) avec prix, unité, descriptif et média
+    # préchargés du catalogue. ----
+    catalogue = _catalogue_actif(exploitant)
+    produits = (exploitant.produits.filter(actif=True, catalogue=catalogue)
                 .select_related("categorie", "origine_standard")
                 .order_by("categorie__position", "categorie__nom", "nom"))
     groupes, ordre = {}, []
     for p in produits:
-        nom_cat = p.categorie.nom if p.categorie else "Sans catégorie"
-        if nom_cat not in groupes:
-            groupes[nom_cat] = []
-            ordre.append(nom_cat)
+        cat = p.categorie
+        if cat not in groupes:
+            groupes[cat] = []
+            ordre.append(cat)
         v = valeurs.get(p.pk)
         # Prix de la ligne de récolte, sinon prix de RÉFÉRENCE du
         # catalogue (saisi à l'import/création) : préremplit la colonne
         # prix, reste éditable à cet endroit.
         prix_affiche = (v[1] if v and v[1] is not None else None) or p.prix
-        groupes[nom_cat].append({
+        groupes[cat].append({
             "produit": p,
             "qty": v[0] if v else None,
             "price": prix_affiche,
             "reprise": bool(v and v[2]),
+            "choisi": v is not None,
             "step": "0.01" if p.unite_vente == "KG" else "1",
         })
-    paires = [(nom, groupes[nom]) for nom in ordre]
+    paires = _groupes_publication(groupes, ordre)
 
     if semaine:
         lundi_defaut = semaine.lundi
@@ -2601,6 +2635,7 @@ def harvest_manage(request, semaine_id=None, nouvelle=False):
         "source": source if source and not semaine else None,
         "autres": autres,
         "paires": paires,
+        "catalogue_actif": catalogue,
         "lundi_defaut": lundi_defaut,
     })
 
@@ -3714,7 +3749,10 @@ def cartes_manage(request):
                     produit=produit,
                     nom_libre="" if produit else nom_libre,
                     section=request.POST.get("section", "").strip(),
-                    description=request.POST.get("description", "").strip(),
+                    description=(request.POST.get("description", "")
+                                 .strip()
+                                 or (produit.description
+                                     if produit else "")),
                     unite_vente=(produit.unite_vente if produit
                                  else Produit.Unite.PIECE),
                     prix=prix,
@@ -3723,6 +3761,46 @@ def cartes_manage(request):
                         Max("position"))["position__max"] or 0) + 1)
                 messages.success(request, "Ligne ajoutée à la carte « "
                                  + carte.nom + " ».")
+        elif action == "importer_categorie":
+            # Import sélectif : TOUTE une catégorie du catalogue actif
+            # d'un coup — chaque ligne reprend le prix de référence,
+            # l'unité, le descriptif et le média du produit catalogue,
+            # tout reste éditable ensuite. Les produits déjà présents
+            # sur la carte ne sont pas dupliqués.
+            catalogue = _catalogue_actif(exploitant)
+            cat = (Categorie.objects
+                   .filter(exploitant=exploitant, catalogue=catalogue,
+                           pk=request.POST.get("categorie_id") or 0)
+                   .first())
+            if cat is None:
+                messages.error(request, "Catégorie introuvable dans le "
+                               "catalogue actif.")
+            else:
+                existants = set(carte.lignes.exclude(produit=None)
+                                .values_list("produit_id", flat=True))
+                a_ajouter = [p for p in exploitant.produits.filter(
+                    actif=True, categorie=cat)
+                    if p.pk not in existants]
+                position = (carte.lignes.aggregate(
+                    Max("position"))["position__max"] or 0)
+                for p in a_ajouter:
+                    position += 1
+                    LigneCarte.objects.create(
+                        carte=carte, produit=p, section=cat.nom,
+                        description=p.description,
+                        unite_vente=p.unite_vente, prix=p.prix,
+                        position=position)
+                if a_ajouter:
+                    messages.success(
+                        request, f"{len(a_ajouter)} produit(s) de la "
+                        f"catégorie « {cat.nom} » importé(s) dans la "
+                        f"carte « {carte.nom} » : prix, unités et "
+                        "descriptifs repris du catalogue, ajustez-les "
+                        "librement ensuite.")
+                else:
+                    messages.info(request, "Tous les produits de la "
+                                  "catégorie « " + cat.nom + " » sont "
+                                  "déjà sur la carte.")
         elif action == "supprimer_ligne":
             ligne = LigneCarte.objects.filter(
                 pk=request.POST.get("ligne_id") or 0, carte=carte).first()
@@ -3771,11 +3849,18 @@ def cartes_manage(request):
     cartes = sorted(
         exploitant.cartes.prefetch_related("lignes__produit"),
         key=lambda c: (ordre.get(c.statut, 3), -c.pk))
+    catalogue = _catalogue_actif(exploitant)
     return render(request, "portal/pro/cartes.html", {
         "exploitant": exploitant,
         "cartes": cartes,
-        "produits": exploitant.produits.filter(actif=True)
-                       .order_by("categorie__nom", "nom"),
+        "catalogue_actif": catalogue,
+        "produits": (exploitant.produits
+                     .filter(actif=True, catalogue=catalogue)
+                     .select_related("categorie")
+                     .order_by("categorie__position",
+                               "categorie__nom", "nom")),
+        "categories": [c for c in catalogue.categories.all()
+                       if c.produits.filter(actif=True).exists()],
     })
 
 
