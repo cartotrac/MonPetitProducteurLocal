@@ -1,42 +1,55 @@
 {% extends "base.html" %}
 {% block title %}Catalogues — MonPetitProducteurLocal{% endblock %}
 {% block content %}
-<h1>📚 Catalogue « {{ catalogue.nom }} »</h1>
-<p class="muted">Cette page gère les <strong>listes de produits</strong> de
-   votre espace pro : chaque catalogue est une liste (saisonnière ou fixe)
-   avec ses catégories et ses {{ exploitant.vocab.articles }}. <strong>Un
-   seul catalogue est actif à la fois</strong> : c'est celui affiché
-   ci-dessous et c'est lui qui alimente l'édition rapide de vos
-   publications (récoltes, cartes, boutiques). Renommez-le, changez
-   d'actif en un clic, archivez sans jamais supprimer. Page réservée au
-   gérant de l'espace (ou au support) : les comptes rattachés travaillent
-   directement dans les pages de publications.</p>
+<h1>📚 Mes catalogues</h1>
+<p class="muted">Chaque onglet est un <strong>catalogue métier</strong> :
+   une liste de catégories et de {{ exploitant.vocab.articles }} —
+   saisonnière ou fixe, importée des <a href="{% url 'portal:catalogue_standard' %}">listes de
+   référence</a> ou créée ici, avec médias externes par produit et par
+   catégorie. <strong>Un seul catalogue est actif (✅)</strong> : c'est
+   lui qui alimente vos <strong>publications saisonnières</strong> et vos
+   <strong>publications vitrines</strong>, déjà pré-structurées par
+   catégorie et illustrées par les médias héros. Créez, dupliquez,
+   activez, archivez : rien ne se perd. Page réservée au gérant de
+   l'espace (ou au support).</p>
 <p class="retour-edition">
     <a class="btn btn-outline btn-sm" href="{% url 'portal:catalogue_standard' %}">📚 Importer des produits types</a>
     <a class="btn btn-outline btn-sm" href="{% url 'portal:categories_manage' %}">🏷 Gérer les catégories</a>
 </p>
 
+<nav class="quick-actions catalogue-onglets" aria-label="Mes catalogues (✅ = actif, celui des publications)">
+  {% for c in catalogues %}
+    <a class="btn {% if c.pk == catalogue.pk %}catalogue-onglet-courant{% else %}btn-outline{% endif %} btn-sm catalogue-onglet"
+       href="{% url 'portal:product_list' %}?cat={{ c.pk }}"
+       title="{% if c.pk == catalogue_actif.pk %}Catalogue actif : celui qui alimente les publications{% else %}Cliquer pour éditer ce catalogue (brouillon éditable){% endif %}">
+      {{ c.nom }}{% if c.pk == catalogue_actif.pk %} ✅{% endif %}</a>
+  {% endfor %}
+</nav>
+
 <form method="post" action="{% url 'portal:product_quick_edit' %}" id="form-produits">
     {% csrf_token %}
     <input type="hidden" name="retour" value="produits">
+    <input type="hidden" name="catalogue_courant" value="{{ catalogue.pk }}">
     <input type="hidden" name="ordre" value="" id="ordre-serialise">
 
     <div class="card gestion-catalogues-bloc">
-      <h2>🗂 Mes catalogues <span class="badge">{{ catalogues|length }} liste{{ catalogues|length|pluralize }}{% if catalogues_archives %} · {{ catalogues_archives|length }} archivée{{ catalogues_archives|length|pluralize }}{% endif %}</span></h2>
+      <h2>🗂 Catalogue « {{ catalogue.nom }} »
+        {% if catalogue.pk == catalogue_actif.pk %}<span class="badge badge-VALIDEE">✅ actif — alimente les publications</span>
+        {% else %}<span class="badge">brouillon éditable — ⚡ pour le publier</span>{% endif %}
+      </h2>
       <div class="gestion-catalogue-liste">
-        {% for c in catalogues %}
-          <div class="gestion-catalogue-ligne{% if c.pk == catalogue.pk %} actif{% endif %}">
-            {% if c.pk == catalogue.pk %}<span class="badge badge-VALIDEE">✅ actif</span>{% endif %}
-            <input class="gestion-catalogue-nom" type="text" name="nom_catalogue_{{ c.pk }}" value="{{ c.nom }}" maxlength="120" title="Nom du catalogue">
-            <button type="submit" name="action" value="catalogue_renommer:{{ c.pk }}" class="btn btn-sm" title="Enregistrer ce nom">✏️</button>
-            {% if c.pk != catalogue.pk %}
-              <button type="submit" name="action" value="catalogue_activer:{{ c.pk }}" class="btn btn-sm" title="Faire de « {{ c.nom }} » le catalogue actif (celui des publications)">⚡ Activer</button>
-            {% endif %}
-            <button type="submit" name="action" value="catalogue_archiver:{{ c.pk }}"
-                    onclick="if(!confirm('Archiver « {{ c.nom }} » ? Rien n'est supprimé : il reste réactivable ci-dessous.'))event.preventDefault();"
-                    class="btn btn-sm btn-outline" title="Ranger ce catalogue (réactivable)">📥 Archiver</button>
-          </div>
-        {% endfor %}
+        <div class="gestion-catalogue-ligne{% if catalogue.pk == catalogue_actif.pk %} actif{% endif %}">
+          <input class="gestion-catalogue-nom" type="text" name="nom_catalogue_{{ catalogue.pk }}" value="{{ catalogue.nom }}" maxlength="120" title="Nom du catalogue">
+          <button type="submit" name="action" value="catalogue_renommer:{{ catalogue.pk }}" class="btn btn-sm" title="Enregistrer ce nom">✏️ Renommer</button>
+          {% if catalogue.pk != catalogue_actif.pk %}
+            <button type="submit" name="action" value="catalogue_activer:{{ catalogue.pk }}" class="btn btn-sm" title="Faire de « {{ catalogue.nom }} » le catalogue actif (celui des publications)">⚡ Activer</button>
+          {% endif %}
+          <input class="gestion-catalogue-nom gestion-catalogue-duplicata" type="text" name="nom_duplicata" maxlength="120" placeholder="Nom du duplicata (obligatoire)">
+          <button type="submit" name="action" value="catalogue_dupliquer:{{ catalogue.pk }}" class="btn btn-sm" title="Copier catégories, produits et médias dans un nouveau catalogue">📑 Dupliquer</button>
+          <button type="submit" name="action" value="catalogue_archiver:{{ catalogue.pk }}"
+                  onclick="if(!confirm('Archiver « {{ catalogue.nom }} » ? Rien n'est supprimé : il reste réactivable ci-dessous.'))event.preventDefault();"
+                  class="btn btn-sm btn-outline" title="Ranger ce catalogue (réactivable)">📥 Archiver</button>
+        </div>
       </div>
       {% if catalogues_archives %}
       <details class="gestion-archives">
@@ -54,16 +67,17 @@
       <div class="form-row">
         <label>Nouveau catalogue
           <input type="text" name="nouveau_catalogue" maxlength="120" placeholder="Ex : Carte d'été 2027, Produits fixes, Marché d'hiver…"></label>
-        <button type="submit" name="action" value="catalogue_creer" class="btn">➕ Créer la liste</button>
+        <button type="submit" name="action" value="catalogue_creer" class="btn">➕ Créer</button>
       </div>
       <p class="muted">Astuce : un catalogue par saison ou par usage —
-         « Récoltes de l'été », « Carte fixe du truck » — puis activez
-         celui dont vous avez besoin au moment de publier. Le bouton
-         ⚡ bascule l'actif, 📥 range une liste sans rien supprimer.</p>
+         dupliquez la liste de l'été pour préparer celle de l'automne,
+         renommez, puis ⚡ activez celui à publier. Le badge ✅ marque
+         le catalogue actif dans les onglets ; archiver ne supprime
+         jamais rien.</p>
     </div>
 
     <div class="card gestion-ajout">
-      <h3>➕ Ajouter au catalogue actif « {{ catalogue.nom }} »</h3>
+      <h3>➕ Ajouter au catalogue « {{ catalogue.nom }} »</h3>
       <div class="form-row">
         <label>{{ exploitant.vocab.article|capfirst }} <input type="text" name="nouveau_nom" placeholder="Ex : Radis rose"></label>
         <label>Unité
