@@ -2,7 +2,7 @@
 {% block title %}Catalogues — MonPetitProducteurLocal{% endblock %}
 {% block content %}
 <h1>📚 Mes catalogues</h1>
-<p class="muted">Chaque onglet est un <strong>catalogue métier</strong> :
+<p class="muted">Chaque onglet est un <strong>catalogue préréglage</strong> :
    une liste de catégories et de {{ exploitant.vocab.articles }} —
    saisonnière ou fixe, importée des <a href="{% url 'portal:catalogue_standard' %}">listes de
    référence</a> ou créée ici, avec médias externes par produit et par
@@ -47,7 +47,7 @@
           {% if catalogue.pk != catalogue_actif.pk %}
             <button type="submit" name="action" value="catalogue_supprimer:{{ catalogue.pk }}"
                     onclick="if(!confirm('Supprimer DÉFINITIVEMENT « {{ catalogue.nom }} » avec ses catégories et produits ? Cette action est irréversible.'))event.preventDefault();"
-                    class="btn btn-sm btn-danger" title="Supprimer définitivement ce catalogue (refusé si des produits sont cités dans des commandes passées)">🗑 Supprimer</button>
+                    class="btn btn-sm btn-danger" title="Supprimer définitivement ce préréglage et son contenu (les produits déjà commandés sont conservés hors catalogue : l'historique reste intact)">🗑 Supprimer</button>
           {% endif %}
         </div>
       </div>
@@ -72,12 +72,14 @@
           <input type="text" name="nouveau_catalogue" maxlength="120" placeholder="Ex : Carte d'été 2027, Produits fixes, Marché d'hiver…"></label>
         <button type="submit" name="action" value="catalogue_creer" class="btn">➕ Créer</button>
       </div>
-      <p class="muted">Astuce : un catalogue par saison ou par usage —
-         dupliquez la liste de l'été pour préparer celle de l'automne,
-         renommez, puis ⚡ activez celui à publier. Le badge ✅ marque
-         le catalogue actif dans les onglets ; 📥 archiver range sans
-         rien supprimer, 🗑 supprime définitivement (sauf produits
-         déjà commandés, historique conservé).</p>
+      <p class="muted">Astuce : chaque catalogue est un <strong>préréglage</strong>
+         — un catalogue par saison ou par usage. Dupliquez la liste de
+         l'été pour préparer celle de l'automne, renommez, puis ⚡
+         activez celui qui alimente vos publications. Le badge ✅
+         marque le catalogue actif dans les onglets ; 📥 archiver
+         range sans rien supprimer, 🗑 supprime définitivement le
+         préréglage (les produits déjà commandés sont conservés hors
+         catalogue : l'historique des commandes reste intact).</p>
       <p class="retour-edition">
         <a class="btn btn-outline btn-sm" href="{% url 'portal:catalogue_standard' %}">📚 Importer des produits types</a>
         <a class="btn btn-outline btn-sm" href="{% url 'portal:categories_manage' %}">🏷 Gérer les catégories</a>
