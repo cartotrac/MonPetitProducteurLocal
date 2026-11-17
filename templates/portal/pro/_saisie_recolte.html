@@ -73,10 +73,9 @@ et retour="dashboard" (édition en ligne).
           </tr>
         {% endif %}{% endfor %}
         </tbody>
+        {% endif %}
       </table>
-      {% if groupe.nb_dispo %}<button type="button" class="btn btn-sm btn-outline recolte-ajouter-tout">➕ {{ groupe.nb_dispo }} produit{{ groupe.nb_dispo|pluralize }} du catalogue non affiché{{ groupe.nb_dispo|pluralize }} — les importer</button>{% else %}
-      </table>
-      {% endif %}
+      {% if groupe.nb_dispo %}<button type="button" class="btn btn-sm btn-outline recolte-ajouter-tout">➕ {{ groupe.nb_dispo }} produit{{ groupe.nb_dispo|pluralize }} du catalogue non affiché{{ groupe.nb_dispo|pluralize }} — les importer</button>{% endif %}
     </section>
   {% empty %}
     <p class="muted">Ajoutez d'abord des {{ exploitant_courant.vocab.articles }} à votre catalogue
