@@ -1767,7 +1767,17 @@ def product_list(request):
     en tête de page. Réservée au gérant de l'espace (ou support) :
     les comptes rattachés travaillent dans les pages publications."""
     exploitant = exploitant_actif(request)
-    catalogue = _catalogue_actif(exploitant)
+    catalogue_actif = _catalogue_actif(exploitant)
+    # Onglet affiché : ?cat=<pk> (n'importe quel catalogue non
+    # archivé de l'espace, éditable même inactif) — défaut : actif.
+    catalogue = catalogue_actif
+    brut = request.GET.get("cat", "")
+    if brut.isdigit():
+        choix = (Catalogue.objects.filter(
+            pk=int(brut), exploitant=exploitant,
+            archive=False).first())
+        if choix is not None:
+            catalogue = choix
     produits = (exploitant.produits.filter(actif=True,
                                            catalogue=catalogue)
                 .select_related("categorie", "origine_standard")
@@ -1784,6 +1794,7 @@ def product_list(request):
     return render(request, "portal/pro/produits.html", {
         "exploitant": exploitant,
         "catalogue": catalogue,
+        "catalogue_actif": catalogue_actif,
         "catalogues": list(Catalogue.objects.filter(
             exploitant=exploitant, archive=False)
             .order_by("position", "id")),
@@ -1834,7 +1845,16 @@ def produit_edition_rapide(request):
     catalogues (activation, renommage, archivage) — sans quitter
     la page. Tout porte sur le catalogue ACTIF de l'espace."""
     exploitant = exploitant_actif(request)
-    catalogue = _catalogue_actif(exploitant)
+    actif = _catalogue_actif(exploitant)
+    # Catalogue de travail : celui de l'onglet édité (champ caché
+    # « catalogue_courant », validé et non archivé) — défaut : actif.
+    catalogue = actif
+    brut = request.POST.get("catalogue_courant", "")
+    if brut.isdigit():
+        choix = Catalogue.objects.filter(
+            pk=int(brut), exploitant=exploitant, archive=False).first()
+        if choix is not None:
+            catalogue = choix
 
     def _produits_de_la_categorie(categorie):
         qs = exploitant.produits.filter(actif=True, catalogue=catalogue)
@@ -1857,9 +1877,19 @@ def produit_edition_rapide(request):
 
     # Page de retour après l'action : la page « Produits » dédiée
     # (retour=produits) ou le dashboard (défaut).
-    destination = ("portal:product_list"
-                   if request.POST.get("retour", "") == "produits"
-                   else "portal:dashboard")
+    retour_produits = request.POST.get("retour", "") == "produits"
+
+    def _destination(cible_pk=None):
+        """Page de retour : la page Catalogues sur l'ONGLET du
+        catalogue visé (l'onglet édité par défaut), le dashboard
+        quand l'action vient d'une autre page."""
+        if not retour_produits:
+            return "portal:dashboard"
+        if cible_pk is None:
+            cible_pk = catalogue.pk
+        return reverse("portal:product_list") + "?cat=" + str(cible_pk)
+
+    destination = _destination()
 
     def _voisin(liste, produit, sens):
         """Produit à échanger avec `produit` dans l'ordre affiché."""
@@ -1907,8 +1937,9 @@ def produit_edition_rapide(request):
                 exploitant=exploitant, nom=nom[:120],
                 position=position + 1)
             messages.success(request, f"Catalogue « {catalogue_nouveau.nom} » "
-                             "créé (inactif) — activez-le pour l'éditer.")
-            return redirect(destination)
+                             "créé (inactif) : vous l'éditez ; ⚡ pour en "
+                             "faire le catalogue des publications.")
+            return redirect(_destination(catalogue_nouveau.pk))
         if nature_action == "catalogue_renommer":
             cible = _cible_catalogue()
             if cible is None:
@@ -1923,7 +1954,52 @@ def produit_edition_rapide(request):
                                  f"« {cible.nom} ».")
             else:
                 messages.error(request, "Nom de catalogue vide.")
-            return redirect(destination)
+            return redirect(_destination(cible.pk))
+        if nature_action == "catalogue_dupliquer":
+            cible = _cible_catalogue()
+            if cible is None:
+                messages.error(request, "Catalogue introuvable.")
+                return redirect(destination)
+            nom = request.POST.get("nom_duplicata", "").strip()
+            if not nom:
+                messages.error(request, "Indiquez un nom pour le "
+                               "duplicata (champ prévu à côté du "
+                               "bouton).")
+                return redirect(_destination(cible.pk))
+            if Catalogue.objects.filter(exploitant=exploitant,
+                                        nom__iexact=nom).exists():
+                messages.error(request, f"Un catalogue nommé « {nom} » "
+                               "existe déjà : choisissez un autre nom.")
+                return redirect(_destination(cible.pk))
+            position = (Catalogue.objects.filter(exploitant=exploitant)
+                        .aggregate(m=Max("position"))["m"] or 0)
+            copie = Catalogue.objects.create(
+                exploitant=exploitant, nom=nom[:120],
+                position=position + 1)
+            correspondances = {}
+            for cat in cible.categories.order_by("position", "id"):
+                correspondances[cat.pk] = Categorie.objects.create(
+                    exploitant=exploitant, nom=cat.nom,
+                    position=cat.position, catalogue=copie,
+                    attributs=cat.attributs)
+            nb = 0
+            for p in cible.produits.order_by("position", "id"):
+                Produit.objects.create(
+                    exploitant=exploitant, nom=p.nom,
+                    unite_vente=p.unite_vente, prix=p.prix,
+                    description=p.description,
+                    image_externe=p.image_externe, emoji=p.emoji,
+                    perso=p.perso, origine_standard=p.origine_standard,
+                    position=p.position, actif=p.actif,
+                    categorie=correspondances.get(p.categorie_id),
+                    catalogue=copie)
+                nb += 1
+            messages.success(request, f"Catalogue « {cible.nom} » "
+                             f"dupliqué en « {copie.nom} » ({nb} "
+                             "produit(s), catégories et médias "
+                             "compris) — il est inactif : ⚡ pour "
+                             "l'activer.")
+            return redirect(_destination(copie.pk))
         if nature_action == "catalogue_activer":
             cible = _cible_catalogue()
             if cible is None:
@@ -1936,7 +2012,7 @@ def produit_edition_rapide(request):
             cible.save()
             messages.success(request, f"Catalogue actif : « {cible.nom} » — "
                              "il alimente maintenant vos publications.")
-            return redirect(destination)
+            return redirect(_destination(cible.pk))
         if nature_action == "catalogue_archiver":
             cible = _cible_catalogue()
             if cible is None:
@@ -1954,7 +2030,8 @@ def produit_edition_rapide(request):
             messages.info(request, f"Catalogue « {cible.nom} » archivé "
                           "(réactivable à tout moment, rien n'est "
                           "supprimé).")
-            return redirect(destination)
+            return redirect(_destination(
+                suivant.pk if suivant is not None else None))
         if nature_action == "categorie_medias":
             cat = _cible_categorie()
             if cat is None:
@@ -2009,13 +2086,15 @@ def produit_edition_rapide(request):
                 messages.error(request, "Nom de catégorie vide.")
                 return redirect(destination)
             categorie = (Categorie.objects.filter(
-                exploitant=exploitant, nom__iexact=nom).first())
+                exploitant=exploitant, catalogue=catalogue,
+                nom__iexact=nom).first())
             if categorie:
                 messages.info(request, f"La catégorie « {categorie.nom} » "
                               "existe déjà.")
                 return redirect(destination)
-            position = (Categorie.objects.filter(exploitant=exploitant)
-                        .aggregate(m=Max("position"))["m"] or 0)
+            position = (Categorie.objects.filter(
+                exploitant=exploitant, catalogue=catalogue)
+                .aggregate(m=Max("position"))["m"] or 0)
             categorie = Categorie.objects.create(
                 exploitant=exploitant, nom=nom[:80], position=position + 1,
                 catalogue=catalogue)
@@ -2137,17 +2216,19 @@ def produit_edition_rapide(request):
             categorie = None
             if nouvelle_cat:
                 categorie = (Categorie.objects.filter(
-                    exploitant=exploitant, nom__iexact=nouvelle_cat).first())
+                    exploitant=exploitant, catalogue=catalogue,
+                    nom__iexact=nouvelle_cat).first())
                 if not categorie:
                     position = (Categorie.objects.filter(
-                        exploitant=exploitant)
+                        exploitant=exploitant, catalogue=catalogue)
                         .aggregate(m=Max("position"))["m"] or 0)
                     categorie = Categorie.objects.create(
                         exploitant=exploitant, nom=nouvelle_cat[:80],
                         position=position + 1, catalogue=catalogue)
             elif cat_pk:
                 categorie = get_object_or_404(Categorie, pk=cat_pk,
-                                              exploitant=exploitant)
+                                              exploitant=exploitant,
+                                              catalogue=catalogue)
             if erreurs:
                 messages.error(request, " ".join(erreurs))
             else:
