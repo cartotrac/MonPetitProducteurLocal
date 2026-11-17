@@ -6067,3 +6067,42 @@ html.dark .catalogue-onglets .catalogue-onglet-courant {
   font-style: italic;
   opacity: 0.85;
 }
+
+
+/* ===== REVUE V3.19-2 — Médias de catégorie un par un ===== */
+/* Fini la saisie multiligne : chaque média est une ligne avec
+   vignette, champ url et bouton ✖ ; « ➕ Ajouter le média » crée
+   la ligne d'après le lien collé (drive, cloud, photo en ligne). */
+.gestion-cat-medias .cat-medias-liste {
+  display: flex; flex-direction: column; gap: 0.3rem;
+  margin-top: 0.3rem;
+}
+.gestion-cat-medias .cat-media-ligne {
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.gestion-cat-medias .cat-media-ligne img {
+  width: 38px; height: 38px; object-fit: cover;
+  border-radius: 6px; flex: none; margin: 0;
+}
+.gestion-cat-medias .cat-media-ligne input {
+  flex: 1; min-width: 12rem; font-size: 0.85rem;
+  padding: 0.25rem 0.4rem;
+}
+.gestion-cat-medias .cat-media-ajout {
+  display: flex; align-items: center; gap: 0.4rem;
+  margin-top: 0.35rem; flex-wrap: wrap;
+}
+.gestion-cat-medias .cat-media-ajout input {
+  flex: 1; min-width: 14rem; font-size: 0.85rem;
+  padding: 0.25rem 0.4rem; font-style: italic;
+}
+.gestion-cat-medias > .btn {
+  margin-top: 0.4rem;
+}
+/* Bouton de suppression d'un catalogue : rouge discret. */
+.gestion-catalogues-bloc .btn-danger { flex: none; }
+html.dark .gestion-cat-medias .cat-media-ligne input,
+html.dark .gestion-cat-medias .cat-media-ajout input {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e6e4da;
+}
