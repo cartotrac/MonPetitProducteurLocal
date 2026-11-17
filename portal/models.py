@@ -693,7 +693,9 @@ class Produit(models.Model):
     illustration = models.ImageField("Photo",
                                       upload_to=illustration_produit_chemin,
                                       blank=True, null=True)
-    unite_vente = models.CharField("Unité de vente", max_length=2,
+    # Unité de vente : code de la liste par défaut OU libellé
+    # personnalisé saisi par l'exploitant (16 caractères max).
+    unite_vente = models.CharField("Unité de vente", max_length=16,
                                    choices=Unite.choices, default=Unite.KG)
     attributs = models.JSONField("Attributs libres", default=dict, blank=True,
                                  help_text='Ex : {"variété": "Butternut", "label": "AB"}')
@@ -968,7 +970,9 @@ class LigneCarte(models.Model):
         "Section", max_length=80, blank=True, default="",
         help_text="Ex : « Entrées », « Plats », « Fromages au lait cru »…")
     description = models.TextField("Description", blank=True)
-    unite_vente = models.CharField("Unité de vente", max_length=2,
+    # Les lignes de carte reprennent l'unité du produit, y compris
+    # une unité personnalisée (16 caractères max, liste par défaut).
+    unite_vente = models.CharField("Unité de vente", max_length=16,
                                    choices=Produit.Unite.choices,
                                    default=Produit.Unite.KG)
     prix = models.DecimalField("Prix (€)", max_digits=6, decimal_places=2,

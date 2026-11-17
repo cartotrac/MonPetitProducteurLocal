@@ -393,6 +393,11 @@ class ProduitForm(forms.ModelForm):
     image_externe = forms.URLField(
         label="Lien photo externe (drive, cloud, réseau — rien n'est "
               "hébergé sur le portail)", required=False)
+    # Unité de vente personnalisée : saisie quand « Autre » est choisi.
+    unite_autre = forms.CharField(
+        label="Unité personnalisée", required=False, max_length=16,
+        help_text="À renseigner si vous choisissez « Autre » "
+                  "ci-dessus (ex : « pot 500 g », « bûche 300 g »).")
 
     class Meta:
         model = Produit
@@ -424,6 +429,29 @@ class ProduitForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             self.fields["image_externe"].initial = (
                 self.instance.attributs or {}).get("image_url", "")
+        # Unité : liste par défaut + option « Autre » (libellé libre,
+        # 16 caractères max) ; une unité personnalisée existante
+        # reste sélectionnée dans la liste.
+        unites = list(Produit.Unite.choices)
+        if (self.instance and self.instance.pk
+                and self.instance.unite_vente
+                and self.instance.unite_vente not in Produit.Unite.values):
+            unites.append((self.instance.unite_vente,
+                           self.instance.unite_vente))
+        unites.append(("__autre__", "Autre (préciser)"))
+        self.fields["unite_vente"].choices = unites
+
+    def clean(self):
+        nettoye = super().clean()
+        if nettoye.get("unite_vente") == "__autre__":
+            autre = (self.data.get("unite_autre") or "").strip()
+            if autre:
+                nettoye["unite_vente"] = autre[:16]
+            else:
+                self.add_error("unite_vente",
+                               "Précisez l'unité personnalisée "
+                               "(ou choisissez dans la liste).")
+        return nettoye
 
 
 class ProfilExploitantForm(forms.ModelForm):
