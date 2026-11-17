@@ -4,9 +4,16 @@
 {% block content %}
 <h1>{{ exploitant_courant.vocab.recoltes_emoji }} {% if semaine %}{{ exploitant_courant.vocab.recolte|capfirst }} du {{ semaine.lundi|date:"d/m/Y" }}{% else %}Nouvelle {{ exploitant_courant.vocab.recolte }}{% endif %}</h1>
 <p>Renseignez la <strong>quantité estimée</strong> et le prix pour chaque produit
-   disponible. Ces quantités sont des <strong>estimations</strong> : elles ne
-   bloquent ni ne décomptent aucune commande. Laissez vide un produit non
-   disponible.</p>
+   retenu. Ces quantités sont des <strong>estimations</strong> : elles ne
+   bloquent ni ne décomptent aucune commande. Laissez vide un produit
+   pour l'écarter de la publication.</p>
+{% if catalogue_actif %}
+<p class="muted">Les produits et catégories listés viennent du catalogue
+   actif <strong>« {{ catalogue_actif.nom }} »</strong> ✅ (prix, unités, descriptifs
+   et médias préchargés). Les produits non retenus restent importables
+   par le bouton ➕ de chaque catégorie ; changez de catalogue dans
+   <a href="{% url 'portal:product_list' %}">Mes catalogues</a> si besoin.</p>
+{% endif %}
 
 {% if source %}
   <div class="flash info">💡 Les valeurs <strong>reprises</strong> (marquées

@@ -34,15 +34,17 @@ et retour="dashboard" (édition en ligne).
     {% endif %}
   </div>
 
-  {% for nom, rows in paires %}
+  {% for groupe in paires %}
     <section class="harvest-cat">
-      <h3>{{ nom }} <span class="muted">({{ rows|length }})</span></h3>
+      <h3>{{ groupe.nom }}
+        <span class="muted">({{ groupe.nb_choisis }} retenue{{ groupe.nb_choisis|pluralize }} sur {{ groupe.rows|length }} au catalogue)</span>
+        {% for m in groupe.medias %}<img class="vignette-produit recolte-media-cat" src="{{ m }}" alt="" loading="lazy">{% endfor %}</h3>
       <table class="table">
-        <thead><tr><th>Produit</th><th>Quantité estimée</th><th>Prix unitaire (€)</th></tr></thead>
+        <thead><tr><th>Produit</th><th>Quantité estimée</th><th>Prix unitaire (€)</th><th></th></tr></thead>
         <tbody>
-        {% for row in rows %}
+        {% for row in groupe.rows %}{% if row.choisi %}
           <tr class="{% if row.reprise %}reprise{% endif %}">
-            <td>{% if row.produit.illustration %}<img class="vignette-produit" src="{{ row.produit.illustration.url }}" alt="">{% endif %}{% if row.produit.emoji %}{{ row.produit.emoji }} {% elif row.produit.origine_standard and row.produit.origine_standard.emoji %}{{ row.produit.origine_standard.emoji }} {% endif %}{{ row.produit.nom }}
+            <td>{% if row.produit.illustration %}<img class="vignette-produit" src="{{ row.produit.illustration.url }}" alt="">{% elif row.produit.image_externe %}<img class="vignette-produit" src="{{ row.produit.image_externe }}" alt="" loading="lazy">{% endif %}{% if row.produit.emoji %}{{ row.produit.emoji }} {% elif row.produit.origine_standard and row.produit.origine_standard.emoji %}{{ row.produit.origine_standard.emoji }} {% endif %}<strong>{{ row.produit.nom }}</strong>
               <span class="muted">({{ row.produit.get_unite_vente_display }})</span>
               {% if row.produit.origine_standard %}<span class="origine-produit importe" title="Importé depuis la liste {{ row.produit.origine_standard.get_activite_display }}">📦</span>{% else %}<span class="origine-produit perso" title="Article créé par vous">✍️</span>{% endif %}
               {% if est_proprietaire or user.is_superuser %}<a class="btn btn-sm btn-outline" href="{% url 'portal:product_edit' row.produit.pk %}" title="Éditer l'article : libellé, prix de référence, illustration, descriptif">📝</a>{% endif %}
@@ -52,10 +54,29 @@ et retour="dashboard" (édition en ligne).
                        value="{% if row.qty %}{{ row.qty|unlocalize }}{% endif %}"></td>
             <td><input type="number" step="0.01" min="0" name="price_{{ row.produit.pk }}"
                        value="{% if row.price %}{{ row.price|unlocalize }}{% endif %}"></td>
+            <td></td>
           </tr>
-        {% endfor %}
+        {% endif %}{% endfor %}
+        </tbody>
+        {% if groupe.nb_dispo %}
+        <tbody class="recolte-dispo" hidden>
+        {% for row in groupe.rows %}{% if not row.choisi %}
+          <tr>
+            <td>{% if row.produit.illustration %}<img class="vignette-produit" src="{{ row.produit.illustration.url }}" alt="">{% elif row.produit.image_externe %}<img class="vignette-produit" src="{{ row.produit.image_externe }}" alt="" loading="lazy">{% endif %}{% if row.produit.emoji %}{{ row.produit.emoji }} {% elif row.produit.origine_standard and row.produit.origine_standard.emoji %}{{ row.produit.origine_standard.emoji }} {% endif %}{{ row.produit.nom }}
+              <span class="muted">({{ row.produit.get_unite_vente_display }})</span>
+              {% if row.produit.prix %}<span class="muted">· réf. {{ row.produit.prix }} €</span>{% endif %}
+              {% if row.produit.description %}<br><span class="muted">{{ row.produit.description|truncatechars:70 }}</span>{% endif %}</td>
+            <td><input type="number" step="{{ row.step }}" min="0" name="qty_{{ row.produit.pk }}" placeholder="quantité…"></td>
+            <td><input type="number" step="0.01" min="0" name="price_{{ row.produit.pk }}"
+                       value="{% if row.price %}{{ row.price|unlocalize }}{% endif %}" title="Prix de référence du catalogue préchargé : ajustez librement"></td>
+            <td><button type="button" class="btn btn-sm btn-outline recolte-ajouter" title="Importer ce produit dans la publication (prix et unité préchargés du catalogue)">➕</button></td>
+          </tr>
+        {% endif %}{% endfor %}
         </tbody>
       </table>
+      {% if groupe.nb_dispo %}<button type="button" class="btn btn-sm btn-outline recolte-ajouter-tout">➕ {{ groupe.nb_dispo }} produit{{ groupe.nb_dispo|pluralize }} du catalogue non affiché{{ groupe.nb_dispo|pluralize }} — les importer</button>{% else %}
+      </table>
+      {% endif %}
     </section>
   {% empty %}
     <p class="muted">Ajoutez d'abord des {{ exploitant_courant.vocab.articles }} à votre catalogue
@@ -71,3 +92,37 @@ et retour="dashboard" (édition en ligne).
     {% endif %}
   </div>
 </form>
+<script>
+/* Import sélectif depuis le catalogue actif : ➕ fait remonter un
+   produit « disponible » dans la saisie (prix et unité préchargés),
+   « importer » affiche tous les produits restants de la catégorie.
+   Rien n'est envoyé tant que quantité ET prix ne sont pas saisis. */
+(function () {
+  document.addEventListener("click", function (e) {
+    var un = e.target.closest(".recolte-ajouter");
+    if (un) {
+      var tr = un.closest("tr");
+      var table = un.closest("table");
+      un.parentNode.innerHTML = "";
+      table.querySelector("tbody").appendChild(tr);
+      var qty = tr.querySelector('input[name^="qty_"]');
+      if (qty) { qty.focus(); }
+      var section = tr.closest(".harvest-cat");
+      var dispo = section.querySelector(".recolte-dispo");
+      var boutonTout = section.querySelector(".recolte-ajouter-tout");
+      if (dispo && !dispo.children.length) {
+        dispo.remove();
+        if (boutonTout) { boutonTout.remove(); }
+      }
+      return;
+    }
+    var tous = e.target.closest(".recolte-ajouter-tout");
+    if (tous) {
+      var bloc = tous.closest(".harvest-cat");
+      var tbody = bloc.querySelector(".recolte-dispo");
+      if (tbody) { tbody.hidden = false; }
+      tous.remove();
+    }
+  });
+})();
+</script>

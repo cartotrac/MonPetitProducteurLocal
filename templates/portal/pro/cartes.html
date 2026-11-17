@@ -6,8 +6,9 @@
    permanence, en plus de « {{ exploitant.titre_semaine }} ». Composez
    plusieurs cartes (brouillons, versions archivées et republiables) :
    une seule est publiée à la fois. Les lignes reprennent vos produits
-   du catalogue (de référence ou perso) ou restent libres (plat du
-   jour, menu…).</p>
+   du catalogue actif{% if catalogue_actif %} « {{ catalogue_actif.nom }} » ✅{% endif %}
+   ou restent libres (plat du jour, menu…) : prix, unités, descriptifs
+   et médias sont préchargés du catalogue, puis ajustables ligne à ligne.</p>
 
 <section class="harvest-bloc">
   <div class="card">
@@ -80,16 +81,26 @@
 
     <form method="post" class="form">
       {% csrf_token %}
-      <input type="hidden" name="action" value="ajouter_ligne">
       <input type="hidden" name="carte_id" value="{{ carte.pk }}">
-      <h3>➕ Ajouter une ligne à « {{ carte.nom }} »</h3>
-      <label for="produit_{{ carte.pk }}">Depuis mon catalogue</label>
-      <select id="produit_{{ carte.pk }}" name="produit_id">
+      <h3>➕ Ajouter à « {{ carte.nom }} »</h3>
+      <label for="produit_{{ carte.pk }}">Un produit du catalogue actif</label>
+      <select id="produit_{{ carte.pk }}" name="produit_id" class="carte-select-produit">
         <option value="">— ou ligne libre ci-dessous —</option>
-        {% for produit in produits %}
-          <option value="{{ produit.pk }}">{{ produit.emoji }} {{ produit.nom }}{% if produit.categorie %} ({{ produit.categorie.nom }}){% endif %}</option>
+        {% regroup produits by categorie.nom as familles %}
+        {% for famille in familles %}
+        <optgroup label="{{ famille.grouper|default:"Sans catégorie" }}">
+          {% for produit in famille.list %}
+          <option value="{{ produit.pk }}" data-prix="{{ produit.prix|default_if_none:'' }}" data-desc="{{ produit.description }}">{{ produit.emoji }} {{ produit.nom }}</option>
+          {% endfor %}
+        </optgroup>
         {% endfor %}
       </select>
+      {% if categories %}
+      <label for="catimport_{{ carte.pk }}">Ou importer TOUTE une catégorie du catalogue (un produit par ligne, tout préchargé)</label>
+      <select id="catimport_{{ carte.pk }}" name="categorie_id">
+        {% for cat in categories %}<option value="{{ cat.pk }}">{{ cat.nom }}</option>{% endfor %}
+      </select>
+      {% endif %}
       <label for="libre_{{ carte.pk }}">Ou ligne libre (plat, menu…)</label>
       <input type="text" id="libre_{{ carte.pk }}" name="nom_libre" placeholder="Ex : Menu du marché, Plat du jour…">
       <label for="section_{{ carte.pk }}">Section (optionnel)</label>
@@ -100,11 +111,39 @@
       <input type="text" id="prix_{{ carte.pk }}" name="prix" placeholder="Ex : 12,50">
       <label for="stock_{{ carte.pk }}">Stock publié (vide = illimité, sans suivi)</label>
       <input type="text" id="stock_{{ carte.pk }}" name="stock" placeholder="Ex : 12">
-      <button class="btn" type="submit">Ajouter</button>
+      <button class="btn" type="submit" name="action" value="ajouter_ligne">➕ Ajouter la ligne</button>
+      {% if categories %}<button class="btn btn-outline" type="submit" name="action" value="importer_categorie">📥 Importer la catégorie entière</button>{% endif %}
     </form>
   </div>
 </section>
 {% empty %}
 <p class="muted">Aucune carte pour l'instant : créez-en une ci-dessus.</p>
 {% endfor %}
+<script>
+/* Ajout d'une ligne depuis le catalogue : la sélection d'un produit
+   précharge son descriptif et rappelle son prix de référence (le
+   champ prix vide = prix du catalogue, affiché tel quel en vitrine). */
+(function () {
+  document.querySelectorAll("select.carte-select-produit").forEach(
+    function (sel) {
+      sel.addEventListener("change", function () {
+        var opt = sel.selectedOptions[0];
+        if (!opt || !opt.value) { return; }
+        var form = sel.closest("form");
+        var desc = form.querySelector('[name="description"]');
+        var prix = form.querySelector('[name="prix"]');
+        if (desc && !desc.value) {
+          desc.value = opt.getAttribute("data-desc") || "";
+        }
+        var ref = opt.getAttribute("data-prix");
+        if (prix) {
+          prix.placeholder = ref ? "catalogue : " + ref
+                                 : "Ex : 12,50";
+          prix.title = ref ? "Prix de référence du catalogue : " + ref
+                           : "Prix libre";
+        }
+      });
+    });
+})();
+</script>
 {% endblock %}
