@@ -6039,3 +6039,31 @@ html.dark .gestion-catalogue-ligne {
 }
 html.dark .gestion-catalogue-ligne.actif { background: #22301b; }
 html.dark .gestion-cat-medias summary { color: #b9b9ac; }
+
+
+/* ===== REVUE V3.19 — Onglets de catalogues (espace pro) ===== */
+/* Même ergonomie que les onglets d'activité de la page « Produits
+   types » (catalogues-activite), appliquée aux catalogues
+   éditables de l'espace pro : un onglet par catalogue, ✅ marque
+   le catalogue actif (celui des publications). */
+.catalogue-onglets .catalogue-onglet-courant {
+  font-weight: 700;
+  box-shadow: inset 0 -3px 0 #3a7d2c;
+}
+html.dark .catalogue-onglets .catalogue-onglet-courant {
+  box-shadow: inset 0 -3px 0 #7dc36b;
+}
+/* Barre d'outils du catalogue affiché : renommage, activation,
+   duplication (nom obligatoire), archivage — passe à la ligne
+   sur petit écran. */
+.gestion-catalogues-bloc .gestion-catalogue-ligne {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.gestion-catalogues-bloc .gestion-catalogue-nom {
+  min-width: 14ch;
+}
+.gestion-catalogues-bloc input.gestion-catalogue-duplicata {
+  font-style: italic;
+  opacity: 0.85;
+}
