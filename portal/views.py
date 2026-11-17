@@ -1931,6 +1931,11 @@ def produit_edition_rapide(request):
             if not nom:
                 messages.error(request, "Nom de catalogue vide.")
                 return redirect(destination)
+            if Catalogue.objects.filter(exploitant=exploitant,
+                                        nom__iexact=nom).exists():
+                messages.error(request, f"Un catalogue nommé « {nom} » "
+                               "existe déjà : choisissez un autre nom.")
+                return redirect(destination)
             position = (Catalogue.objects.filter(exploitant=exploitant)
                         .aggregate(m=Max("position"))["m"] or 0)
             catalogue_nouveau = Catalogue.objects.create(
@@ -2018,6 +2023,14 @@ def produit_edition_rapide(request):
             if cible is None:
                 messages.error(request, "Catalogue introuvable.")
                 return redirect(destination)
+            if (Catalogue.objects
+                    .filter(exploitant=exploitant, archive=False)
+                    .count() <= 1):
+                messages.error(request, "Impossible d'archiver votre "
+                               "seul catalogue : créez-en un autre (ou "
+                               "dupliquez celui-ci) d'abord, puis "
+                               "archivez celui-ci.")
+                return redirect(_destination(cible.pk))
             cible.archive = True
             cible.actif = False
             cible.save()
@@ -2032,14 +2045,48 @@ def produit_edition_rapide(request):
                           "supprimé).")
             return redirect(_destination(
                 suivant.pk if suivant is not None else None))
+        if nature_action == "catalogue_supprimer":
+            cible = _cible_catalogue()
+            if cible is None:
+                messages.error(request, "Catalogue introuvable.")
+                return redirect(destination)
+            if cible.actif and not cible.archive:
+                messages.error(request, "Activez un autre catalogue "
+                               "avant de supprimer celui-ci.")
+                return redirect(_destination(cible.pk))
+            pks = list(cible.produits.values_list("pk", flat=True))
+            cites = (Produit.objects
+                     .filter(pk__in=pks,
+                             lignes_commande__isnull=False).exists()
+                     or Produit.objects
+                     .filter(pk__in=pks,
+                             lignes_panier__isnull=False).exists())
+            if cites:
+                messages.error(request, "« " + cible.nom + " » ne peut "
+                               "pas être supprimé : ses produits sont "
+                               "cités dans des commandes ou paniers "
+                               "passés (historique conservé). Archivez-"
+                               "le plutôt : il ne paraîtra plus nulle "
+                               "part mais reste réactivable.")
+                return redirect(_destination(cible.pk))
+            nom = cible.nom
+            nb = len(pks)
+            with transaction.atomic():
+                cible.delete()
+            messages.info(request, f"Catalogue « {nom} » supprimé "
+                          f"définitivement ({nb} produit(s) et ses "
+                          "catégories).")
+            if not retour_produits:
+                return redirect("portal:dashboard")
+            return redirect(reverse("portal:product_list"))
         if nature_action == "categorie_medias":
             cat = _cible_categorie()
             if cat is None:
                 messages.error(request, "Catégorie introuvable.")
                 return redirect(destination)
             medias = [u.strip() for u in
-                      request.POST.get(f"medias_cat_{cat.pk}",
-                                       "").splitlines() if u.strip()]
+                      request.POST.getlist(f"medias_cat_{cat.pk}")
+                      if u.strip()]
             attributs = dict(cat.attributs or {})
             if medias:
                 attributs["medias"] = medias
