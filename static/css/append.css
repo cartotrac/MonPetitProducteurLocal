@@ -6161,3 +6161,35 @@ html.dark .harvest-cat .recolte-dispo {
 form.form select[name="categorie_id"] {
   max-width: 24rem;
 }
+
+/* ===== REVUE V3.21-2 — Édition en place des cartes / boutiques ===== */
+/* Champs éditables du tableau des lignes d'une carte : compacts et
+   alignés, sauvegarde unifiée par le 💾 « Enregistrer la carte ». */
+.carte-edition .carte-input-prix,
+.carte-edition .carte-input-stock {
+  width: 7.5ch;
+  font-size: 0.88rem;
+  padding: 0.25rem 0.35rem;
+}
+.carte-edition .carte-input-section {
+  width: 13ch;
+  font-size: 0.82rem;
+  font-style: italic;
+  padding: 0.25rem 0.35rem;
+}
+.carte-edition .carte-input-desc {
+  width: 16ch;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.35rem;
+}
+.carte-edition .carte-input-nom {
+  width: 15ch;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 0.25rem 0.35rem;
+}
+html.dark .carte-edition input {
+  background: rgba(255, 255, 255, 0.06);
+}
+/* Sur mobile, le tableau édité passe en défilement horizontal. */
+.carte-edition { overflow-x: auto; }
