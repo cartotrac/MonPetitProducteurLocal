@@ -2303,6 +2303,36 @@ def produit_edition_rapide(request):
                                  "ajouté.")
             return redirect(destination)
 
+        # Sauvegarde unifiée 💾 : les CATÉGORIES (libellés, médias)
+        # suivent le même bouton que les produits.
+        if request.POST.get("enregistrer", ""):
+            nb_cats = 0
+            for cat in Categorie.objects.filter(
+                    exploitant=exploitant, catalogue=catalogue):
+                nom = (request.POST.get(f"nom_cat_{cat.pk}", "") or "").strip()
+                medias = [u.strip() for u in
+                          request.POST.getlist(f"medias_cat_{cat.pk}")
+                          if u.strip()]
+                anciens = (cat.attributs or {}).get("medias", [])
+                modifie = False
+                if nom and nom != cat.nom:
+                    cat.nom = nom[:80]
+                    modifie = True
+                if medias != anciens:
+                    attributs = dict(cat.attributs or {})
+                    if medias:
+                        attributs["medias"] = medias
+                    else:
+                        attributs.pop("medias", None)
+                    cat.attributs = attributs
+                    modifie = True
+                if modifie:
+                    cat.save()
+                    nb_cats += 1
+            if nb_cats:
+                messages.success(request, f"{nb_cats} catégorie(s) "
+                                 "mise(s) à jour (libellés, médias).")
+
         # 🖱 Glisser-déposer : ordre complet sérialisé par la page
         # (« cat_pk:p1,p2,… | sans:p3 ») : catégories ET produits
         # replacés d'un coup, en même temps que les modifications.
