@@ -609,9 +609,20 @@ class Categorie(models.Model):
 
     exploitant = models.ForeignKey(Exploitant, on_delete=models.CASCADE,
                                    related_name="categories")
+    # Catalogue de rattachement (multi-catalogues : saisonnier, fixe,
+    # carte de saison… un seul actif à la fois par espace pro).
+    catalogue = models.ForeignKey(
+        "Catalogue", on_delete=models.CASCADE,
+        related_name="categories", null=True, blank=True,
+        verbose_name="Catalogue")
     nom = models.CharField("Nom", max_length=80)
     slug = models.SlugField(max_length=100, blank=True)
     position = models.PositiveSmallIntegerField("Position", default=0)
+    # Médias externes de la catégorie (liens drive/cloud, un ou
+    # plusieurs) : attributs["medias"] = ["https://…", …]
+    attributs = models.JSONField(
+        "Attributs libres", default=dict, blank=True,
+        help_text='Ex : {"medias": ["https://…"]}')
 
     class Meta:
         verbose_name = "Catégorie"
@@ -626,6 +637,43 @@ class Categorie(models.Model):
             from django.utils.text import slugify
             self.slug = slugify(self.nom)
         super().save(*args, **kwargs)
+
+    @property
+    def medias(self):
+        """Liens médias externes de la catégorie (drive, cloud…)."""
+        return (self.attributs or {}).get("medias", [])
+
+
+class Catalogue(models.Model):
+    """Catalogue d'un espace pro : chaque espace peut tenir PLUSIEURS
+    catalogues (saisonnier, fixe, carte de saison, jardin…) mais UN
+    SEUL est actif à la fois — c'est lui qui est édité en place et
+    qui alimente les publications (récoltes, cartes, boutiques).
+    Un catalogue archivé est simplement rangé, jamais supprimé :
+    réactivable à tout moment."""
+
+    exploitant = models.ForeignKey(Exploitant, on_delete=models.CASCADE,
+                                   related_name="catalogues")
+    nom = models.CharField("Nom", max_length=120)
+    actif = models.BooleanField(
+        "Catalogue actif", default=False,
+        help_text="Un seul catalogue actif à la fois par espace pro : "
+                  "c'est lui qui permet l'édition rapide des listes "
+                  "de publications saisonnières ou fixes.")
+    archive = models.BooleanField(
+        "Archivé", default=False,
+        help_text="Catalogue rangé : plus proposé à l'édition ni aux "
+                  "publications, réactivable à tout moment.")
+    position = models.PositiveSmallIntegerField("Position", default=0)
+    cree_le = models.DateTimeField("Créé le", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Catalogue"
+        verbose_name_plural = "Catalogues"
+        ordering = ["position", "id"]
+
+    def __str__(self):
+        return f"{self.nom} ({self.exploitant.nom_espace})"
 
 
 class ProduitStandard(models.Model):
@@ -687,6 +735,13 @@ class Produit(models.Model):
     categorie = models.ForeignKey(Categorie, on_delete=models.SET_NULL,
                                   null=True, blank=True,
                                   related_name="produits")
+    # Catalogue de rattachement (multi-catalogues) : le catalogue
+    # ACTIF de l'espace pro est celui proposé à l'édition rapide et
+    # aux publications.
+    catalogue = models.ForeignKey(
+        "Catalogue", on_delete=models.CASCADE,
+        related_name="produits", null=True, blank=True,
+        verbose_name="Catalogue")
     nom = models.CharField("Nom", max_length=150)
     slug = models.SlugField(max_length=160, blank=True)
     description = models.TextField("Description", blank=True)
