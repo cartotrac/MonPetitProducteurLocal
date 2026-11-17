@@ -3,13 +3,13 @@
 {% block title %}Produits types {{ activite_courante|title }} — MonPetitProducteurLocal{% endblock %}
 {% block content %}
 <h1>📚 Produits types par activité</h1>
-<p class="muted">Catalogue de départ proposé selon votre activité — tous les
-   autres catalogues restent accessibles ci-dessous. Cochez les produits que
-   vous vendez, indiquez un prix si vous le connaissez, puis copiez-les dans
-   votre catalogue : les catégories correspondantes sont créées
-   automatiquement. Tout reste modifiable ensuite.</p>
+<p class="muted">Catalogue de départ proposé selon votre activité — les autres
+   restent accessibles par les onglets. Cochez les produits que vous vendez
+   (toute une catégorie d'un clic), indiquez un prix si vous le connaissez,
+   puis copiez-les : les catégories correspondantes sont créées
+   automatiquement dans votre liste. Tout reste modifiable ensuite.</p>
 
-<nav class="quick-actions" aria-label="Catalogues par activité">
+<nav class="quick-actions catalogue-onglets" aria-label="Catalogues par activité">
   {% for code, libelle in activites %}
     <a class="btn {% if code == activite_courante %}{% else %}btn-outline{% endif %} btn-sm"
        href="{% url 'portal:catalogue_standard' %}?activite={{ code }}">
@@ -17,42 +17,95 @@
   {% endfor %}
 </nav>
 
-<form method="post" action="{% url 'portal:catalogue_copier' %}">
+<form method="post" action="{% url 'portal:catalogue_copier' %}" id="form-catalogue-standard">
   {% csrf_token %}
   <input type="hidden" name="activite" value="{{ activite_courante }}">
-  {% for categorie, items in paires %}
-    <h2>{{ categorie }}</h2>
-    <ul>
-      {% for item in items %}
-        <li>
+  {% for groupe in paires %}
+    <div class="catalogue-cat">
+      <div class="catalogue-cat-tete">
+        <h2>{{ groupe.categorie|default:"Sans catégorie" }}</h2>
+        {% if groupe.nb_deja %}
+          <span class="badge badge-encours catalogue-cat-deja" title="Produits déjà présents dans votre liste active">✅ {{ groupe.nb_deja }} déjà dans votre liste</span>
+        {% endif %}
+        {% if groupe.nb_choisissables %}
+          <button type="button" class="btn btn-outline btn-sm catalogue-cat-tout"
+                  title="Cocher / décocher tous les produits de cette catégorie">Tout cocher</button>
+        {% endif %}
+      </div>
+      <ul class="catalogue-liste">
+        {% for item in groupe.items %}
+        <li class="{% if item.deja %}catalogue-deja{% endif %}">
           {% if item.deja %}
-            {{ item.std.emoji }} {{ item.std.nom }}
-            ({{ item.std.get_unite_vente_display }}) ✅ déjà dans mon catalogue
+            <span class="catalogue-item-libelle catalogue-item-deja"
+                  title="Déjà dans votre liste active personnalisable">{{ item.std.emoji }} {{ item.std.nom }} ({{ item.std.get_unite_vente_display }})</span>
+            <span class="badge" title="Ce produit est déjà dans votre liste active">✅</span>
           {% else %}
-            <label>
+            <label class="catalogue-item-libelle">
               <input type="checkbox" name="std" value="{{ item.std.pk }}">
-              {{ item.std.emoji }} {{ item.std.nom }}
-              ({{ item.std.get_unite_vente_display }})
-              — prix €/u : <input type="number" step="0.01" min="0"
-                            name="prix_{{ item.std.pk }}" size="6"
-                            value="{{ item.std.prix_indicatif|stringformat:'.2f'|default:'' }}"
-                            placeholder="{% if item.std.prix_indicatif %}{{ item.std.prix_indicatif }} €{% endif %}">
-              {% if item.std.prix_indicatif %}
-                <span class="muted">(suggéré : {{ item.std.prix_indicatif }} €)</span>
-              {% endif %}
+              <span>{{ item.std.emoji }} {{ item.std.nom }} ({{ item.std.get_unite_vente_display }})</span>
             </label>
+            <label class="catalogue-item-prix" title="Prix de vente en euros par unité">
+              prix €/u
+              <input type="number" step="0.01" min="0"
+                     name="prix_{{ item.std.pk }}" size="6"
+                     value="{{ item.std.prix_indicatif|stringformat:'.2f'|default:'' }}"
+                     placeholder="{% if item.std.prix_indicatif %}{{ item.std.prix_indicatif }} €{% endif %}">
+            </label>
+            {% if item.std.prix_indicatif %}
+              <span class="muted catalogue-item-suggere">suggéré : {{ item.std.prix_indicatif }} €</span>
+            {% endif %}
+            {% if item.std.saisons %}
+              <span class="badge catalogue-item-saison" title="Saisons types de ce produit">🗓️ {{ item.std.saisons }}</span>
+            {% endif %}
           {% endif %}
         </li>
-      {% endfor %}
-    </ul>
+        {% endfor %}
+      </ul>
+    </div>
   {% empty %}
     <p class="muted">Aucun produit type pour cette activité pour
-       l'instant : créez vos produits directement depuis le mode édition
-       votre page Catalogue.</p>
+       l'instant : créez vos produits directement depuis votre page
+       Catalogues.</p>
   {% endfor %}
-  {% if paires %}
+  <div class="catalogue-barre" id="catalogue-barre" hidden>
+    <span><strong id="catalogue-compte">0</strong> produit(s) sélectionné(s) —
+      copiés dans votre liste active (catégories créées automatiquement)</span>
     <button class="btn" type="submit">📥 Copier la sélection</button>
-  {% endif %}
+  </div>
+  <noscript>{% if paires %}<p><button class="btn" type="submit">📥 Copier la sélection</button></p>{% endif %}</noscript>
 </form>
-<p><a class="btn btn-outline btn-sm" href="{% url 'portal:product_list' %}">📚 Retour au catalogue</a> <a href="{% url 'portal:dashboard' %}">← Retour à l'espace pro</a></p>
+<script>
+/* Catalogue de produits types : compteur de sélection en direct (barre
+   flottante, masquée sans sélection), bascule « tout cocher » par
+   catégorie. Les produits déjà dans la liste active de l'exploitant ne
+   portent pas de case (rien à recopier) et restent visibles (✅). */
+(function () {
+  var form = document.getElementById("form-catalogue-standard");
+  if (!form) { return; }
+  var barre = document.getElementById("catalogue-barre");
+  var compte = document.getElementById("catalogue-compte");
+  function majBarre() {
+    var n = form.querySelectorAll('input[name="std"]:checked').length;
+    if (compte) { compte.textContent = n; }
+    if (barre) { barre.hidden = n === 0; }
+  }
+  form.querySelectorAll('input[name="std"]').forEach(function (c) {
+    c.addEventListener("change", majBarre);
+  });
+  form.querySelectorAll(".catalogue-cat-tout").forEach(function (bouton) {
+    bouton.addEventListener("click", function () {
+      var cat = bouton.closest(".catalogue-cat");
+      var cases = Array.prototype.slice.call(
+        cat.querySelectorAll('input[name="std"]'));
+      if (!cases.length) { return; }
+      var toutesCochees = cases.every(function (c) { return c.checked; });
+      cases.forEach(function (c) { c.checked = !toutesCochees; });
+      bouton.textContent = toutesCochees ? "Tout cocher" : "Tout décocher";
+      majBarre();
+    });
+  });
+  majBarre();
+})();
+</script>
+<p><a class="btn btn-outline btn-sm" href="{% url 'portal:product_list' %}">📚 Retour à mes catalogues</a> <a href="{% url 'portal:dashboard' %}">← Retour à l'espace pro</a></p>
 {% endblock %}

@@ -3827,7 +3827,13 @@ def catalogue_standard(request):
             "std": std,
             "deja": std.pk in deja_copies,
         })
-    paires = [(cat, groupes[cat]) for cat in ordre]
+    paires = [{
+        "categorie": cat,
+        "items": groupes[cat],
+        "nb_deja": sum(1 for it in groupes[cat] if it["deja"]),
+        "nb_choisissables": sum(1 for it in groupes[cat]
+                                if not it["deja"]),
+    } for cat in ordre]
     return render(request, "portal/pro/catalogue_standard.html",
                   {"paires": paires,
                    "activite_courante": activite_courante,
