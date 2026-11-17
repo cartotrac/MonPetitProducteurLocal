@@ -12,11 +12,6 @@
    catégorie et illustrées par les médias héros. Créez, dupliquez,
    activez, archivez : rien ne se perd. Page réservée au gérant de
    l'espace (ou au support).</p>
-<p class="retour-edition">
-    <a class="btn btn-outline btn-sm" href="{% url 'portal:catalogue_standard' %}">📚 Importer des produits types</a>
-    <a class="btn btn-outline btn-sm" href="{% url 'portal:categories_manage' %}">🏷 Gérer les catégories</a>
-</p>
-
 <nav class="quick-actions catalogue-onglets" aria-label="Mes catalogues (✅ = actif, celui des publications)">
   {% for c in catalogues %}
     <a class="btn {% if c.pk == catalogue.pk %}catalogue-onglet-courant{% else %}btn-outline{% endif %} btn-sm catalogue-onglet"
@@ -49,6 +44,11 @@
           <button type="submit" name="action" value="catalogue_archiver:{{ catalogue.pk }}"
                   onclick="if(!confirm('Archiver « {{ catalogue.nom }} » ? Rien n'est supprimé : il reste réactivable ci-dessous.'))event.preventDefault();"
                   class="btn btn-sm btn-outline" title="Ranger ce catalogue (réactivable)">📥 Archiver</button>
+          {% if catalogue.pk != catalogue_actif.pk %}
+            <button type="submit" name="action" value="catalogue_supprimer:{{ catalogue.pk }}"
+                    onclick="if(!confirm('Supprimer DÉFINITIVEMENT « {{ catalogue.nom }} » avec ses catégories et produits ? Cette action est irréversible.'))event.preventDefault();"
+                    class="btn btn-sm btn-danger" title="Supprimer définitivement ce catalogue (refusé si des produits sont cités dans des commandes passées)">🗑 Supprimer</button>
+          {% endif %}
         </div>
       </div>
       {% if catalogues_archives %}
@@ -59,6 +59,9 @@
             <div class="gestion-catalogue-ligne archive">
               <span class="muted">{{ c.nom }}</span>
               <button type="submit" name="action" value="catalogue_activer:{{ c.pk }}" class="btn btn-sm" title="Réactiver ce catalogue et en faire le catalogue actif">♻️ Réactiver</button>
+              <button type="submit" name="action" value="catalogue_supprimer:{{ c.pk }}"
+                      onclick="if(!confirm('Supprimer DÉFINITIVEMENT « {{ c.nom }} » avec ses catégories et produits ? Cette action est irréversible.'))event.preventDefault();"
+                      class="btn btn-sm btn-danger" title="Supprimer définitivement ce catalogue archivé">🗑</button>
             </div>
           {% endfor %}
         </div>
@@ -72,8 +75,13 @@
       <p class="muted">Astuce : un catalogue par saison ou par usage —
          dupliquez la liste de l'été pour préparer celle de l'automne,
          renommez, puis ⚡ activez celui à publier. Le badge ✅ marque
-         le catalogue actif dans les onglets ; archiver ne supprime
-         jamais rien.</p>
+         le catalogue actif dans les onglets ; 📥 archiver range sans
+         rien supprimer, 🗑 supprime définitivement (sauf produits
+         déjà commandés, historique conservé).</p>
+      <p class="retour-edition">
+        <a class="btn btn-outline btn-sm" href="{% url 'portal:catalogue_standard' %}">📚 Importer des produits types</a>
+        <a class="btn btn-outline btn-sm" href="{% url 'portal:categories_manage' %}">🏷 Gérer les catégories</a>
+      </p>
     </div>
 
     <div class="card gestion-ajout">
@@ -129,10 +137,20 @@
                       class="btn btn-sm btn-danger" title="Supprimer la catégorie (les produits sont conservés)">🗑</button>
               <details class="gestion-cat-medias">
                 <summary title="Un ou plusieurs médias pour personnaliser la catégorie">🖼 Médias{% if cat.medias %} ({{ cat.medias|length }}){% endif %}</summary>
-                {% for m in cat.medias %}<img src="{{ m }}" alt="Média de la catégorie {{ cat.nom }}">{% endfor %}
-                <textarea name="medias_cat_{{ cat.pk }}" rows="2" placeholder="Un lien média par ligne (drive, cloud…) — laissez vide pour aucun">{% for m in cat.medias %}{{ m }}
-{% endfor %}</textarea>
-                <button type="submit" name="action" value="categorie_medias:{{ cat.pk }}" class="btn btn-sm">💾 Médias de la catégorie</button>
+                <div class="cat-medias-liste" data-cat="{{ cat.pk }}">
+                  {% for m in cat.medias %}
+                    <div class="cat-media-ligne">
+                      <img src="{{ m }}" alt="Média de la catégorie {{ cat.nom }}" loading="lazy">
+                      <input type="url" name="medias_cat_{{ cat.pk }}" value="{{ m }}" title="Lien de ce média (drive, cloud…)">
+                      <button type="button" class="btn btn-sm btn-outline cat-media-retirer" title="Retirer ce média">✖</button>
+                    </div>
+                  {% endfor %}
+                </div>
+                <div class="cat-media-ajout">
+                  <input type="url" class="cat-media-url" placeholder="Coller un lien (Drive, cloud, photo en ligne…)">
+                  <button type="button" class="btn btn-sm cat-media-ajouter" title="Ajouter ce lien à la catégorie">➕ Ajouter le média</button>
+                </div>
+                <button type="submit" name="action" value="categorie_medias:{{ cat.pk }}" class="btn btn-sm">💾 Enregistrer les médias</button>
               </details>
             {% else %}
               <h3 class="gestion-cat-titre">Sans catégorie</h3>
@@ -315,6 +333,54 @@
         if (!perso) { autre.value = ""; }
       });
     });
+})();
+</script>
+<script>
+/* Médias de catégorie : ajout et retrait UN PAR UN (un champ url
+   par média) — plus de saisie multiligne. « ➕ Ajouter le média »
+   ajoute une ligne avec vignette, « ✖ » la retire ; 💾 enregistre
+   l'ensemble. Les liens vides sont ignorés côté serveur. */
+(function () {
+  document.addEventListener("click", function (e) {
+    var retire = e.target.closest(".cat-media-retirer");
+    if (retire) {
+      retire.closest(".cat-media-ligne").remove();
+      return;
+    }
+    var ajoute = e.target.closest(".cat-media-ajouter");
+    if (!ajoute) { return; }
+    var bloc = ajoute.closest(".gestion-cat-medias");
+    var liste = bloc.querySelector(".cat-medias-liste");
+    var saisie = bloc.querySelector(".cat-media-url");
+    var url = (saisie.value || "").trim();
+    if (!url) {
+      saisie.focus();
+      saisie.placeholder = "Collez d'abord le lien du média ici";
+      return;
+    }
+    var ligne = document.createElement("div");
+    ligne.className = "cat-media-ligne";
+    var img = document.createElement("img");
+    img.src = url;
+    img.alt = "";
+    img.loading = "lazy";
+    var champ = document.createElement("input");
+    champ.type = "url";
+    champ.name = "medias_cat_" + liste.dataset.cat;
+    champ.value = url;
+    champ.title = "Lien de ce média (drive, cloud…)";
+    var boutonRetire = document.createElement("button");
+    boutonRetire.type = "button";
+    boutonRetire.className = "btn btn-sm btn-outline cat-media-retirer";
+    boutonRetire.title = "Retirer ce média";
+    boutonRetire.textContent = "✖";
+    ligne.appendChild(img);
+    ligne.appendChild(champ);
+    ligne.appendChild(boutonRetire);
+    liste.appendChild(ligne);
+    saisie.value = "";
+    saisie.placeholder = "Coller un lien (Drive, cloud, photo en ligne…)";
+  });
 })();
 </script>
 {% endblock %}
