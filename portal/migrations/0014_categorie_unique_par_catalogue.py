@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterUniqueTogether(
-            model_name="categorie",
+            name="categorie",
             unique_together=set(),
         ),
         migrations.AddConstraint(
