@@ -1978,27 +1978,31 @@ def produit_edition_rapide(request):
                 return redirect(_destination(cible.pk))
             position = (Catalogue.objects.filter(exploitant=exploitant)
                         .aggregate(m=Max("position"))["m"] or 0)
-            copie = Catalogue.objects.create(
-                exploitant=exploitant, nom=nom[:120],
-                position=position + 1)
-            correspondances = {}
-            for cat in cible.categories.order_by("position", "id"):
-                correspondances[cat.pk] = Categorie.objects.create(
-                    exploitant=exploitant, nom=cat.nom,
-                    position=cat.position, catalogue=copie,
-                    attributs=cat.attributs)
-            nb = 0
-            for p in cible.produits.order_by("position", "id"):
-                Produit.objects.create(
-                    exploitant=exploitant, nom=p.nom,
-                    unite_vente=p.unite_vente, prix=p.prix,
-                    description=p.description,
-                    image_externe=p.image_externe, emoji=p.emoji,
-                    perso=p.perso, origine_standard=p.origine_standard,
-                    position=p.position, actif=p.actif,
-                    categorie=correspondances.get(p.categorie_id),
-                    catalogue=copie)
-                nb += 1
+            # Copie ATOMIQUE : catalogue, catégories et produits dans
+            # une seule transaction — en cas d'imprévu (contrainte,
+            # erreur SQL), rien n'est laissé à moitié copié.
+            with transaction.atomic():
+                copie = Catalogue.objects.create(
+                    exploitant=exploitant, nom=nom[:120],
+                    position=position + 1)
+                correspondances = {}
+                for cat in cible.categories.order_by("position", "id"):
+                    correspondances[cat.pk] = Categorie.objects.create(
+                        exploitant=exploitant, nom=cat.nom,
+                        position=cat.position, catalogue=copie,
+                        attributs=cat.attributs)
+                nb = 0
+                for p in cible.produits.order_by("position", "id"):
+                    Produit.objects.create(
+                        exploitant=exploitant, nom=p.nom,
+                        unite_vente=p.unite_vente, prix=p.prix,
+                        description=p.description,
+                        image_externe=p.image_externe, emoji=p.emoji,
+                        perso=p.perso, origine_standard=p.origine_standard,
+                        position=p.position, actif=p.actif,
+                        categorie=correspondances.get(p.categorie_id),
+                        catalogue=copie)
+                    nb += 1
             messages.success(request, f"Catalogue « {cible.nom} » "
                              f"dupliqué en « {copie.nom} » ({nb} "
                              "produit(s), catégories et médias "

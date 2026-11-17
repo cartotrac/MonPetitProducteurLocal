@@ -626,7 +626,19 @@ class Categorie(models.Model):
 
     class Meta:
         verbose_name = "Catégorie"
-        unique_together = ("exploitant", "nom")
+        constraints = [
+            # Nom de catégorie unique PAR CATALOGUE : « Burgers » peut
+            # exister dans plusieurs catalogues du même espace pro
+            # (duplication de listes, catalogues saisonniers). L'ancienne
+            # unicité (« exploitant », « nom ») héritée de l'époque
+            # mono-liste bloquait la duplication. Les catégories hors
+            # catalogue (catalogue NULL, ex. produits d'historique
+            # détachés) échappent à la contrainte : PostgreSQL n'applique
+            # pas UNIQUE quand une colonne de la clé est NULL.
+            models.UniqueConstraint(
+                fields=["exploitant", "catalogue", "nom"],
+                name="categorie_unique_par_catalogue"),
+        ]
         ordering = ["position", "nom"]
 
     def __str__(self):
