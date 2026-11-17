@@ -5992,3 +5992,50 @@ html.dark .gestion-champ { color: #b9b9ac; }
 html.dark .gestion-poignee { color: #8a8a80; }
 html.dark .gestion-liste:empty { border-color: #55554e; }
 html.dark .gestion-save { background: #22301b; color: #e6e4da; }
+
+
+/* ================== REVUE V3.18 (2026-11-17) ==================
+   Page « Catalogues » : chaque espace pro tient PLUSIEURS listes
+   (saisonnières ou fixes) mais UNE SEULE active — le sélecteur
+   d'activation ⚡, le renommage et l'archivage réversible 📥 sont
+   en tête de page, l'ajout de produits/catégories juste en dessous
+   (avant le contenu du catalogue courant). Chaque catégorie accepte
+   un ou plusieurs médias externes (liens drive/cloud). La page
+   d'ajout détaillé disparaît : tout se gère en place. */
+
+.gestion-catalogues-bloc { margin-bottom: 0.9rem; }
+.gestion-catalogues-bloc h2 { margin: 0 0 0.5rem; }
+.gestion-catalogue-liste { display: flex; flex-direction: column;
+                           gap: 0.25rem; }
+.gestion-catalogue-ligne {
+  display: flex; align-items: center; gap: 0.5rem;
+  flex-wrap: wrap; padding: 0.3rem 0.2rem;
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
+}
+.gestion-catalogue-ligne:last-child { border-bottom: none; }
+.gestion-catalogue-ligne.actif {
+  background: #eaf3df; border-radius: 8px;
+  padding: 0.35rem 0.5rem; border-bottom: none;
+}
+.gestion-catalogue-nom { font-weight: 700; max-width: 16rem; }
+.gestion-archives { margin-top: 0.6rem; }
+.gestion-archives summary { cursor: pointer; font-weight: 600;
+                            color: #6f6f66; }
+.gestion-catalogue-ligne.archive { opacity: 0.7; }
+.gestion-ajout { margin-bottom: 0.9rem; }
+.gestion-ajout h3 { margin-top: 0; }
+.gestion-cat-medias summary {
+  cursor: pointer; font-size: 0.85rem; font-weight: 600;
+  color: #6f6f66; flex: none;
+}
+.gestion-cat-medias[open] { flex-basis: 100%; }
+.gestion-cat-medias img {
+  width: 38px; height: 38px; object-fit: cover;
+  border-radius: 6px; margin: 0.25rem 0.25rem 0 0;
+}
+.gestion-cat-medias textarea { width: 100%; margin-top: 0.3rem; }
+html.dark .gestion-catalogue-ligne {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+html.dark .gestion-catalogue-ligne.actif { background: #22301b; }
+html.dark .gestion-cat-medias summary { color: #b9b9ac; }

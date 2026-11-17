@@ -1,33 +1,105 @@
 {% extends "base.html" %}
-{% block title %}Catalogue — MonPetitProducteurLocal{% endblock %}
+{% block title %}Catalogues — MonPetitProducteurLocal{% endblock %}
 {% block content %}
-<h1>📚 Catalogue actif</h1>
-<p class="muted">Tout est éditable en place : libellés des catégories et des
-   produits, unité (liste par défaut ou personnalisée via « Autre… »),
-   prix, descriptif et média (lien photo externe, drive ou cloud — rien
-   n'est hébergé sur le portail). Réorganisez à la souris : glissez un
-   produit vers une autre catégorie, ou réordonnez les catégories par
-   leur poignée ⠿, puis cliquez sur <strong>💾 Enregistrer le
-   catalogue</strong>. Les produits <strong>📦 importés</strong> viennent
-   des listes types par métier ; les <strong>✍️ perso</strong> sont vos
-   créations. Ce catalogue alimente vos publications puis la boutique
-   ou la carte fixe.</p>
+<h1>📚 Catalogue « {{ catalogue.nom }} »</h1>
+<p class="muted">Cette page gère les <strong>listes de produits</strong> de
+   votre espace pro : chaque catalogue est une liste (saisonnière ou fixe)
+   avec ses catégories et ses {{ exploitant.vocab.articles }}. <strong>Un
+   seul catalogue est actif à la fois</strong> : c'est celui affiché
+   ci-dessous et c'est lui qui alimente l'édition rapide de vos
+   publications (récoltes, cartes, boutiques). Renommez-le, changez
+   d'actif en un clic, archivez sans jamais supprimer. Page réservée au
+   gérant de l'espace (ou au support) : les comptes rattachés travaillent
+   directement dans les pages de publications.</p>
 <p class="retour-edition">
-    <a class="btn btn-outline btn-sm" href="{% url 'portal:product_create' %}">➕ {{ exploitant.vocab.article|capfirst|default:"Article" }} détaillé (photo)</a>
     <a class="btn btn-outline btn-sm" href="{% url 'portal:catalogue_standard' %}">📚 Importer des produits types</a>
     <a class="btn btn-outline btn-sm" href="{% url 'portal:categories_manage' %}">🏷 Gérer les catégories</a>
 </p>
-
-{% if not paires %}
-  <p class="muted">Aucun produit pour l'instant — ajoutez-en ci-dessous
-     (ou <a href="{% url 'portal:catalogue_standard' %}">importez le catalogue
-     de produits types</a>).</p>
-{% endif %}
 
 <form method="post" action="{% url 'portal:product_quick_edit' %}" id="form-produits">
     {% csrf_token %}
     <input type="hidden" name="retour" value="produits">
     <input type="hidden" name="ordre" value="" id="ordre-serialise">
+
+    <div class="card gestion-catalogues-bloc">
+      <h2>🗂 Mes catalogues <span class="badge">{{ catalogues|length }} liste{{ catalogues|length|pluralize }}{% if catalogues_archives %} · {{ catalogues_archives|length }} archivée{{ catalogues_archives|length|pluralize }}{% endif %}</span></h2>
+      <div class="gestion-catalogue-liste">
+        {% for c in catalogues %}
+          <div class="gestion-catalogue-ligne{% if c.pk == catalogue.pk %} actif{% endif %}">
+            {% if c.pk == catalogue.pk %}<span class="badge badge-VALIDEE">✅ actif</span>{% endif %}
+            <input class="gestion-catalogue-nom" type="text" name="nom_catalogue_{{ c.pk }}" value="{{ c.nom }}" maxlength="120" title="Nom du catalogue">
+            <button type="submit" name="action" value="catalogue_renommer:{{ c.pk }}" class="btn btn-sm" title="Enregistrer ce nom">✏️</button>
+            {% if c.pk != catalogue.pk %}
+              <button type="submit" name="action" value="catalogue_activer:{{ c.pk }}" class="btn btn-sm" title="Faire de « {{ c.nom }} » le catalogue actif (celui des publications)">⚡ Activer</button>
+            {% endif %}
+            <button type="submit" name="action" value="catalogue_archiver:{{ c.pk }}"
+                    onclick="if(!confirm('Archiver « {{ c.nom }} » ? Rien n'est supprimé : il reste réactivable ci-dessous.'))event.preventDefault();"
+                    class="btn btn-sm btn-outline" title="Ranger ce catalogue (réactivable)">📥 Archiver</button>
+          </div>
+        {% endfor %}
+      </div>
+      {% if catalogues_archives %}
+      <details class="gestion-archives">
+        <summary>📥 Archivés ({{ catalogues_archives|length }}) — cliquez pour les afficher</summary>
+        <div class="gestion-catalogue-liste">
+          {% for c in catalogues_archives %}
+            <div class="gestion-catalogue-ligne archive">
+              <span class="muted">{{ c.nom }}</span>
+              <button type="submit" name="action" value="catalogue_activer:{{ c.pk }}" class="btn btn-sm" title="Réactiver ce catalogue et en faire le catalogue actif">♻️ Réactiver</button>
+            </div>
+          {% endfor %}
+        </div>
+      </details>
+      {% endif %}
+      <div class="form-row">
+        <label>Nouveau catalogue
+          <input type="text" name="nouveau_catalogue" maxlength="120" placeholder="Ex : Carte d'été 2027, Produits fixes, Marché d'hiver…"></label>
+        <button type="submit" name="action" value="catalogue_creer" class="btn">➕ Créer la liste</button>
+      </div>
+      <p class="muted">Astuce : un catalogue par saison ou par usage —
+         « Récoltes de l'été », « Carte fixe du truck » — puis activez
+         celui dont vous avez besoin au moment de publier. Le bouton
+         ⚡ bascule l'actif, 📥 range une liste sans rien supprimer.</p>
+    </div>
+
+    <div class="card gestion-ajout">
+      <h3>➕ Ajouter au catalogue actif « {{ catalogue.nom }} »</h3>
+      <div class="form-row">
+        <label>{{ exploitant.vocab.article|capfirst }} <input type="text" name="nouveau_nom" placeholder="Ex : Radis rose"></label>
+        <label>Unité
+          <select name="nouveau_unite">
+            {% for code, libelle in unite_choices %}
+              <option value="{{ code }}">{{ libelle }}</option>
+            {% endfor %}
+            <option value="__autre__">Autre…</option>
+          </select>
+          <input class="gestion-unite-autre" type="text" name="nouveau_unite_autre" maxlength="16" placeholder="ex : pot 500 g" hidden></label>
+        <label>Prix (€) <input type="text" name="nouveau_prix" size="7" inputmode="decimal" placeholder="ex : 2,50"></label>
+        <label>Catégorie
+          <select name="nouvelle_categorie">
+            <option value="">— sans catégorie —</option>
+            {% for c in categories %}
+              <option value="{{ c.pk }}">{{ c.nom }}</option>
+            {% endfor %}
+          </select></label>
+        <label>… ou nouvelle catégorie <input type="text" name="nom_nouvelle_categorie" placeholder="Ex : Fruits"></label>
+        <button type="submit" name="action" value="produit_ajouter" class="btn">➕ Créer l'{{ exploitant.vocab.article }}</button>
+      </div>
+      <div class="form-row">
+        <label>Nouvelle catégorie seule <input type="text" name="nouvelle_categorie_seule" placeholder="Ex : Légumes d'hiver"></label>
+        <button type="submit" name="action" value="categorie_ajouter" class="btn btn-outline btn-sm">🏷 Créer la catégorie</button>
+        <span class="muted">Une fois créée, glissez-y des {{ exploitant.vocab.articles }} et ajoutez ses médias dans son en-tête.</span>
+      </div>
+    </div>
+
+    {% if not paires %}
+      <p class="muted">Ce catalogue est vide pour l'instant — ajoutez un
+         {{ exploitant.vocab.article }} ci-dessus (ou <a href="{% url 'portal:catalogue_standard' %}">importez des
+         produits types</a>) ; vous pourrez aussi glisser ci-dessous des
+         {{ exploitant.vocab.articles }} d'autres catalogues après les avoir
+         réactivés.</p>
+    {% endif %}
+
     <div id="bloc-produits" class="gestion-catalogue">
       {% for cat, liste in paires %}
         <section class="gestion-cat card" data-cat="{% if cat.pk %}{{ cat.pk }}{% else %}sans{% endif %}">
@@ -41,10 +113,17 @@
               <button type="submit" name="action" value="categorie_supprimer:{{ cat.pk }}"
                       onclick="if(!confirm('Supprimer la catégorie « {{ cat.nom }} » ? Les produits deviennent « sans catégorie » (aucun produit supprimé).'))event.preventDefault();"
                       class="btn btn-sm btn-danger" title="Supprimer la catégorie (les produits sont conservés)">🗑</button>
+              <details class="gestion-cat-medias">
+                <summary title="Un ou plusieurs médias pour personnaliser la catégorie">🖼 Médias{% if cat.medias %} ({{ cat.medias|length }}){% endif %}</summary>
+                {% for m in cat.medias %}<img src="{{ m }}" alt="Média de la catégorie {{ cat.nom }}">{% endfor %}
+                <textarea name="medias_cat_{{ cat.pk }}" rows="2" placeholder="Un lien média par ligne (drive, cloud…) — laissez vide pour aucun">{% for m in cat.medias %}{{ m }}
+{% endfor %}</textarea>
+                <button type="submit" name="action" value="categorie_medias:{{ cat.pk }}" class="btn btn-sm">💾 Médias de la catégorie</button>
+              </details>
             {% else %}
               <h3 class="gestion-cat-titre">Sans catégorie</h3>
             {% endif %}
-            <span class="badge">{{ liste|length }} article(s)</span>
+            <span class="badge">{{ liste|length }} {{ exploitant.vocab.article }}{{ liste|length|pluralize }}</span>
           </header>
           <div class="gestion-liste">
             {% for produit in liste %}
@@ -103,32 +182,7 @@
           <div class="gestion-liste"></div>
         </section>
       {% endif %}
-      <div class="card gestion-ajout">
-        <h3>➕ Ajouter un produit (perso)</h3>
-        <div class="form-row">
-          <label>Nom <input type="text" name="nouveau_nom" placeholder="Ex : Radis rose"></label>
-          <label>Unité
-            <select name="nouveau_unite">
-              {% for code, libelle in unite_choices %}
-                <option value="{{ code }}">{{ libelle }}</option>
-              {% endfor %}
-              <option value="__autre__">Autre…</option>
-            </select>
-            <input class="gestion-unite-autre" type="text" name="nouveau_unite_autre" maxlength="16" placeholder="ex : pot 500 g" hidden></label>
-          <label>Prix (€) <input type="text" name="nouveau_prix" size="7" inputmode="decimal" placeholder="ex : 2,50"></label>
-        </div>
-        <div class="form-row">
-          <label>Catégorie
-            <select name="nouvelle_categorie">
-              <option value="">— sans catégorie —</option>
-              {% for c in categories %}
-                <option value="{{ c.pk }}">{{ c.nom }}</option>
-              {% endfor %}
-            </select></label>
-          <label>… ou nouvelle catégorie <input type="text" name="nom_nouvelle_categorie" placeholder="Ex : Fruits"></label>
-          <button type="submit" name="action" value="produit_ajouter" class="btn">➕ Créer</button>
-        </div>
-      </div>
+
       <p class="save-bar gestion-save">
         <button class="btn btn-enregistrer" type="submit" name="enregistrer" value="1">💾 Enregistrer le catalogue</button>
         <button type="submit" name="action" value="produits_retirer"
@@ -138,19 +192,17 @@
       </p>
       <p class="muted">Glisser-déposer : saisissez la poignée ⠿ d'un produit pour le
          déplacer (au sein d'une catégorie ou vers une autre), ou celle d'une
-         catégorie pour réordonner les catégories. Le bouton 💾 enregistre en
-         une fois libellés, unités, prix, descriptifs, médias et ordre.
-         « Autre… » ouvre une unité personnalisée. Prix ou descriptif
-         vide = effacé.</p>
+         catégorie pour réordonner. Le bouton 💾 enregistre en une fois
+         libellés, unités, prix, descriptifs, médias et ordre. « Autre… »
+         ouvre une unité personnalisée. Prix ou descriptif vide = effacé.</p>
     </div>
   </form>
 <script>
-/* Catalogue actif : glisser-déposer des produits ET des catégories.
-   Le drag n'est activé qu'au mousedown sur la poignée ⠿ (la sélection
-   de texte dans les champs reste naturelle). L'ordre sérialisé
-   (« cat:p1,p2|sans:p3 ») est envoyé avec le bouton 💾 Enregistrer,
-   en même temps que les modifications de champs. Les boutons ▲▼,
-   ⇄ et les sélecteurs restent le secours sans glisser-déposer. */
+/* Catalogues : glisser-déposer des produits ET des catégories.
+   Le drag n'est activé qu'au mousedown sur la poignée ⠿ (la
+   sélection de texte dans les champs reste naturelle). L'ordre
+   sérialisé est envoyé avec le bouton 💾 Enregistrer, en même temps
+   que les modifications de champs. */
 (function () {
   var bloc = document.getElementById("bloc-produits");
   if (!bloc) { return; }
