@@ -5903,3 +5903,92 @@ html.dark .catalogue-barre {
   border-color: #7cb342;
   color: #e6e4da;
 }
+
+
+/* ================== REVUE V3.17 (2026-11-17) ==================
+   Interface « Catalogue actif » (espace pro) : une carte par
+   catégorie, tout éditable en place — libellés, unités (liste +
+   « Autre… » personnalisée), prix, descriptif, média externe — et
+   glisser-déposer des produits ET des catégories (poignée ⠿,
+   activée au mousedown pour ne pas gêner la sélection de texte).
+   URLs renommées : catalogues-activite et espace-pro-catalogues
+   (anciens chemins en alias). */
+
+.gestion-catalogue { display: flex; flex-direction: column; gap: 0.9rem; }
+.gestion-cat { padding: 0.6rem 0.9rem 0.7rem; }
+.gestion-cat-tete {
+  display: flex; align-items: center; gap: 0.45rem;
+  flex-wrap: wrap; margin-bottom: 0.3rem;
+}
+.gestion-cat-tete h3 { margin: 0; font-size: 1.05rem; }
+.gestion-cat-nom {
+  font-weight: 700; font-size: 1.02rem;
+  border: none; border-bottom: 2px solid transparent;
+  padding: 0.15rem 0.25rem;
+}
+.gestion-cat-nom:hover, .gestion-cat-nom:focus {
+  border-bottom-color: #4e8a3d;
+}
+.gestion-cat-tete .badge { margin-left: auto; }
+.gestion-cat.gestion-cible {
+  outline: 2px dashed #7cb342; outline-offset: 2px; }
+.gestion-poignee {
+  cursor: grab; color: #9a9a90; font-size: 1.1rem;
+  padding: 0 0.25rem; user-select: none; flex: none;
+}
+.gestion-poignee:active { cursor: grabbing; }
+.gestion-liste { display: flex; flex-direction: column; gap: 0.35rem; }
+.gestion-liste:empty {
+  min-height: 3rem; border: 1px dashed #c9c9bd;
+  border-radius: 8px;
+}
+.gestion-produit {
+  display: flex; align-items: center; gap: 0.45rem;
+  flex-wrap: wrap; padding: 0.35rem 0.45rem;
+  border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 8px;
+  background: rgba(255, 255, 255, 0.55);
+}
+.gestion-produit[draggable="true"] { cursor: grab; }
+.gestion-produit:hover { border-color: #a5c79a; }
+.gestion-visuel { flex: none; width: 38px; height: 38px;
+                  display: flex; align-items: center;
+                  justify-content: center; }
+.gestion-visuel img { width: 38px; height: 38px; object-fit: cover;
+                      border-radius: 6px; }
+.gestion-visuel-emoji { font-size: 1.4rem; }
+.gestion-origine { flex: none; font-size: 0.95rem; }
+.gestion-champ { display: flex; align-items: center; gap: 0.3rem;
+                 margin: 0; font-size: 0.82rem; color: #6f6f66; }
+.gestion-champ > span { white-space: nowrap; }
+.gestion-champ input, .gestion-champ select, .gestion-champ textarea {
+  margin: 0; font-size: 0.9rem;
+}
+.gestion-champ input[type="text"], .gestion-champ input[type="url"],
+.gestion-champ textarea { padding: 0.25rem 0.4rem; }
+.gestion-champ-large { flex: 1 1 14rem; }
+.gestion-champ-large input, .gestion-champ-large textarea { width: 100%; }
+.gestion-champ textarea { resize: vertical; }
+.gestion-unite-autre { max-width: 8rem; }
+.gestion-unite-autre[hidden] { display: none; }
+.gestion-actions {
+  display: flex; align-items: center; gap: 0.3rem;
+  margin-left: auto; flex-wrap: wrap;
+}
+.gestion-cat-select { max-width: 10rem; font-size: 0.82rem; }
+.gestion-ajout h3 { margin-top: 0; }
+.gestion-save {
+  position: sticky; bottom: 0.5rem;
+  background: #eaf3df; border: 1px solid #7cb342;
+  border-radius: 10px; padding: 0.6rem 0.8rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+#gestion-indice-ordre[hidden] { display: none; }
+html.dark .gestion-produit {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+html.dark .gestion-produit:hover { border-color: #7cb342; }
+html.dark .gestion-champ { color: #b9b9ac; }
+html.dark .gestion-poignee { color: #8a8a80; }
+html.dark .gestion-liste:empty { border-color: #55554e; }
+html.dark .gestion-save { background: #22301b; color: #e6e4da; }
