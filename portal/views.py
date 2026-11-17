@@ -1758,6 +1758,7 @@ def product_list(request):
         "categories": list(Categorie.objects.filter(exploitant=exploitant)
                            .order_by("position", "nom")),
         "unite_choices": Produit.Unite.choices,
+        "sans_present": any(cat is None for cat, _ in paires),
     })
 
 
@@ -1826,6 +1827,17 @@ def produit_edition_rapide(request):
         else:
             qs = qs.filter(categorie__isnull=True)
         return list(qs.order_by("position", "nom"))
+
+    def _unite_publiee(pk):
+        """Unité saisie pour ce produit : code de la liste par défaut
+        ou libellé « Autre » personnalisé (16 caractères max)."""
+        u = request.POST.get(f"unite_{pk}", "").strip()
+        if u == "__autre__":
+            u = request.POST.get(f"unite_autre_{pk}", "").strip()
+        return u
+
+    def _unite_valide(u):
+        return u in Produit.Unite.values or bool(u and len(u) <= 16)
 
     # Page de retour après l'action : la page « Produits » dédiée
     # (retour=produits) ou le dashboard (défaut).
@@ -1997,6 +2009,9 @@ def produit_edition_rapide(request):
         if request.POST.get("action") == "produit_ajouter":
             nom = request.POST.get("nouveau_nom", "").strip()
             unite = request.POST.get("nouveau_unite", "").strip()
+            if unite == "__autre__":
+                unite = request.POST.get("nouveau_unite_autre",
+                                         "").strip()
             cat_pk = request.POST.get("nouvelle_categorie", "").strip()
             nouvelle_cat = request.POST.get("nom_nouvelle_categorie",
                                            "").strip()
@@ -2005,7 +2020,7 @@ def produit_edition_rapide(request):
             prix = None
             if not nom:
                 erreurs.append("Nom du produit requis.")
-            if unite not in Produit.Unite.values:
+            if not _unite_valide(unite):
                 erreurs.append("Unité inconnue.")
             if brut_prix:
                 try:
@@ -2041,13 +2056,39 @@ def produit_edition_rapide(request):
                                  "ajouté.")
             return redirect(destination)
 
-        # Enregistrement en masse : libellé, unité, prix
+        # 🖱 Glisser-déposer : ordre complet sérialisé par la page
+        # (« cat_pk:p1,p2,… | sans:p3 ») : catégories ET produits
+        # replacés d'un coup, en même temps que les modifications.
+        brut_ordre = request.POST.get("ordre", "")
+        if brut_ordre and request.POST.get("enregistrer", ""):
+            cats = {c.pk: c for c in
+                    Categorie.objects.filter(exploitant=exploitant)}
+            for index, bloc_ordre in enumerate(brut_ordre.split("|")):
+                cle, _, liste_pk = bloc_ordre.partition(":")
+                try:
+                    categorie = None if cle == "sans" else cats[int(cle)]
+                except (KeyError, ValueError):
+                    continue
+                try:
+                    pks = [int(x) for x in liste_pk.split(",") if x]
+                except ValueError:
+                    continue
+                for rang, pk in enumerate(pks, start=1):
+                    Produit.objects.filter(pk=pk,
+                                           exploitant=exploitant).update(
+                        categorie=categorie, position=rang)
+                if categorie is not None:
+                    Categorie.objects.filter(pk=categorie.pk).update(
+                        position=index + 1)
+            messages.success(request, "Ordre du catalogue enregistré.")
+
+        # Enregistrement en masse : libellé, unité, prix, média
         erreurs, modifies = [], 0
         for produit in exploitant.produits.filter(actif=True):
             if f"nom_{produit.pk}" not in request.POST:
                 continue
             nom = request.POST.get(f"nom_{produit.pk}", "").strip()
-            unite = request.POST.get(f"unite_{produit.pk}", "").strip()
+            unite = _unite_publiee(produit.pk)
             brut_prix = request.POST.get(f"prix_{produit.pk}", "").strip()
             brut_desc = request.POST.get(f"desc_{produit.pk}", None)
             desc_cible = (produit.description if brut_desc is None
@@ -2055,7 +2096,7 @@ def produit_edition_rapide(request):
             if not nom:
                 erreurs.append(f"« {produit.nom} » : nom vide, non modifié.")
                 continue
-            if unite not in Produit.Unite.values:
+            if not _unite_valide(unite):
                 erreurs.append(f"« {nom} » : unité inconnue, non modifié.")
                 continue
             prix_cible = None
@@ -2065,13 +2106,19 @@ def produit_edition_rapide(request):
                 except InvalidOperation:
                     erreurs.append(f"« {nom} » : prix invalide, non modifié.")
                     continue
+            media_cible = produit.image_externe
+            if f"media_{produit.pk}" in request.POST:
+                media_cible = (request.POST.get(f"media_{produit.pk}",
+                                                "") or "").strip()
             if (nom != produit.nom or unite != produit.unite_vente
                     or prix_cible != produit.prix
-                    or desc_cible != produit.description):
+                    or desc_cible != produit.description
+                    or media_cible != produit.image_externe):
                 produit.nom = nom[:150]
                 produit.unite_vente = unite
                 produit.prix = prix_cible
                 produit.description = desc_cible
+                _enregistrer_image_externe(produit, media_cible)
                 produit.save()
                 modifies += 1
         if erreurs:
