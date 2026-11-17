@@ -8,7 +8,7 @@
    une seule est publiée à la fois. Les lignes reprennent vos produits
    du catalogue actif{% if catalogue_actif %} « {{ catalogue_actif.nom }} » ✅{% endif %}
    ou restent libres (plat du jour, menu…) : prix, unités, descriptifs
-   et médias sont préchargés du catalogue, puis ajustables ligne à ligne.</p>
+   et médias sont préchargés du catalogue, puis ajustables ligne à ligne, comme dans « Mes catalogues » : une seule sauvegarde 💾 par carte.</p>
 
 <section class="harvest-bloc">
   <div class="card">
@@ -41,43 +41,36 @@
       <button class="btn btn-sm btn-outline" name="action" value="supprimer" type="submit">🗑️ Supprimer</button>
     </form>
 
-    <table class="table">
-      <thead><tr><th></th><th>Produit / plat</th><th>Section</th><th>Prix</th><th>Stock publié</th><th></th></tr></thead>
-      <tbody>
-      {% for ligne in carte.lignes.all %}
-        <tr>
-          <td class="muted">{{ forloop.counter }}</td>
-          <td>{% if ligne.produit and ligne.produit.illustration %}<img class="vignette-produit" src="{{ ligne.produit.illustration.url }}" alt="">{% endif %}{% if ligne.emoji %}{{ ligne.emoji }} {% endif %}<strong>{{ ligne.nom }}</strong>
-            {% if ligne.produit %}{% if ligne.produit.origine_standard %}<span class="origine-produit importe" title="Importé depuis la liste {{ ligne.produit.origine_standard.get_activite_display }}">📦</span>{% else %}<span class="origine-produit perso" title="Article créé par vous">✍️</span>{% endif %}{% if est_proprietaire or user.is_superuser %} <a class="btn btn-sm btn-outline" href="{% url 'portal:product_edit' ligne.produit.pk %}" title="Éditer l'article : libellé, prix de référence, illustration, descriptif">📝</a>{% endif %}{% endif %}
-            {% if ligne.description %}<br><span class="muted">{{ ligne.description }}</span>{% endif %}</td>
-          <td>{{ ligne.section|default:"—" }}</td>
-          <td>{% if ligne.prix_affiche %}{{ ligne.prix_affiche }} €{% else %}—{% endif %}</td>
-          <td>
-            <form method="post" class="inline">
-              {% csrf_token %}
-              <input type="hidden" name="carte_id" value="{{ carte.pk }}">
-              <input type="hidden" name="ligne_id" value="{{ ligne.pk }}">
-              <input type="hidden" name="action" value="maj_stock">
-              <input type="text" name="stock" size="5" placeholder="illimité" value="{% if ligne.stock is not None %}{{ ligne.stock|floatformat:2 }}{% endif %}" title="Quantité mise en vente — vide = illimité. Le restant décompte les commandes validées.">
-              <button class="btn btn-sm btn-outline" type="submit" title="Enregistrer le stock">💾</button>
-            </form>
-          </td>
-          <td>
-            <form method="post" class="inline">
-              {% csrf_token %}
-              <input type="hidden" name="carte_id" value="{{ carte.pk }}">
-              <input type="hidden" name="ligne_id" value="{{ ligne.pk }}">
-              <button class="btn btn-sm btn-outline" name="action" value="monter" type="submit" title="Monter">▲</button>
-              <button class="btn btn-sm btn-outline" name="action" value="descendre" type="submit" title="Descendre">▼</button>
-              <button class="btn btn-sm btn-outline" name="action" value="supprimer_ligne" type="submit" title="Retirer">✕</button>
-            </form>
-          </td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="6" class="muted">Aucune ligne pour l'instant — ajoutez vos produits ou des lignes libres ci-dessous.</td></tr>
-      {% endfor %}
-      </tbody>
-    </table>
+    <form method="post" class="form carte-edition">
+      {% csrf_token %}
+      <input type="hidden" name="carte_id" value="{{ carte.pk }}">
+      <table class="table">
+        <thead><tr><th></th><th>Produit / plat · section</th><th>Prix €</th><th>Stock publié</th><th>Descriptif</th><th></th></tr></thead>
+        <tbody>
+        {% for ligne in carte.lignes.all %}
+          <tr>
+            <td class="muted">{{ forloop.counter }}</td>
+            <td>{% if ligne.produit and ligne.produit.illustration %}<img class="vignette-produit" src="{{ ligne.produit.illustration.url }}" alt="">{% elif ligne.produit and ligne.produit.image_externe %}<img class="vignette-produit" src="{{ ligne.produit.image_externe }}" alt="" loading="lazy">{% endif %}{% if ligne.produit %}{% if ligne.emoji %}{{ ligne.emoji }} {% endif %}<strong>{{ ligne.nom }}</strong>
+              {% if ligne.produit.origine_standard %}<span class="origine-produit importe" title="Importé depuis la liste {{ ligne.produit.get_activite_display }}">📦</span>{% else %}<span class="origine-produit perso" title="Article créé par vous">✍️</span>{% endif %}{% if est_proprietaire or user.is_superuser %} <a class="btn btn-sm btn-outline" href="{% url 'portal:product_edit' ligne.produit.pk %}" title="Éditer l'article : libellé, prix de référence, illustration, descriptif">📝</a>{% endif %}{% else %}<input type="text" name="nom_{{ ligne.pk }}" class="carte-input-nom" placeholder="Nom de la ligne libre" value="{{ ligne.nom_libre }}">{% endif %}
+              <input type="text" name="section_{{ ligne.pk }}" class="carte-input-section" placeholder="Section (optionnel)" value="{{ ligne.section }}" title="Section de la ligne (Entrées, Plats, Fromages…), reprise du catalogue à l'import"></td>
+            <td><input type="text" name="prix_{{ ligne.pk }}" class="carte-input-prix" placeholder="{% if ligne.produit and ligne.produit.prix %}catalogue : {{ ligne.produit.prix|floatformat:2 }}{% else %}libre{% endif %}" value="{% if ligne.prix is not None %}{{ ligne.prix|floatformat:2 }}{% endif %}" title="{% if ligne.produit %}Vide = prix de référence du catalogue, affiché tel quel en vitrine{% else %}Prix de la ligne libre{% endif %}"></td>
+            <td><input type="text" name="stock_{{ ligne.pk }}" class="carte-input-stock" placeholder="illimité" value="{% if ligne.stock is not None %}{{ ligne.stock|floatformat:2 }}{% endif %}" title="Quantité mise en vente — vide = illimité. Le restant décompte les commandes validées."></td>
+            <td><input type="text" name="desc_{{ ligne.pk }}" class="carte-input-desc" placeholder="Descriptif (affiché en vitrine)" value="{{ ligne.description }}" title="Repris du catalogue à l'import, ajustable ici"></td>
+            <td>
+              <button class="btn btn-sm btn-outline" name="action" value="ligne_monter:{{ ligne.pk }}" type="submit" title="Monter (vos saisies de la carte sont appliquées aussi)">▲</button>
+              <button class="btn btn-sm btn-outline" name="action" value="ligne_descendre:{{ ligne.pk }}" type="submit" title="Descendre (vos saisies de la carte sont appliquées aussi)">▼</button>
+              <button class="btn btn-sm btn-outline" name="action" value="ligne_supprimer:{{ ligne.pk }}" type="submit" title="Retirer (vos autres saisies sont appliquées aussi)">✕</button>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="muted">Aucune ligne pour l'instant — ajoutez vos produits ou des lignes libres ci-dessous.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <p class="cat-medias-aide">Un seul 💾 pour toute la carte : prix, stocks, sections, descriptifs et noms libres.
+         Les boutons ▲ ▼ ✕ appliquent aussi vos saisies en cours — rien n'est perdu.</p>
+      <button class="btn" type="submit" name="action" value="enregistrer">💾 Enregistrer la carte</button>
+    </form>
 
     <form method="post" class="form">
       {% csrf_token %}
