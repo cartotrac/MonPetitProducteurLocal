@@ -250,6 +250,48 @@
     </div>
   </section>
 
+  {# 6. BLOCS OPTIONNELS DE LA VITRINE (modules activables) #}
+  <section class="form-bloc param-rubrique-bloc" id="modules-vitrine">
+    <div class="param-bloc-entete-titre">
+      <span class="param-bloc-icone">🧩</span>
+      <div>
+        <h2>Blocs optionnels de la vitrine</h2>
+        <p class="muted param-bloc-desc">Activez des blocs d'information sur votre vitrine publique : un champ laissé vide retire le bloc correspondant.</p>
+      </div>
+    </div>
+
+    <div class="form-champ">
+      <label for="id_modules_apropos">Bloc « À propos » :</label>
+      <textarea name="modules_apropos" id="id_modules_apropos" rows="4"
+                placeholder="Présentez votre établissement en quelques phrases…">{% if modules_vitrine.apropos %}{{ modules_vitrine.apropos.texte }}{% endif %}</textarea>
+      <span class="helptext">Un texte ici active le bloc « À propos » sur la vitrine.</span>
+    </div>
+
+    <div class="form-champ">
+      <label for="id_modules_horaires">Bloc « Horaires » (un jour par ligne) :</label>
+      <textarea name="modules_horaires" id="id_modules_horaires" rows="7"
+                placeholder="Lundi : 17:00 – 22:00&#10;Mardi : 11:00 – 14:00&#10;Dimanche : fermé">{% for h in modules_vitrine.horaires %}{{ h.jour }} : {{ h.heures }}
+{% endfor %}</textarea>
+      <span class="helptext">Format « Jour : horaires ». Chaque ligne renseignée ajoute un jour au bloc.</span>
+    </div>
+
+    <div class="form-champ">
+      <label for="id_modules_faq">Bloc « Questions fréquentes » (une par ligne) :</label>
+      <textarea name="modules_faq" id="id_modules_faq" rows="5"
+                placeholder="Acceptez-vous les commandes de dernière minute ? | Appelez-nous avant 18h.">{% for f in modules_vitrine.faq %}{{ f.q }} | {{ f.r }}
+{% endfor %}</textarea>
+      <span class="helptext">Format « Question | Réponse ». Chaque ligne renseignée ajoute une question dépliable.</span>
+    </div>
+
+    <div class="form-champ">
+      <label class="case-demo" for="id_modules_carte">
+        <input type="checkbox" name="modules_carte" id="id_modules_carte" {% if modules_vitrine.carte %}checked{% endif %}>
+        <span class="badge-demo-texte">📍 Mini-carte « Nous trouver »</span>
+      </label>
+      <span class="helptext">Affiche une mini-carte de localisation sur la vitrine (position GPS renseignée ci-dessus).</span>
+    </div>
+  </section>
+
   <p class="muted" style="text-align: center; margin-top: 1rem;">
     🗓️ La fréquence de publication (hebdomadaire, quinzaine, mensuelle)
     se règle sur le <a href="{% url 'portal:dashboard' %}#recoltes">dashboard</a>.

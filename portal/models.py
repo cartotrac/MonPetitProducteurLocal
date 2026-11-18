@@ -1497,6 +1497,14 @@ class ParametresVitrine(models.Model):
     # confirmations) et passerelle SMS pour la disponibilité hebdo.
     messagerie = models.JSONField("Messagerie", default=dict, blank=True,
                                   help_text='Ex : {"email_host": "smtp…"}')
+    # Blocs d'info OPTIONNELS de la vitrine publique, activés par le
+    # gérant depuis Paramètres > Mon espace. Un module absent du
+    # dictionnaire (ou vide) n'est pas affiché :
+    #   {"apropos": {"texte": "…"},
+    #    "horaires": [{"jour": "Lundi", "heures": "17:00-22:00"}, …],
+    #    "faq": [{"q": "…", "r": "…"}],
+    #    "carte": true}
+    modules = models.JSONField("Modules vitrine", default=dict, blank=True)
 
     class Meta:
         verbose_name = "Paramètres de vitrine"

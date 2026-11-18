@@ -6582,3 +6582,49 @@ html.dark .tel-revele {
 html.dark .vignette-produit-img {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
+
+/* ===== REVUE V3.31 — Vitrine : modules optionnels (à propos,
+       horaires, FAQ, mini-carte) + médias de catégories. ===== */
+.vitrine-module { padding: 1.1rem 1.2rem; }
+.vitrine-module h2 { margin-top: 0; }
+.module-apropos p { margin: 0.2rem 0 0; line-height: 1.6; }
+.horaires-liste {
+  list-style: none; margin: 0.4rem 0 0; padding: 0;
+  display: grid; grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: 0.3rem 1rem;
+}
+.horaires-liste li { display: contents; }
+.horaire-jour { font-weight: 600; }
+.horaire-heures { color: #43533a; }
+html.dark .horaire-heures { color: #c9cfc0; }
+.faq-item {
+  border: 1px solid #dde5d3; border-radius: 10px;
+  padding: 0.55rem 0.7rem; margin-top: 0.5rem; background: #f8faf4;
+}
+.faq-item summary { cursor: pointer; font-weight: 600; }
+.faq-item p { margin: 0.5rem 0 0; }
+html.dark .faq-item {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: #4a5640;
+}
+.mini-carte {
+  height: 260px; border-radius: 12px; margin-top: 0.6rem;
+  border: 1px solid #dde5d3; z-index: 0;
+}
+html.dark .mini-carte { border-color: #4a5640; }
+html.dark .mini-carte .leaflet-tile-pane {
+  filter: brightness(0.8) saturate(0.75);
+}
+.categorie-medias { margin: -0.2rem 0 0.6rem; display: flex;
+                    flex-wrap: wrap; gap: 0.4rem; }
+.categorie-media-lien {
+  font-size: 0.85rem; padding: 0.25rem 0.6rem; border-radius: 999px;
+  background: #f1f5ec; border: 1px solid #dde5d3; color: #2c4a1a;
+  text-decoration: none; font-weight: 600;
+}
+.categorie-media-lien:hover { background: #e2f0d8; }
+html.dark .categorie-media-lien {
+  background: rgba(255, 255, 255, 0.06); border-color: #4a5640;
+  color: #e6e4da;
+}
+html.dark .categorie-media-lien:hover { background: #33422a; }
