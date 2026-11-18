@@ -69,7 +69,7 @@ class InscriptionExploitantForm(UserCreationForm):
         help_text="Position sur la carte (optionnel)")
     telephone = forms.CharField(label="Téléphone", max_length=20,
                                 required=False)
-    photo_externe = forms.URLField(
+    photo_externe = forms.URLField(max_length=1024,
         label="Photo de profil externe (drive, cloud, réseau — rien "
               "n'est hébergé sur le portail)", required=False)
 
@@ -290,7 +290,7 @@ class InscriptionClientForm(UserCreationForm):
         label="Téléphone", max_length=20, required=False,
         help_text="Optionnel — utile pour être prévenu d'un souci de "
                   "livraison.")
-    photo_externe = forms.URLField(
+    photo_externe = forms.URLField(max_length=1024,
         label="Photo de profil externe (drive, cloud, réseau — rien "
               "n'est hébergé sur le portail)", required=False)
 
@@ -548,7 +548,7 @@ class ProfilPersonnelForm(forms.Form):
     nom = forms.CharField(label="Nom", max_length=150, required=False)
     telephone = forms.CharField(label="Téléphone", max_length=20,
                                 required=False)
-    photo_externe = forms.URLField(
+    photo_externe = forms.URLField(max_length=1024,
         label="Photo de profil (lien externe — rien n'est hébergé "
               "sur le portail)", required=False)
     alias = forms.CharField(
@@ -568,7 +568,7 @@ class ProfilGerantForm(forms.Form):
     nom = forms.CharField(label="Nom", max_length=150, required=False)
     telephone = forms.CharField(label="Téléphone", max_length=20,
                                 required=False)
-    photo_externe = forms.URLField(
+    photo_externe = forms.URLField(max_length=1024,
         label="Photo du gérant (lien externe — rien n'est hébergé "
               "sur le portail)", required=False)
 

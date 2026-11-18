@@ -591,7 +591,7 @@ class ProfilClient(models.Model):
     ville = models.CharField("Ville", max_length=100, blank=True)
     code_postal = models.CharField("Code postal", max_length=10, blank=True)
     photo_url = models.URLField(
-        "Photo externe", blank=True,
+        "Photo externe", max_length=1024, blank=True,
         help_text="Lien vers une photo hébergée ailleurs (drive, cloud, "
                   "réseau) : rien n'est hébergé par le portail.")
     alias = models.CharField(
