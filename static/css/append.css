@@ -6503,3 +6503,28 @@ html.dark .carte-edition input {
   .btn-darkmode, .btn-espace { width: 28px; height: 28px;
                                font-size: 0.85rem; }
 }
+
+/* ===== REVUE V3.27 — Bouton espace en cadre losange, sous-rubrique
+       courante mise en evidence (burger + menus deroulants). ===== */
+/* Bouton de bascule d'espace (bandeau ET flottant) : cadre LOSANGE —
+   un carre intrigue de 45 deg pose en ::before, l'emoji reste droit ;
+   le bouton passe d'un rond a des coins doux pour accueillir le losange. */
+.btn-espace { position: relative; border-radius: 8px; }
+.btn-espace::before {
+  content: ""; position: absolute; inset: 5px;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  border-radius: 2px; transform: rotate(45deg);
+  pointer-events: none;
+}
+.btn-espace:hover::before { transform: rotate(45deg) scale(1.07); }
+html.dark .btn-espace::before { border-color: rgba(230, 228, 218, 0.85); }
+/* Sous-rubrique COURANTE : fond vert clair + gras, dans le burger
+   comme dans les menus deroulants du bureau ; le titre du groupe
+   reste egalement actif (deja gere par .nav-actif sur les titres). */
+.nav-gestion-menu a.nav-actif {
+  background: #e2f0d8; color: #1f3818;
+  font-weight: 700; border-radius: 8px;
+}
+html.dark .nav-gestion-menu a.nav-actif {
+  background: #33422a; color: #eaf3dd;
+}

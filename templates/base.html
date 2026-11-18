@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}MonPetitProducteurLocal{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}?v=12">
-  <link rel="stylesheet" href="{% static 'css/append.css' %}?v=63">
+  <link rel="stylesheet" href="{% static 'css/append.css' %}?v=64">
   <script>
   /* Mode sombre appliqué AVANT le premier rendu (dans le <head>) :
      sans cela, les boutons du bandeau s'affichent une fraction de
@@ -78,32 +78,32 @@
           <div class="nav-gestion">
             <a class="nav-gestion-titre{% if '/clients' in request.path or '/espace-ventes' in request.path or '/espace-commandes' in request.path or '/espace-paniers' in request.path or '/points-livraison' in request.path or '/mes-producteurs' in request.path %} nav-actif{% endif %}" href="{% url 'portal:clients_suivi' %}" title="Gestion : clients, ventes, modalités, favoris" aria-label="Gestion" data-libelle="Gestion">🗂️</a>
             <div class="nav-gestion-menu">
-              <a href="{% url 'portal:clients_suivi' %}">👤 Mes clients</a>
-              <a href="{% url 'portal:ventes' %}">🧾 Ventes</a>
-              <a href="{% url 'portal:points_manage' %}">📍 Modalités</a>
-              <a href="{% url 'portal:mes_producteurs' %}">⭐ Mes favoris</a>
+              <a href="{% url 'portal:clients_suivi' %}" class="{% if request.resolver_match.url_name == 'clients_suivi' %}nav-actif{% endif %}">👤 Mes clients</a>
+              <a href="{% url 'portal:ventes' %}" class="{% if request.resolver_match.url_name == 'ventes' %}nav-actif{% endif %}">🧾 Ventes</a>
+              <a href="{% url 'portal:points_manage' %}" class="{% if request.resolver_match.url_name == 'points_manage' %}nav-actif{% endif %}">📍 Modalités</a>
+              <a href="{% url 'portal:mes_producteurs' %}" class="{% if request.resolver_match.url_name == 'mes_producteurs' %}nav-actif{% endif %}">⭐ Mes favoris</a>
             </div>
           </div>
           <div class="nav-gestion">
-            <a class="nav-gestion-titre{% if '/espace-produits' in request.path or '/espace-recolte' in request.path or '/mes-cartes' in request.path or '/publications/' in request.path %} nav-actif{% endif %}" {% if est_proprietaire or user.is_superuser %}href="{% url 'portal:product_list' %}"{% else %}href="{% url 'portal:harvest_list' %}"{% endif %} title="Publications : catalogue, récoltes, newsletter, annonces" aria-label="Publications" data-libelle="Publications">📢</a>
+            <a class="nav-gestion-titre{% if '/catalogue' in request.path or '/espace-produits' in request.path or '/espace-recolte' in request.path or '/mes-cartes' in request.path or '/publications' in request.path %} nav-actif{% endif %}" {% if est_proprietaire or user.is_superuser %}href="{% url 'portal:product_list' %}"{% else %}href="{% url 'portal:harvest_list' %}"{% endif %} title="Publications : catalogue, récoltes, newsletter, annonces" aria-label="Publications" data-libelle="Publications">📢</a>
             <div class="nav-gestion-menu">
-              {% if est_proprietaire or user.is_superuser %}<a href="{% url 'portal:product_list' %}">📚 Catalogue</a>{% endif %}
-              <a href="{% url 'portal:harvest_list' %}">{% if exploitant_courant %}{{ exploitant_courant.vocab.recoltes_emoji }} {{ exploitant_courant.vocab.recoltes|capfirst }}{% else %}🧺 Récoltes{% endif %}</a>
+              {% if est_proprietaire or user.is_superuser %}<a href="{% url 'portal:product_list' %}" class="{% if request.resolver_match.url_name == 'product_list' %}nav-actif{% endif %}">📚 Catalogue</a>{% endif %}
+              <a href="{% url 'portal:harvest_list' %}" class="{% if request.resolver_match.url_name == 'harvest_list' %}nav-actif{% endif %}">{% if exploitant_courant %}{{ exploitant_courant.vocab.recoltes_emoji }} {{ exploitant_courant.vocab.recoltes|capfirst }}{% else %}🧺 Récoltes{% endif %}</a>
               {% if exploitant_courant and exploitant_courant.a_carte_boutique %}
-              <a href="{% url 'portal:cartes_manage' %}">🧾 {{ exploitant_courant.titre_carte_boutique }}</a>
+              <a href="{% url 'portal:cartes_manage' %}" class="{% if request.resolver_match.url_name == 'cartes_manage' %}nav-actif{% endif %}">🧾 {{ exploitant_courant.titre_carte_boutique }}</a>
               {% endif %}
-              <a href="{% url 'portal:pub_rubrique' 'newsletter' %}">✉️ Newsletter</a>
-              <a href="{% url 'portal:pub_rubrique' 'annonces' %}">📌 Annonces</a>
+              <a href="{% url 'portal:pub_rubrique' 'newsletter' %}" class="{% if request.resolver_match.url_name == 'pub_rubrique' and request.resolver_match.kwargs.rubrique == 'newsletter' %}nav-actif{% endif %}">✉️ Newsletter</a>
+              <a href="{% url 'portal:pub_rubrique' 'annonces' %}" class="{% if request.resolver_match.url_name == 'pub_rubrique' and request.resolver_match.kwargs.rubrique == 'annonces' %}nav-actif{% endif %}">📌 Annonces</a>
             </div>
           </div>
           <div class="nav-gestion">
             <a class="nav-gestion-titre{% if '/parametres/' in request.path or '/equipe/' in request.path %} nav-actif{% endif %}" href="{% url 'portal:param_rubrique' 'profil' %}" title="Paramètres : profil, espace, équipe, messagerie" aria-label="Paramètres" data-libelle="Paramètres">⚙️</a>
             <div class="nav-gestion-menu">
-              <a href="{% url 'portal:param_rubrique' 'profil' %}">👤 Mon profil</a>
-              {% if user.is_superuser %}<a href="{% url 'portal:param_rubrique' 'gerant' %}">🧑‍🌾 Profil gérant</a>{% endif %}
-              {% if est_proprietaire or user.is_superuser %}<a href="{% url 'portal:param_rubrique' 'espace' %}">{{ exploitant_courant.titre_fiche }}</a>{% endif %}
-              {% if est_proprietaire %}<a href="{% url 'portal:equipe_manage' %}">👥 Mon équipe</a>{% endif %}
-              {% if est_proprietaire %}<a href="{% url 'portal:param_rubrique' 'messagerie' %}">✉️ Messagerie</a>{% endif %}
+              <a href="{% url 'portal:param_rubrique' 'profil' %}" class="{% if request.resolver_match.url_name == 'param_rubrique' and request.resolver_match.kwargs.rubrique == 'profil' %}nav-actif{% endif %}">👤 Mon profil</a>
+              {% if user.is_superuser %}<a href="{% url 'portal:param_rubrique' 'gerant' %}" class="{% if request.resolver_match.url_name == 'param_rubrique' and request.resolver_match.kwargs.rubrique == 'gerant' %}nav-actif{% endif %}">🧑‍🌾 Profil gérant</a>{% endif %}
+              {% if est_proprietaire or user.is_superuser %}<a href="{% url 'portal:param_rubrique' 'espace' %}" class="{% if request.resolver_match.url_name == 'param_rubrique' and request.resolver_match.kwargs.rubrique == 'espace' %}nav-actif{% endif %}">{{ exploitant_courant.titre_fiche }}</a>{% endif %}
+              {% if est_proprietaire %}<a href="{% url 'portal:equipe_manage' %}" class="{% if request.resolver_match.url_name == 'equipe_manage' %}nav-actif{% endif %}">👥 Mon équipe</a>{% endif %}
+              {% if est_proprietaire %}<a href="{% url 'portal:param_rubrique' 'messagerie' %}" class="{% if request.resolver_match.url_name == 'param_rubrique' and request.resolver_match.kwargs.rubrique == 'messagerie' %}nav-actif{% endif %}">✉️ Messagerie</a>{% endif %}
             </div>
           </div>
         {% else %}
