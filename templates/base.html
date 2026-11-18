@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}MonPetitProducteurLocal{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}?v=12">
-  <link rel="stylesheet" href="{% static 'css/append.css' %}?v=64">
+  <link rel="stylesheet" href="{% static 'css/append.css' %}?v=65">
   <script>
   /* Mode sombre appliqué AVANT le premier rendu (dans le <head>) :
      sans cela, les boutons du bandeau s'affichent une fraction de
@@ -85,7 +85,7 @@
             </div>
           </div>
           <div class="nav-gestion">
-            <a class="nav-gestion-titre{% if '/catalogue' in request.path or '/espace-produits' in request.path or '/espace-recolte' in request.path or '/mes-cartes' in request.path or '/publications' in request.path %} nav-actif{% endif %}" {% if est_proprietaire or user.is_superuser %}href="{% url 'portal:product_list' %}"{% else %}href="{% url 'portal:harvest_list' %}"{% endif %} title="Publications : catalogue, récoltes, newsletter, annonces" aria-label="Publications" data-libelle="Publications">📢</a>
+            <a class="nav-gestion-titre{% if 'catalogue' in request.path or '/espace-produits' in request.path or '/espace-recolte' in request.path or '/mes-cartes' in request.path or '/publications' in request.path %} nav-actif{% endif %}" {% if est_proprietaire or user.is_superuser %}href="{% url 'portal:product_list' %}"{% else %}href="{% url 'portal:harvest_list' %}"{% endif %} title="Publications : catalogue, récoltes, newsletter, annonces" aria-label="Publications" data-libelle="Publications">📢</a>
             <div class="nav-gestion-menu">
               {% if est_proprietaire or user.is_superuser %}<a href="{% url 'portal:product_list' %}" class="{% if request.resolver_match.url_name == 'product_list' %}nav-actif{% endif %}">📚 Catalogue</a>{% endif %}
               <a href="{% url 'portal:harvest_list' %}" class="{% if request.resolver_match.url_name == 'harvest_list' %}nav-actif{% endif %}">{% if exploitant_courant %}{{ exploitant_courant.vocab.recoltes_emoji }} {{ exploitant_courant.vocab.recoltes|capfirst }}{% else %}🧺 Récoltes{% endif %}</a>
@@ -399,17 +399,22 @@
          bouton de mode sombre : le bandeau disparu, il reste
          accessible, flottant en haut à droite. */
       if (trouver) {
-        trouver.classList.toggle("nav-chercher-flottant", flottant);
+        /* Sur la page Recherche elle-meme, le bouton « Trouver »
+           ne flotte pas : il est DEJA actif dans le bandeau. */
+        var flottantTrouver = flottant
+          && !trouver.classList.contains("nav-actif");
+        trouver.classList.toggle("nav-chercher-flottant",
+                                 flottantTrouver);
         /* Sur téléphone, le bouton « Trouver » vit dans le menu
            burger replié : un enfant de .nav-links masqué ne
            s'affiche pas même en position:fixed. On le déplace
            dans <body> pendant le défilement, puis on le remet à
            sa place dans le menu au retour du bandeau. */
-        if (flottant && trouver.parentNode !== document.body) {
+        if (flottantTrouver && trouver.parentNode !== document.body) {
           trouverParent = trouver.parentNode;
           trouverSuivant = trouver.nextSibling;
           document.body.appendChild(trouver);
-        } else if (!flottant && trouver.parentNode === document.body
+        } else if (!flottantTrouver && trouver.parentNode === document.body
                    && trouverParent) {
           trouverParent.insertBefore(trouver, trouverSuivant);
           trouverParent = null;

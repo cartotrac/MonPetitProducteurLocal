@@ -6528,3 +6528,11 @@ html.dark .btn-espace::before { border-color: rgba(230, 228, 218, 0.85); }
 html.dark .nav-gestion-menu a.nav-actif {
   background: #33422a; color: #eaf3dd;
 }
+
+/* ===== REVUE V3.28 — Correctifs flottants : le bouton espace
+       (losange) reste bien flottant quand le bandeau disparait. ===== */
+/* Le position:relative du cadre losange (V3.27) arrivait APRES la
+   regle .btn-espace-flottant { position: fixed } et l'ecrasait : le
+   bouton ne quittait plus le bandeau au defilement. On retablit la
+   position fixe avec une specificite a deux classes. */
+.btn-espace.btn-espace-flottant { position: fixed; }
