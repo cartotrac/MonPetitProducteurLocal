@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}MonPetitProducteurLocal{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}?v=12">
-  <link rel="stylesheet" href="{% static 'css/append.css' %}?v=61">
+  <link rel="stylesheet" href="{% static 'css/append.css' %}?v=62">
   <script>
   /* Mode sombre appliqué AVANT le premier rendu (dans le <head>) :
      sans cela, les boutons du bandeau s'affichent une fraction de
@@ -60,6 +60,17 @@
             aria-controls="nav-principal" aria-expanded="false"
             aria-label="Ouvrir le menu">☰</button>
     <div class="nav-links" id="nav-principal">
+      {% if user.is_authenticated and nb_espaces_pro > 1 %}
+      <form class="inline nav-espace-mobile" method="post" action="{% url 'portal:bascule_espace' %}">
+        {% csrf_token %}
+        <select name="espace" class="select-espace" title="Changer d'espace pro" aria-label="Changer d'espace pro" onchange="this.form.submit()">
+          <option value="client"{% if not mode_pro %} selected{% endif %}>🧺 Espace client</option>
+          {% for e in espaces_pro_liste %}
+            <option value="{{ e.pk }}"{% if mode_pro and exploitant_courant.pk == e.pk %} selected{% endif %}>{{ e.emoji }} {{ e.nom }}{% if e.role == "MEMBRE" %} · rattaché{% endif %}</option>
+          {% endfor %}
+        </select>
+      </form>
+      {% endif %}
       <a href="{% url 'portal:producer_search' %}" class="nav-chercher {% if request.path == '/recherche/' %}nav-actif{% endif %}" title="Trouver mes producteurs locaux" aria-label="Trouver mes producteurs locaux"><span class="nav-chercher-icone"><span class="nav-chercher-colis">🧺</span><span class="nav-chercher-loupe">🔍</span></span></a>
       {% if user.is_authenticated %}
         {% if mode_pro %}
