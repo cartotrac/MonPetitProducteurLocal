@@ -82,25 +82,7 @@
       </a>
     </div>
 
-    {# Métier 2 : Foodtrucks #}
-    <div class="metier-card metier-card-truck">
-      <div class="metier-card-top">
-        <div class="metier-icon-box">🚚</div>
-        <span class="metier-badge">Itinérance</span>
-      </div>
-      <h3>Foodtrucks &amp; Soirs nomades</h3>
-      <p>Pizzas au feu de bois, burgers du terroir, rôtisserie artisanale et cuisines du monde.</p>
-      <ul class="metier-points">
-        <li>📍 Emplacements du soir géolocalisés jour par jour</li>
-        <li>📱 Carte du jour &amp; précommande rapide</li>
-        <li>⏱️ Retrait express sur place sans file d'attente</li>
-      </ul>
-      <a class="metier-link" href="{% url 'portal:producer_search' %}?visu=restauration">
-        Localiser les foodtrucks <span class="fleche">→</span>
-      </a>
-    </div>
-
-    {# Métier 3 : Restauration & Traiteurs #}
+    {# Métier 2 : Restaurants & Traiteurs #}
     <div class="metier-card metier-card-resto">
       <div class="metier-card-top">
         <div class="metier-icon-box">🍽️</div>
@@ -113,8 +95,26 @@
         <li>🧾 Menus de saison et formules traiteur</li>
         <li>⭐ Avis et coordonnées directes des chefs</li>
       </ul>
-      <a class="metier-link" href="{% url 'portal:producer_search' %}?visu=restauration">
+      <a class="metier-link" href="{% url 'portal:producer_search' %}?visu=restauration&amp;activite=RESTAURANT&amp;activite=TRAITEUR">
         Découvrir les bonnes tables <span class="fleche">→</span>
+      </a>
+    </div>
+
+    {# Métier 3 : Foodtrucks tour ! #}
+    <div class="metier-card metier-card-truck">
+      <div class="metier-card-top">
+        <div class="metier-icon-box">🚚</div>
+        <span class="metier-badge">Itinérance</span>
+      </div>
+      <h3>Foodtrucks tour !</h3>
+      <p>Pizzas au feu de bois, burgers du terroir, rôtisserie artisanale et cuisines du monde.</p>
+      <ul class="metier-points">
+        <li>📍 Emplacements du soir géolocalisés jour par jour</li>
+        <li>📱 Carte du jour &amp; précommande rapide</li>
+        <li>⏱️ Retrait express sur place sans file d'attente</li>
+      </ul>
+      <a class="metier-link" href="{% url 'portal:producer_search' %}?visu=restauration&amp;activite=FOODTRUCK">
+        Localiser les foodtrucks <span class="fleche">→</span>
       </a>
     </div>
 
