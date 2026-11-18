@@ -13,6 +13,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="profilclient",
             name="photo_url",
-            field=models.URLField(blank=True, help_text="Lien vers une photo hébergée ailleurs (drive, cloud, réseau) : rien n'est hébergé par le portail.", max_length=1024),
+            field=models.URLField(
+                "Photo externe", blank=True,
+                help_text="Lien vers une photo hébergée ailleurs "
+                          "(drive, cloud, réseau) : rien n'est hébergé "
+                          "par le portail.",
+                max_length=1024),
         ),
     ]
