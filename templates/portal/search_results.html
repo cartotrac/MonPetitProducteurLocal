@@ -123,24 +123,13 @@
 
 
 
-{% if page_obj.paginator.num_pages > 1 %}
-<div class="pagination-barre pagination-haut">
-  <span class="pagination-info">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-  <nav class="pagination-liens" aria-label="Pages de résultats (haut de liste)">
-    {% if page_obj.has_previous %}
-      <a class="btn btn-outline btn-sm pagination-lien" href="?{{ query_pages }}{% if query_pages %}&amp;{% endif %}page={{ page_obj.previous_page_number }}" title="Page précédente">←</a>
-    {% endif %}
-    {% for n in pages_pagination %}
-      {% if n == "…" %}<span class="pagination-ellipse">…</span>
-      {% elif n == page_obj.number %}<span class="btn btn-sm pagination-lien actif" aria-current="page">{{ n }}</span>
-      {% else %}<a class="btn btn-outline btn-sm pagination-lien" href="?{{ query_pages }}{% if query_pages %}&amp;{% endif %}page={{ n }}">{{ n }}</a>{% endif %}
-    {% endfor %}
-    {% if page_obj.has_next %}
-      <a class="btn btn-outline btn-sm pagination-lien" href="?{{ query_pages }}{% if query_pages %}&amp;{% endif %}page={{ page_obj.next_page_number }}" title="Page suivante">→</a>
-    {% endif %}
-  </nav>
+{# Barre de pagination (haut) : squelette rempli par le JS
+   client — le nombre de pages suit les vignettes VISIBLES dans
+   l'emprise de la carte, aucune page n'est rechargée. #}
+<div class="pagination-barre pagination-haut" id="pagination-haut" hidden>
+  <span class="pagination-info" id="pagination-info-haut"></span>
+  <nav class="pagination-liens" id="pagination-liens-haut" aria-label="Pages de résultats (haut de liste)"></nav>
 </div>
-{% endif %}
 
 {% if visu == "marches" %}
 <div class="grid producers">
@@ -231,27 +220,15 @@
 </div>
 {% endif %}
 
+{# Barre de pagination (bas) : mêmes liens reconstruits par le JS
+   client ; le sélecteur « Vignettes par page » agit SANS rechargement. #}
 <div class="pagination-barre">
-  <span class="pagination-info">{% if nb_resultats %}{{ page_obj.start_index }}–{{ page_obj.end_index }} / {{ nb_resultats }}{% else %}0{% endif %} {% if visu == "restauration" %}restaurant{{ nb_resultats|pluralize }}, traiteur{{ nb_resultats|pluralize }} &amp; foodtruck{{ nb_resultats|pluralize }}{% elif visu == "marches" %}marché{{ nb_resultats|pluralize }} &amp; boutique{{ nb_resultats|pluralize }}{% elif visu == "tout" %}professionnel{{ nb_resultats|pluralize }} 🚜🥬 🍽️🚚{% else %}producteur{{ nb_resultats|pluralize }}{% endif %} affiché{{ nb_resultats|pluralize }} sur la carte — page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-  {% if page_obj.paginator.num_pages > 1 %}
-  <nav class="pagination-liens" aria-label="Pages de résultats">
-    {% if page_obj.has_previous %}
-      <a class="btn btn-outline btn-sm pagination-lien" href="?{{ query_pages }}{% if query_pages %}&amp;{% endif %}page={{ page_obj.previous_page_number }}" title="Page précédente">←</a>
-    {% endif %}
-    {% for n in pages_pagination %}
-      {% if n == "…" %}<span class="pagination-ellipse">…</span>
-      {% elif n == page_obj.number %}<span class="btn btn-sm pagination-lien actif" aria-current="page">{{ n }}</span>
-      {% else %}<a class="btn btn-outline btn-sm pagination-lien" href="?{{ query_pages }}{% if query_pages %}&amp;{% endif %}page={{ n }}">{{ n }}</a>{% endif %}
-    {% endfor %}
-    {% if page_obj.has_next %}
-      <a class="btn btn-outline btn-sm pagination-lien" href="?{{ query_pages }}{% if query_pages %}&amp;{% endif %}page={{ page_obj.next_page_number }}" title="Page suivante">→</a>
-    {% endif %}
-  </nav>
-  {% endif %}
-  <form method="get" class="pagination-taille">
+  <span class="pagination-info" id="pagination-info-bas"></span>
+  <nav class="pagination-liens" id="pagination-liens-bas" aria-label="Pages de résultats" hidden></nav>
+  <form method="get" class="pagination-taille" id="pagination-taille">
     {% for nom, valeur in filtres_get %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}
     <label for="id_par_page">Vignettes par page :</label>
-    <select id="id_par_page" name="par_page" onchange="this.form.submit()">
+    <select id="id_par_page" name="par_page">
       {% for t in par_page_choices %}
       <option value="{{ t }}"{% if t == par_page %} selected{% endif %}>{{ t }}</option>
       {% endfor %}
@@ -327,25 +304,142 @@ window.mpplSoumettre = function (form, garderVue) {
 </script>
 
 <script>
-/* Pagination des vignettes : chaque changement de page (liens ← → et
-   numéros) et le sélecteur « Vignettes par page » demandent un
-   repositionnement en TÊTE DE LA GRILLE après rechargement — plus
-   de page qui s'ouvre en bas, laissant croire que rien n'a changé. */
+/* Pagination des vignettes CÔTÉ CLIENT : la grille rend TOUTES les
+   vignettes du jeu filtré ; le découpage en pages se fait ici, sur
+   les vignettes VISIBLES DANS L'EMPRISE de la carte seulement
+   (classe .hors-carte posée par search-map.js). Le nombre de pages
+   suit donc le zoom — jusqu'à 1 page si tout tient à l'écran — et
+   comme AUCUNE page n'est rechargée, l'emprise cartographique ne
+   bouge JAMAIS : on navigue entre les vignettes visibles sans
+   perdre son réglage carto. Le sélecteur « Vignettes par page »
+   agit lui aussi sans rechargement. */
 (function () {
-  try {
-    document.querySelectorAll(".pagination-liens a").forEach(
-      function (a) {
-        a.addEventListener("click", function () {
-          sessionStorage.setItem("mppl_scroll_recherche", "grille");
-        });
-      });
-    var f = document.querySelector("form.pagination-taille");
-    if (f) {
-      f.addEventListener("submit", function () {
-        sessionStorage.setItem("mppl_scroll_recherche", "grille");
-      });
+  var grille = document.querySelector(".grid.producers");
+  var navHaut = document.getElementById("pagination-liens-haut");
+  var navBas = document.getElementById("pagination-liens-bas");
+  if (!grille || !navHaut || !navBas) { return; }
+  var barreHaut = document.getElementById("pagination-haut");
+  var infoHaut = document.getElementById("pagination-info-haut");
+  var infoBas = document.getElementById("pagination-info-bas");
+  var sel = document.getElementById("id_par_page");
+  var cartes = Array.prototype.slice.call(
+    grille.querySelectorAll(".vignette-producteur"));
+  var parPage = parseInt((sel && sel.value) || "25", 10) || 25;
+  var page = 1;
+
+  function visibles() {
+    return cartes.filter(function (c) {
+      return !c.classList.contains("hors-carte");
+    });
+  }
+
+  /* Fenêtre de numéros de page : max 7 boutons + ellipses. */
+  function fenetre(nbPages) {
+    if (nbPages <= 7) {
+      var toutes = [];
+      for (var n = 1; n <= nbPages; n++) { toutes.push(n); }
+      return toutes;
     }
-  } catch (e) {}
+    var sortie = [], precedent = null;
+    [1, 2, page - 1, page, page + 1, nbPages - 1, nbPages]
+      .sort(function (a, b) { return a - b; })
+      .forEach(function (n) {
+        if (1 <= n && n <= nbPages) {
+          if (precedent !== null && n - precedent > 1) {
+            sortie.push("…");
+          }
+          if (sortie[sortie.length - 1] !== n) { sortie.push(n); }
+          precedent = n;
+        }
+      });
+    return sortie;
+  }
+
+  function lien(n, texte, titre) {
+    var a = document.createElement("a");
+    a.className = "btn btn-outline btn-sm pagination-lien";
+    a.href = "#";
+    a.textContent = texte;
+    if (titre) { a.title = titre; }
+    a.addEventListener("click", function (e) {
+      e.preventDefault();
+      page = n;
+      appliquer();
+      /* Changement de page : la vue se cale en TÊTE de la grille. */
+      var cible = barreHaut || grille;
+      var y = cible.getBoundingClientRect().top + window.scrollY - 8;
+      window.scrollTo(0, Math.max(0, y));
+    });
+    return a;
+  }
+
+  function appliquer() {
+    var vis = visibles();
+    var nbPages = Math.max(1, Math.ceil(vis.length / parPage));
+    if (page < 1) { page = 1; }
+    if (page > nbPages) { page = nbPages; }
+    var debut = (page - 1) * parPage;
+    var fin = Math.min(debut + parPage, vis.length);
+    cartes.forEach(function (c) { c.classList.remove("hors-page"); });
+    for (var i = 0; i < vis.length; i++) {
+      if (i < debut || i >= fin) { vis[i].classList.add("hors-page"); }
+    }
+    var libelle = (vis.length ? (debut + 1) + "–" + fin : "0") +
+      " / " + vis.length + " visible" + (vis.length > 1 ? "s" : "") +
+      " dans l'emprise — page " + page + " / " + nbPages;
+    if (infoHaut) { infoHaut.textContent = "Page " + page + " / " + nbPages; }
+    if (infoBas) { infoBas.textContent = libelle; }
+    [navHaut, navBas].forEach(function (nav) {
+      nav.innerHTML = "";
+      nav.hidden = nbPages <= 1;
+      if (nbPages <= 1) { return; }
+      if (page > 1) { nav.appendChild(lien(page - 1, "←", "Page précédente")); }
+      fenetre(nbPages).forEach(function (n) {
+        if (n === "…") {
+          var e = document.createElement("span");
+          e.className = "pagination-ellipse";
+          e.textContent = "…";
+          nav.appendChild(e);
+        } else if (n === page) {
+          var c = document.createElement("span");
+          c.className = "btn btn-sm pagination-lien actif";
+          c.setAttribute("aria-current", "page");
+          c.textContent = n;
+          nav.appendChild(c);
+        } else {
+          nav.appendChild(lien(n, String(n)));
+        }
+      });
+      if (page < nbPages) { nav.appendChild(lien(page + 1, "→", "Page suivante")); }
+    });
+    if (barreHaut) { barreHaut.hidden = nbPages <= 1; }
+  }
+
+  /* Sélecteur « Vignettes par page » : SANS rechargement — l'emprise
+     de la carte est conservée et la page revient à 1. */
+  if (sel) {
+    sel.addEventListener("change", function () {
+      parPage = parseInt(sel.value, 10) || 25;
+      page = 1;
+      appliquer();
+    });
+  }
+  var formulaire = document.getElementById("pagination-taille");
+  if (formulaire) {
+    formulaire.addEventListener("submit", function (e) {
+      e.preventDefault();
+    });
+  }
+
+  /* L'emprise change (zoom, déplacement, restauration au chargement) :
+     la pagination se recalcule sur les vignettes désormais visibles. */
+  if (typeof carte !== "undefined" && carte && carte.on) {
+    carte.on("moveend zoomend", appliquer);
+    carte.whenReady(appliquer);
+  }
+  appliquer();
+  /* Recalcul une fois la carte et son emprise initiales prêtes. */
+  setTimeout(appliquer, 900);
 })();
 </script>
 
