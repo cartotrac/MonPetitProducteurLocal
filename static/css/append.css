@@ -6251,3 +6251,12 @@ html.dark .carte-edition input {
   .how-column { padding: 1rem 0.85rem; }
   .metier-card { padding: 1.1rem; }
 }
+
+/* ===== REVUE V3.23 — Pagination client des vignettes ===== */
+/* Vignette hors page courante (découpage client, cf. template
+   recherche) : même masquage que les vignettes hors emprise. */
+.vignette-producteur.hors-page { display: none; }
+/* Attribut hidden fiable sur les barres / liens de pagination :
+   les règles display:flex des classes ne doivent pas le contrer. */
+.pagination-barre[hidden],
+.pagination-liens[hidden] { display: none !important; }
