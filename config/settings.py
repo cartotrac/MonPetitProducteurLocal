@@ -205,6 +205,28 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# --- Cache-busting automatique (plus de ?v=XX manuel dans les
+# templates) : en production, les fichiers statiques servis par
+# {% static %} portent une empreinte MD5 recalculee par collectstatic
+# (ex : append.min.a1b2c3.css). Fichier modifie -> nouveau hash ->
+# les navigateurs rechargent ; fichier inchange -> cache maximal.
+# En dev (DEBUG), le stockage simple reste actif : le manifeste
+# n'existe pas avant un collectstatic et ferait echouer les pages.
+# Django 5.1 : STATICFILES_STORAGE est supprime, STORAGES lui
+# succede (stockage des fichiers medias inclus).
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": (
+            "config.static_storages.ManifestPermissif"
+            if not DEBUG
+            else "django.contrib.staticfiles.storage.StaticFilesStorage"
+        ),
+    },
+}
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 

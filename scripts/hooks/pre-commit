@@ -1,0 +1,11 @@
+#!/bin/sh
+# Pre-commit : regenere les CSS minifies si le commit touche
+# static/css, puis les ajoute au commit (fini les .min.css oublies).
+# Installe par : bash scripts/install_hooks.sh
+if git diff --cached --name-only --diff-filter=ACMR \
+   | grep -qE '^static/css/.*\.css$'; then
+  ( python3 scripts/optimiser_css.py \
+    || python scripts/optimiser_css.py \
+    || exit 0 )
+  git add static/css/append.min.css static/css/style.min.css
+fi
