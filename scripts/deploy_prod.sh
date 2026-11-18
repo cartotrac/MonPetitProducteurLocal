@@ -10,13 +10,14 @@
 #      l'arbre de travail devient IDENTIQUE à origin/main, quel que
 #      soit son état antérieur (fichiers générés modifiés, dossier
 #      migrations supprimé, commits locaux) ;
-#   3. met à jour les dépendances (requirements.txt) ;
-#   4. sauvegarde la base AVANT toute migration — pg_dump (PostgreSQL)
+#   2. met à jour les dépendances (requirements.txt) ;
+#   3. sauvegarde la base AVANT toute migration — pg_dump (PostgreSQL)
 #      ou copie du fichier SQLite — dans backups/ ;
-#   5. lance check, migrate (RENAME COLUMN etc.), collectstatic ;
-#   6. recharge éventuellement les espaces de démonstration (--demo) ;
-#   7. redémarre le site WSGI (API AlwaysData si AD_API_KEY/AD_SITE_ID
-#      sont définies, sinon rappel pour le faire depuis le panneau).
+#   4. lance check, migrate (RENAME COLUMN etc.), collectstatic ;
+#      recharge éventuellement les espaces de démonstration (--demo) ;
+#   5. redémarre le site WSGI (API AlwaysData si AD_API_KEY/AD_SITE_ID
+#      sont définies, sinon rappel pour le faire depuis le panneau) ;
+#   6. rappelle le rechargement dur du navigateur (Ctrl+Shift+R).
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -38,7 +39,7 @@ for arg in "$@"; do
   esac
 done
 
-echo "==> 1/7 Récupération du code (fetch + reset dur sur origin/main)"
+echo "==> 1/6 Récupération du code (fetch + reset dur sur origin/main)"
 # Fetch + reset --hard : garantit un arbre de travail IDENTIQUE à
 # origin/main, quoi qu'il se soit passé avant (fichiers générés
 # modifiés, dossier migrations supprimé, commits locaux). Un simple
@@ -53,10 +54,10 @@ if [ ! -f portal/migrations/__init__.py ]; then
   exit 1
 fi
 
-echo "==> 2/7 Dépendances"
+echo "==> 2/6 Dépendances"
 venv/bin/pip install -q -r requirements.txt
 
-echo "==> 3/7 Sauvegarde de la base"
+echo "==> 3/6 Sauvegarde de la base"
 mkdir -p backups
 HORODAGE=$(date +%Y%m%d_%H%M%S)
 if [ -f .env ] && grep -q "^DB_ENGINE=django.db.backends.postgresql" .env; then
@@ -82,7 +83,7 @@ else
   echo "   AVERTISSEMENT : base introuvable, aucune sauvegarde faite."
 fi
 
-echo "==> 4/7 Contrôle Django + migrations + statiques"
+echo "==> 4/6 Contrôle Django + migrations + statiques"
 venv/bin/python manage.py check
 venv/bin/python manage.py migrate
 venv/bin/python scripts/optimiser_css.py
@@ -96,7 +97,7 @@ if [ "$DEMO" = "1" ]; then
   echo "   identifiants : demo.<metier> / demo1234!"
 fi
 
-echo "==> 5/7 Redémarrage WSGI"
+echo "==> 5/6 Redémarrage WSGI"
 # Toujours redémarrer : le code Python est chargé en mémoire.
 if [ -n "${AD_API_KEY:-}" ] && [ -n "${AD_SITE_ID:-}" ]; then
   curl -s -u "$AD_API_KEY:" -X POST "https://api.alwaysdata.com/v1/site/$AD_SITE_ID/restart/"
