@@ -6,9 +6,10 @@
 #   bash scripts/deploy_prod.sh --demo    # + recharge des espaces de DÉMO
 #
 # Le script :
-#   1. supprime l'ancien dossier portal/migrations local NON VERSIONNÉ
-#      — sans ça, git pull refuse la mise à jour ;
-#   2. tire le code (git pull) ;
+#   1. récupère le code (git fetch + reset --hard origin/main) :
+#      l'arbre de travail devient IDENTIQUE à origin/main, quel que
+#      soit son état antérieur (fichiers générés modifiés, dossier
+#      migrations supprimé, commits locaux) ;
 #   3. met à jour les dépendances (requirements.txt) ;
 #   4. sauvegarde la base AVANT toute migration — pg_dump (PostgreSQL)
 #      ou copie du fichier SQLite — dans backups/ ;
@@ -37,26 +38,25 @@ for arg in "$@"; do
   esac
 done
 
-echo "==> 1/7 Suppression de l'ancien dossier migrations local"
-rm -rf portal/migrations
-
-echo "==> 2/7 Récupération du code"
-git pull
-# Restauration explicite depuis l'arbre GIT : HEAD nommé (pas
-# d'ambiguïté d'index) et ÉCHEC BRUYANT si le dossier migrations
-# n'est pas revenu — sinon migrate partirait sur des modèles sans
-# migration (0007 absent) sans rien dire.
-git checkout HEAD -- portal/migrations
+echo "==> 1/7 Récupération du code (fetch + reset dur sur origin/main)"
+# Fetch + reset --hard : garantit un arbre de travail IDENTIQUE à
+# origin/main, quoi qu'il se soit passé avant (fichiers générés
+# modifiés, dossier migrations supprimé, commits locaux). Un simple
+# git pull n'avance pas la branche dans ces états et partait alors
+# en production avec du code périmé.
+git fetch origin
+git reset --hard origin/main
+echo "   => $(git log --oneline -1)"
 if [ ! -f portal/migrations/__init__.py ]; then
-  echo "   ERREUR : portal/migrations n'a pas été restauré par git." >&2
+  echo "   ERREUR : portal/migrations est absent après le reset." >&2
   echo "   Vérifiez la branche (git status) puis relancez." >&2
   exit 1
 fi
 
-echo "==> 3/7 Dépendances"
+echo "==> 2/7 Dépendances"
 venv/bin/pip install -q -r requirements.txt
 
-echo "==> 4/7 Sauvegarde de la base"
+echo "==> 3/7 Sauvegarde de la base"
 mkdir -p backups
 HORODAGE=$(date +%Y%m%d_%H%M%S)
 if [ -f .env ] && grep -q "^DB_ENGINE=django.db.backends.postgresql" .env; then
@@ -82,7 +82,7 @@ else
   echo "   AVERTISSEMENT : base introuvable, aucune sauvegarde faite."
 fi
 
-echo "==> 5/7 Contrôle Django + migrations + statiques"
+echo "==> 4/7 Contrôle Django + migrations + statiques"
 venv/bin/python manage.py check
 venv/bin/python manage.py migrate
 venv/bin/python scripts/optimiser_css.py
@@ -96,7 +96,7 @@ if [ "$DEMO" = "1" ]; then
   echo "   identifiants : demo.<metier> / demo1234!"
 fi
 
-echo "==> 6/7 Redémarrage WSGI"
+echo "==> 5/7 Redémarrage WSGI"
 # Toujours redémarrer : le code Python est chargé en mémoire.
 if [ -n "${AD_API_KEY:-}" ] && [ -n "${AD_SITE_ID:-}" ]; then
   curl -s -u "$AD_API_KEY:" -X POST "https://api.alwaysdata.com/v1/site/$AD_SITE_ID/restart/"
@@ -106,4 +106,4 @@ else
   echo "   Web > Sites > mppl.cartotrac.fr > Redémarrer."
 fi
 
-echo "==> 7/7 Terminé — rechargement dur du navigateur : Ctrl+Shift+R"
+echo "==> 6/7 Terminé — rechargement dur du navigateur : Ctrl+Shift+R"
