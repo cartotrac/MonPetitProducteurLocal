@@ -5,7 +5,9 @@
 /* Revue ergonomique v1 : bande d'inscription Localien pour les visiteurs non connectés */
 .bande-localien { display: flex; align-items: center; justify-content: space-between;
                   gap: 1rem; flex-wrap: wrap; margin-bottom: 1.2rem; padding: 0.7rem 1rem; }
-</style>{% endblock %}
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+{% endblock %}
 {% block content %}
 <div class="producer-head card producer-hero-card">
   <div class="producer-hero-main">
@@ -35,6 +37,17 @@
 
       <h1 class="producer-title">{{ exploitant.nom_espace }}</h1>
       <p class="muted producer-address">📍 {{ exploitant.adresse }} — {{ exploitant.code_postal }} {{ exploitant.ville }}</p>
+
+      {# Telephone protege : restauration seulement (restaurant, traiteur, foodtruck). #}
+      {% if exploitant.telephone and exploitant.activite == 'RESTAURANT' or exploitant.telephone and exploitant.activite == 'TRAITEUR' or exploitant.telephone and exploitant.activite == 'FOODTRUCK' %}
+      <p class="producer-tel">
+        <button type="button" class="btn-tel-protege"
+                data-a="{{ exploitant.telephone|slice:':5' }}"
+                data-b="{{ exploitant.telephone|slice:'5:' }}"
+                aria-expanded="false"
+                title="Afficher le téléphone de l'établissement">📞 Afficher le téléphone</button>
+      </p>
+      {% endif %}
 
       <div class="producer-cta">
         <a class="btn btn-lg btn-commander-vitrine" href="{% url 'portal:order_create' exploitant.slug %}">
@@ -146,6 +159,52 @@
 </section>
 {% endif %}
 
+{% with modules=vitrine.modules %}
+  {% if modules.apropos %}
+<section class="producer-section">
+  <div class="vitrine-module card module-apropos">
+    <h2>💬 À propos</h2>
+    <p>{{ modules.apropos.texte|linebreaksbr }}</p>
+  </div>
+</section>
+  {% endif %}
+  {% if modules.horaires %}
+<section class="producer-section">
+  <div class="vitrine-module card module-horaires">
+    <h2>🕒 Horaires</h2>
+    <ul class="horaires-liste">
+      {% for h in modules.horaires %}
+      <li><span class="horaire-jour">{{ h.jour }}</span><span class="horaire-heures">{{ h.heures }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+  {% endif %}
+  {% if modules.faq %}
+<section class="producer-section">
+  <div class="vitrine-module card module-faq">
+    <h2>❓ Questions fréquentes</h2>
+    {% for f in modules.faq %}
+    <details class="faq-item">
+      <summary>{{ f.q }}</summary>
+      <p>{{ f.r|linebreaksbr }}</p>
+    </details>
+    {% endfor %}
+  </div>
+</section>
+  {% endif %}
+  {% if modules.carte and exploitant.latitude and exploitant.longitude %}
+<section class="producer-section">
+  <div class="vitrine-module card module-carte">
+    <h2>📍 Nous trouver</h2>
+    <div id="vitrine-mini-carte" class="mini-carte"
+         data-lat="{{ exploitant.latitude }}" data-lng="{{ exploitant.longitude }}"></div>
+    <p class="muted">📍 {{ exploitant.adresse }} — {{ exploitant.code_postal }} {{ exploitant.ville }}</p>
+  </div>
+</section>
+  {% endif %}
+{% endwith %}
+
 {% if equipe %}
 <section class="producer-section">
   <h2>👥 {{ exploitant.libelle_equipe }}</h2>
@@ -180,6 +239,15 @@
       <form method="get" action="{% url 'portal:order_create' exploitant.slug %}">
       {% for nom_cat, lignes_cat in groupes_categories %}
         <h3 class="categorie-titre">{{ nom_cat }} <span class="muted">({{ lignes_cat|length }})</span></h3>
+        {% with medias_cat=medias_categories|get_item:nom_cat %}
+          {% if medias_cat %}
+          <div class="categorie-medias">
+            {% for m in medias_cat %}
+            <a href="{{ m }}" target="_blank" rel="noopener" class="categorie-media-lien">🖼️ Photos / médias « {{ nom_cat }} »</a>
+            {% endfor %}
+          </div>
+          {% endif %}
+        {% endwith %}
         <table class="table table-moderne">
           <thead>
             <tr>
@@ -194,6 +262,7 @@
             <tr>
               <td>
                 <span class="produit-nom">
+                  {% if ligne.produit.illustration %}<img class="vignette-produit-img" src="{{ ligne.produit.illustration.url }}" alt="Photo {{ ligne.produit.nom }}" loading="lazy">{% endif %}
                   {% if ligne.produit.origine_standard and ligne.produit.origine_standard.emoji %}{{ ligne.produit.origine_standard.emoji }} {% endif %}
                   {{ ligne.produit.nom }}
                 </span>
@@ -273,4 +342,48 @@
   </div>
   {% endif %}
 </section>
+
+<script>
+/* Téléphone protégé (restauration) : le numéro n'est PAS présent en
+   clair dans la page — deux moitiés dans des attributs séparés, aucun
+   lien tel: dans le DOM. Au clic, il est assemblé et affiché en lien
+   appelable (protection anti-pillage de base). */
+(function () {
+  /* Mini-carte « Nous trouver » (module activable) : Leaflet n'est
+     chargé que si le bloc existe, puis marqueur sur la position GPS
+     de l'établissement. */
+  var carteDiv = document.getElementById("vitrine-mini-carte");
+  if (carteDiv) {
+    var feuille = document.createElement("link");
+    feuille.rel = "stylesheet";
+    feuille.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    document.head.appendChild(feuille);
+    var s = document.createElement("script");
+    s.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    s.onload = function () {
+      var lat = parseFloat(carteDiv.dataset.lat);
+      var lng = parseFloat(carteDiv.dataset.lng);
+      var mini = L.map("vitrine-mini-carte",
+                       { scrollWheelZoom: false }).setView([lat, lng], 13);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  { maxZoom: 19,
+                    attribution: "© OpenStreetMap" }).addTo(mini);
+      L.marker([lat, lng]).addTo(mini);
+    };
+    document.head.appendChild(s);
+  }
+
+  document.querySelectorAll(".btn-tel-protege").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var tel = (b.dataset.a || "") + (b.dataset.b || "");
+      if (!tel) { return; }
+      var a = document.createElement("a");
+      a.href = "tel:" + tel.replace(/[^+\d]/g, "");
+      a.textContent = "📞 " + tel.trim();
+      a.className = "tel-revele";
+      b.parentNode.replaceChild(a, b);
+    });
+  });
+})();
+</script>
 {% endblock %}

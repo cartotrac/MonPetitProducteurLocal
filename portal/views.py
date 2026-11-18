@@ -1019,6 +1019,13 @@ def producer_detail(request, slug):
         groupes[-1][1].append(ligne)
     vitrine, _cree = ParametresVitrine.objects.get_or_create(
         exploitant=exploitant)
+    # Médias des catégories (liens externes drive/cloud) : affichés
+    # sous le titre de chaque catégorie de la récolte sur la vitrine.
+    medias_categories = {
+        c.nom: c.medias
+        for c in Categorie.objects.filter(exploitant=exploitant)
+        if c.medias
+    }
     # Équipe affichée sur la vitrine : gérant + associés rattachés,
     # avec leur photo de profil externe si elle existe.
     def _membre(user, role):
@@ -1075,6 +1082,8 @@ def producer_detail(request, slug):
         "carte_active": carte_active,
         "vitrine": vitrine,
         "reseaux": vitrine.reseaux or {},
+        "modules": vitrine.modules or {},
+        "medias_categories": medias_categories,
         "equipe": equipe,
         "semaine": semaine,
         "lignes": lignes,
@@ -5462,6 +5471,39 @@ def param_rubrique(request, rubrique):
                     else:
                         reseaux.pop(cle, None)
                 vitrine.reseaux = reseaux
+                # Modules / blocs optionnels de la vitrine (à propos,
+                # horaires, FAQ, carte) : champs texte libres, une
+                # entrée par ligne ; un champ vide retire le module.
+                modules = {}
+                texte_apropos = request.POST.get(
+                    "modules_apropos", "").strip()
+                if texte_apropos:
+                    modules["apropos"] = {"texte": texte_apropos}
+                horaires = []
+                for ligne_h in request.POST.get(
+                        "modules_horaires", "").splitlines():
+                    if ":" not in ligne_h:
+                        continue
+                    jour, heures = ligne_h.split(":", 1)
+                    if jour.strip() and heures.strip():
+                        horaires.append({"jour": jour.strip(),
+                                         "heures": heures.strip()})
+                if horaires:
+                    modules["horaires"] = horaires
+                faq = []
+                for ligne_f in request.POST.get(
+                        "modules_faq", "").splitlines():
+                    if "|" not in ligne_f:
+                        continue
+                    question, reponse = ligne_f.split("|", 1)
+                    if question.strip() and reponse.strip():
+                        faq.append({"q": question.strip(),
+                                    "r": reponse.strip()})
+                if faq:
+                    modules["faq"] = faq
+                if request.POST.get("modules_carte") == "on":
+                    modules["carte"] = True
+                vitrine.modules = modules
                 vitrine.save()
                 if exploitant.siret and not exploitant.siret_valide:
                     messages.warning(
@@ -5619,6 +5661,7 @@ def param_rubrique(request, rubrique):
             "exploitant": exploitant,
             "form_espace": form_espace,
             "vitrine": vitrine,
+            "modules_vitrine": vitrine.modules or {},
             "nb_equipe_hors_support": nb_equipe_hors_support,
         })
 
