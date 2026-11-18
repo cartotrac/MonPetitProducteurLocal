@@ -106,4 +106,4 @@ else
   echo "   Web > Sites > mppl.cartotrac.fr > Redémarrer."
 fi
 
-echo "==> 6/7 Terminé — rechargement dur du navigateur : Ctrl+Shift+R"
+echo "==> 6/6 Terminé — rechargement dur du navigateur : Ctrl+Shift+R"
