@@ -123,9 +123,11 @@
 
 
 
-{# Barre de pagination (haut) : squelette rempli par le JS
-   client — le nombre de pages suit les vignettes VISIBLES dans
-   l'emprise de la carte, aucune page n'est rechargée. #}
+{% comment %}
+   Barre de pagination (haut) : squelette rempli par le JS client —
+   le nombre de pages suit les vignettes VISIBLES dans l'emprise
+   de la carte, aucune page n'est rechargée.
+{% endcomment %}
 <div class="pagination-barre pagination-haut" id="pagination-haut" hidden>
   <span class="pagination-info" id="pagination-info-haut"></span>
   <nav class="pagination-liens" id="pagination-liens-haut" aria-label="Pages de résultats (haut de liste)"></nav>
@@ -220,8 +222,10 @@
 </div>
 {% endif %}
 
-{# Barre de pagination (bas) : mêmes liens reconstruits par le JS
-   client ; le sélecteur « Vignettes par page » agit SANS rechargement. #}
+{% comment %}
+   Barre de pagination (bas) : mêmes liens reconstruits par le JS
+   client ; le sélecteur « Vignettes par page » agit SANS rechargement.
+{% endcomment %}
 <div class="pagination-barre">
   <span class="pagination-info" id="pagination-info-bas"></span>
   <nav class="pagination-liens" id="pagination-liens-bas" aria-label="Pages de résultats" hidden></nav>
@@ -431,13 +435,19 @@ window.mpplSoumettre = function (form, garderVue) {
     });
   }
 
-  /* L'emprise change (zoom, déplacement, restauration au chargement) :
-     la pagination se recalcule sur les vignettes désormais visibles. */
-  if (typeof carte !== "undefined" && carte && carte.on) {
-    carte.on("moveend zoomend", appliquer);
-    carte.whenReady(appliquer);
-  }
   appliquer();
+  /* L'emprise change (zoom, déplacement, restauration au chargement) :
+     la pagination se recalcule sur les vignettes désormais visibles.
+     Ce script s'exécute AVANT le chargement de search-map.js : le
+     branchement sur les événements de la carte attend donc la fin
+     du chargement de la page. */
+  window.addEventListener("load", function () {
+    if (typeof carte !== "undefined" && carte && carte.on) {
+      carte.on("moveend zoomend", appliquer);
+      carte.whenReady(appliquer);
+    }
+    appliquer();
+  });
   /* Recalcul une fois la carte et son emprise initiales prêtes. */
   setTimeout(appliquer, 900);
 })();
