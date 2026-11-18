@@ -6543,3 +6543,42 @@ html.dark .nav-gestion-menu a.nav-actif {
   contain-intrinsic-size: 0 160px;
 }
 
+
+/* ===== REVUE V3.30 — Vitrine : téléphone protégé (restauration),
+       photos produits dans la récolte, styles clair + sombre. ===== */
+/* Bouton « Afficher le téléphone » dans l'entête : pastille discrète.
+   Le numéro est assemblé au clic par le script du template : aucun
+   numéro en clair ni lien tel: dans la page (anti-pillage). */
+.producer-tel { margin: 0.35rem 0 0; }
+.btn-tel-protege {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.4rem 0.75rem; border-radius: 999px;
+  background: #f1f5ec; border: 1px solid #a5d6a7; color: #1f3818;
+  font-weight: 600; cursor: pointer; font-size: 0.95rem;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.btn-tel-protege:hover { background: #e2f0d8; transform: translateY(-1px); }
+html.dark .btn-tel-protege {
+  background: #33422a; border-color: #6f8a5a; color: #eaf3dd;
+}
+html.dark .btn-tel-protege:hover { background: #3c4d31; }
+/* Numéro révélé : lien appelable, même gabarit que le bouton. */
+.tel-revele {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.4rem 0.75rem; border-radius: 999px;
+  background: #e2f0d8; border: 1px solid #2e7d32; color: #1f3818;
+  font-weight: 700; text-decoration: none; font-size: 0.95rem;
+}
+html.dark .tel-revele {
+  background: #33422a; border-color: #6f8a5a; color: #eaf3dd;
+}
+/* Photo du produit dans le tableau de récolte : vignette arrondie à
+   gauche du nom, seulement si une photo existe (sinon rien). */
+.vignette-produit-img {
+  width: 42px; height: 42px; border-radius: 10px; object-fit: cover;
+  margin-right: 0.5rem; vertical-align: middle;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+html.dark .vignette-produit-img {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}

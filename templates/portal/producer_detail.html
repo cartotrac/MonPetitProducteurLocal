@@ -36,6 +36,17 @@
       <h1 class="producer-title">{{ exploitant.nom_espace }}</h1>
       <p class="muted producer-address">📍 {{ exploitant.adresse }} — {{ exploitant.code_postal }} {{ exploitant.ville }}</p>
 
+      {# Telephone protege : restauration seulement (restaurant, traiteur, foodtruck). #}
+      {% if exploitant.telephone and exploitant.activite == 'RESTAURANT' or exploitant.telephone and exploitant.activite == 'TRAITEUR' or exploitant.telephone and exploitant.activite == 'FOODTRUCK' %}
+      <p class="producer-tel">
+        <button type="button" class="btn-tel-protege"
+                data-a="{{ exploitant.telephone|slice:':5' }}"
+                data-b="{{ exploitant.telephone|slice:'5:' }}"
+                aria-expanded="false"
+                title="Afficher le téléphone de l'établissement">📞 Afficher le téléphone</button>
+      </p>
+      {% endif %}
+
       <div class="producer-cta">
         <a class="btn btn-lg btn-commander-vitrine" href="{% url 'portal:order_create' exploitant.slug %}">
           🛒 {{ exploitant.libelle_commander }}
@@ -194,6 +205,7 @@
             <tr>
               <td>
                 <span class="produit-nom">
+                  {% if ligne.produit.illustration %}<img class="vignette-produit-img" src="{{ ligne.produit.illustration.url }}" alt="Photo {{ ligne.produit.nom }}" loading="lazy">{% endif %}
                   {% if ligne.produit.origine_standard and ligne.produit.origine_standard.emoji %}{{ ligne.produit.origine_standard.emoji }} {% endif %}
                   {{ ligne.produit.nom }}
                 </span>
@@ -273,4 +285,24 @@
   </div>
   {% endif %}
 </section>
+
+<script>
+/* Téléphone protégé (restauration) : le numéro n'est PAS présent en
+   clair dans la page — deux moitiés dans des attributs séparés, aucun
+   lien tel: dans le DOM. Au clic, il est assemblé et affiché en lien
+   appelable (protection anti-pillage de base). */
+(function () {
+  document.querySelectorAll(".btn-tel-protege").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var tel = (b.dataset.a || "") + (b.dataset.b || "");
+      if (!tel) { return; }
+      var a = document.createElement("a");
+      a.href = "tel:" + tel.replace(/[^+\d]/g, "");
+      a.textContent = "📞 " + tel.trim();
+      a.className = "tel-revele";
+      b.parentNode.replaceChild(a, b);
+    });
+  });
+})();
+</script>
 {% endblock %}
