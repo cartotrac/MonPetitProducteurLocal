@@ -845,52 +845,39 @@ def producer_search(request):
     # Mode marches : les vignettes affichées sont les marchés et
     # boutiques — pagination et décompte du bas de page suivent
     # CETTE liste, pas le total des exploitants.
-    paginator = Paginator(marches if visu_marches else exploitants,
-                           par_page)
-    page_obj = paginator.get_page(request.GET.get("page", 1))
-    # Paramètres de l'URL courante (hors pagination) : les liens de
-    # page et le sélecteur « par page » conservent ainsi les filtres
-    # actifs — y compris les listes à choix multiple (mode, activité).
+    # Pagination des vignettes : désormais CÔTÉ CLIENT (template
+    # de la page recherche). La grille rend TOUTES les vignettes du
+    # jeu filtré et le JavaScript la découpe en pages en ne comptant
+    # que les vignettes VISIBLES DANS L'EMPRISE de la carte — le
+    # nombre de pages suit donc le zoom (jusqu'à 1 page si tout
+    # tient à l'écran), et comme aucun rechargement n'a lieu, le
+    # réglage cartographique n'est JAMAIS perturbé. Le sélecteur
+    # « Vignettes par page » reste réglable 10 / 25 / 50 / 100.
+    nb_resultats = len(marches if visu_marches else exploitants)
+    # Paramètres de l'URL courante (hors pagination) : le sélecteur
+    # « par page » conserve ainsi les filtres actifs — y compris les
+    # listes à choix multiple (mode, activité).
     filtres_get = [
         (cle, valeur)
         for cle in request.GET.keys()
         if cle not in ("page", "par_page")
         for valeur in request.GET.getlist(cle)]
-    query_pages = urlencode(filtres_get, doseq=True)
-    # Fenêtre de numéros de page (max 7 boutons + ellipses).
-    nb_pages = paginator.num_pages
-    courante = page_obj.number
-    if nb_pages <= 7:
-        pages_pagination = list(range(1, nb_pages + 1))
-    else:
-        pages_pagination = []
-        precedent = None
-        for n in sorted({1, 2, courante - 1, courante, courante + 1,
-                         nb_pages - 1, nb_pages}):
-            if 1 <= n <= nb_pages:
-                if precedent is not None and n - precedent > 1:
-                    pages_pagination.append("…")
-                pages_pagination.append(n)
-                precedent = n
     # Salutation : fournie par le processeur de contexte
     # instance_contexte (badge ambassadeur et stats inclus) — plus de
     # copie locale ici, le bloc session est identique sur toutes les
     # pages.
     return render(request, "portal/search_results.html", {
-        "exploitants": page_obj,
-        "nb_resultats": paginator.count,
+        "exploitants": exploitants,
+        "nb_resultats": nb_resultats,
         "par_page": par_page,
         "par_page_choices": (10, 25, 50, 100),
-        "page_obj": page_obj,
-        "pages_pagination": pages_pagination,
         "filtres_get": filtres_get,
-        "query_pages": query_pages,
         "carte_data": carte_data,
         "activites": activite_cases,
         "visu": visu,
         "demo": demo,
         "home_carte": home_carte,
-        "marches": page_obj if visu_marches else marches,
+        "marches": marches,
         "resultats_vides": not carte_data,
         "nb_pros": nb_pros,
         "nb_producteurs_locaux": nb_producteurs_locaux,
