@@ -6536,3 +6536,10 @@ html.dark .nav-gestion-menu a.nav-actif {
    bouton ne quittait plus le bandeau au defilement. On retablit la
    position fixe avec une specificite a deux classes. */
 .btn-espace.btn-espace-flottant { position: fixed; }
+
+/* ===== REVUE V3.29 — Performance mobile listes & cartes ===== */
+.vignette-producteur {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 160px;
+}
+

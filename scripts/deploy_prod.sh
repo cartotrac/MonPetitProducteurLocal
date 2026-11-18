@@ -85,6 +85,7 @@ fi
 echo "==> 5/7 Contrôle Django + migrations + statiques"
 venv/bin/python manage.py check
 venv/bin/python manage.py migrate
+venv/bin/python scripts/optimiser_css.py
 venv/bin/python manage.py collectstatic --noinput
 
 if [ "$DEMO" = "1" ]; then

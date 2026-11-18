@@ -5,8 +5,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}MonPetitProducteurLocal{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=12">
-  <link rel="stylesheet" href="{% static 'css/append.css' %}?v=65">
+  <link rel="stylesheet" href="{% static 'css/style.min.css' %}?v=13">
+  <link rel="stylesheet" href="{% static 'css/append.min.css' %}?v=66">
   <script>
   /* Mode sombre appliqué AVANT le premier rendu (dans le <head>) :
      sans cela, les boutons du bandeau s'affichent une fraction de
@@ -76,8 +76,8 @@
         {% if mode_pro %}
           <a href="{% url 'portal:dashboard' %}" title="Dashboard" aria-label="Dashboard" data-libelle="Dashboard" class="nav-icone{% if request.path == '/espace-pro/' %} nav-actif{% endif %}">📊</a>
           <div class="nav-gestion">
-            <a class="nav-gestion-titre{% if '/clients' in request.path or '/espace-ventes' in request.path or '/espace-commandes' in request.path or '/espace-paniers' in request.path or '/points-livraison' in request.path or '/mes-producteurs' in request.path %} nav-actif{% endif %}" href="{% url 'portal:clients_suivi' %}" title="Gestion : clients, ventes, modalités, favoris" aria-label="Gestion" data-libelle="Gestion">🗂️</a>
-            <div class="nav-gestion-menu">
+            <a class="nav-gestion-titre{% if '/clients' in request.path or '/espace-ventes' in request.path or '/espace-commandes' in request.path or '/espace-paniers' in request.path or '/points-livraison' in request.path or '/mes-producteurs' in request.path %} nav-actif{% endif %}" href="{% url 'portal:clients_suivi' %}" title="Gestion : clients, ventes, modalités, favoris" aria-label="Gestion" data-libelle="Gestion" role="button" aria-haspopup="true" aria-expanded="false" aria-controls="menu-nav-gestion">🗂️</a>
+            <div class="nav-gestion-menu" id="menu-nav-gestion">
               <a href="{% url 'portal:clients_suivi' %}" class="{% if request.resolver_match.url_name == 'clients_suivi' %}nav-actif{% endif %}">👤 Mes clients</a>
               <a href="{% url 'portal:ventes' %}" class="{% if request.resolver_match.url_name == 'ventes' %}nav-actif{% endif %}">🧾 Ventes</a>
               <a href="{% url 'portal:points_manage' %}" class="{% if request.resolver_match.url_name == 'points_manage' %}nav-actif{% endif %}">📍 Modalités</a>
@@ -85,8 +85,8 @@
             </div>
           </div>
           <div class="nav-gestion">
-            <a class="nav-gestion-titre{% if 'catalogue' in request.path or '/espace-produits' in request.path or '/espace-recolte' in request.path or '/mes-cartes' in request.path or '/publications' in request.path %} nav-actif{% endif %}" {% if est_proprietaire or user.is_superuser %}href="{% url 'portal:product_list' %}"{% else %}href="{% url 'portal:harvest_list' %}"{% endif %} title="Publications : catalogue, récoltes, newsletter, annonces" aria-label="Publications" data-libelle="Publications">📢</a>
-            <div class="nav-gestion-menu">
+            <a class="nav-gestion-titre{% if 'catalogue' in request.path or '/espace-produits' in request.path or '/espace-recolte' in request.path or '/mes-cartes' in request.path or '/publications' in request.path %} nav-actif{% endif %}" {% if est_proprietaire or user.is_superuser %}href="{% url 'portal:product_list' %}"{% else %}href="{% url 'portal:harvest_list' %}"{% endif %} title="Publications : catalogue, récoltes, newsletter, annonces" aria-label="Publications" data-libelle="Publications" role="button" aria-haspopup="true" aria-expanded="false" aria-controls="menu-nav-publications">📢</a>
+            <div class="nav-gestion-menu" id="menu-nav-publications">
               {% if est_proprietaire or user.is_superuser %}<a href="{% url 'portal:product_list' %}" class="{% if request.resolver_match.url_name == 'product_list' %}nav-actif{% endif %}">📚 Catalogue</a>{% endif %}
               <a href="{% url 'portal:harvest_list' %}" class="{% if request.resolver_match.url_name == 'harvest_list' %}nav-actif{% endif %}">{% if exploitant_courant %}{{ exploitant_courant.vocab.recoltes_emoji }} {{ exploitant_courant.vocab.recoltes|capfirst }}{% else %}🧺 Récoltes{% endif %}</a>
               {% if exploitant_courant and exploitant_courant.a_carte_boutique %}
@@ -97,8 +97,8 @@
             </div>
           </div>
           <div class="nav-gestion">
-            <a class="nav-gestion-titre{% if '/parametres/' in request.path or '/equipe/' in request.path %} nav-actif{% endif %}" href="{% url 'portal:param_rubrique' 'profil' %}" title="Paramètres : profil, espace, équipe, messagerie" aria-label="Paramètres" data-libelle="Paramètres">⚙️</a>
-            <div class="nav-gestion-menu">
+            <a class="nav-gestion-titre{% if '/parametres/' in request.path or '/equipe/' in request.path %} nav-actif{% endif %}" href="{% url 'portal:param_rubrique' 'profil' %}" title="Paramètres : profil, espace, équipe, messagerie" aria-label="Paramètres" data-libelle="Paramètres" role="button" aria-haspopup="true" aria-expanded="false" aria-controls="menu-nav-parametres">⚙️</a>
+            <div class="nav-gestion-menu" id="menu-nav-parametres">
               <a href="{% url 'portal:param_rubrique' 'profil' %}" class="{% if request.resolver_match.url_name == 'param_rubrique' and request.resolver_match.kwargs.rubrique == 'profil' %}nav-actif{% endif %}">👤 Mon profil</a>
               {% if user.is_superuser %}<a href="{% url 'portal:param_rubrique' 'gerant' %}" class="{% if request.resolver_match.url_name == 'param_rubrique' and request.resolver_match.kwargs.rubrique == 'gerant' %}nav-actif{% endif %}">🧑‍🌾 Profil gérant</a>{% endif %}
               {% if est_proprietaire or user.is_superuser %}<a href="{% url 'portal:param_rubrique' 'espace' %}" class="{% if request.resolver_match.url_name == 'param_rubrique' and request.resolver_match.kwargs.rubrique == 'espace' %}nav-actif{% endif %}">{{ exploitant_courant.titre_fiche }}</a>{% endif %}
@@ -451,22 +451,63 @@
 })();
 </script>
 <script>
-/* Navigation mobile : bouton burger qui déplie/replie les liens. */
+/* Navigation mobile : bouton burger accessible, fermeture au clic extérieur / Échap
+   et accordéons avec mise à jour ARIA. */
 (function () {
   var burger = document.getElementById("nav-burger");
   var liens = document.getElementById("nav-principal");
   if (!burger || !liens) { return; }
-  burger.addEventListener("click", function () {
-    var ouvert = liens.classList.toggle("ouvert");
-    burger.setAttribute("aria-expanded", ouvert ? "true" : "false");
-    burger.setAttribute("aria-label",
-                         ouvert ? "Fermer le menu" : "Ouvrir le menu");
-    burger.textContent = ouvert ? "✕" : "☰";
+
+  function fermerMenu() {
+    if (liens.classList.contains("ouvert")) {
+      liens.classList.remove("ouvert");
+      burger.setAttribute("aria-expanded", "false");
+      burger.setAttribute("aria-label", "Ouvrir le menu");
+      burger.textContent = "☰";
+    }
+  }
+
+  function ouvrirMenu() {
+    liens.classList.add("ouvert");
+    burger.setAttribute("aria-expanded", "true");
+    burger.setAttribute("aria-label", "Fermer le menu");
+    burger.textContent = "✕";
+  }
+
+  burger.addEventListener("click", function (evt) {
+    evt.stopPropagation();
+    if (liens.classList.contains("ouvert")) {
+      fermerMenu();
+    } else {
+      ouvrirMenu();
+    }
   });
-  /* Sous-rubriques pro (Gestion, Publications, Paramètres) : sur
-     mobile, chaque groupe se replie et s'ouvre d'un tap sur son
-     titre — le menu burger reste compact au lieu de tout afficher
-     à plat. Le groupe de la page courante reste ouvert (nav-actif). */
+
+  // Fermeture au clic extérieur
+  document.addEventListener("click", function (evt) {
+    if (!liens.classList.contains("ouvert")) { return; }
+    if (!liens.contains(evt.target) && !burger.contains(evt.target)) {
+      fermerMenu();
+    }
+  });
+
+  // Fermeture avec la touche Échap
+  document.addEventListener("keydown", function (evt) {
+    if ((evt.key === "Escape" || evt.key === "Esc") && liens.classList.contains("ouvert")) {
+      fermerMenu();
+      burger.focus();
+    }
+  });
+
+  // Clic sur un lien standard (navigation directe) : fermer le menu sur mobile
+  liens.querySelectorAll("a:not(.nav-gestion-titre)").forEach(function (lien) {
+    lien.addEventListener("click", function () {
+      if (window.matchMedia("(max-width: 820px)").matches) {
+        fermerMenu();
+      }
+    });
+  });
+
   /* Sous-menus : si le menu déroulé dépasse le bord droit de la
      page, il s'ouvre aligné à droite (classe .menu-bord-droit). */
   function clampMenus() {
@@ -479,19 +520,22 @@
       }
     });
   }
-  /* Mesure APRÈS que :hover a affiché le menu (sinon largeur nulle). */
   function programmerClamp() { requestAnimationFrame(clampMenus); }
   document.querySelectorAll(".nav-gestion").forEach(function (g) {
     g.addEventListener("mouseenter", programmerClamp);
     g.addEventListener("focusin", programmerClamp);
   });
   window.addEventListener("resize", clampMenus);
-  document.querySelectorAll(".nav-gestion-titre").forEach(function (titre) {
+
+  // Accordéon mobile pour les groupes Pro avec gestion ARIA
+  document.querySelectorAll(".nav-gestion").forEach(function (groupe) {
+    var titre = groupe.querySelector(".nav-gestion-titre");
+    if (!titre) return;
     titre.addEventListener("click", function (evt) {
       if (!window.matchMedia("(max-width: 820px)").matches) { return; }
       evt.preventDefault();
-      var groupe = titre.closest(".nav-gestion");
-      if (groupe) { groupe.classList.toggle("ouvert"); }
+      var ouvert = groupe.classList.toggle("ouvert");
+      titre.setAttribute("aria-expanded", ouvert ? "true" : "false");
     });
   });
 })();
