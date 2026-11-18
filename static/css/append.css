@@ -6193,3 +6193,61 @@ html.dark .carte-edition input {
 }
 /* Sur mobile, le tableau édité passe en défilement horizontal. */
 .carte-edition { overflow-x: auto; }
+
+/* ===== REVUE V3.22 — Recherche : pagination & légende ; accueil mobile ===== */
+/* Pagination des vignettes : barre aussi EN TÊTE de la grille. */
+.pagination-haut {
+  margin: 0 0 0.9rem;
+}
+
+/* Légende du mode All-in-1 : répartition sur 2 colonnes maximum,
+   les titres de groupe portent toute la largeur. (:has cible la
+   légende construite avec des .legend-titre, propre au All-in-1.) */
+@media (min-width: 821px) {
+  .map-legend:has(.legend-titre) .legend-symbole {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 0.9rem;
+    max-width: 360px;
+  }
+  .map-legend .legend-titre {
+    grid-column: 1 / -1;
+  }
+  .map-legend:has(.legend-titre) .legend-symbole span {
+    display: block;
+    margin-right: 0;
+    white-space: normal;
+  }
+}
+
+/* Accueil mobile : plus aucun bloc ne dépasse du contenant — les
+   grilles « auto-fit » plafonnent leur largeur minimale à 100 % de
+   l'espace disponible au lieu de forcer 320/240/140 px. */
+.home-metiers-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+}
+.home-how-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+}
+.chiffres-grille {
+  grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
+}
+.metier-card, .how-column, .chiffre-carte { min-width: 0; }
+.how-step-body, .how-step-body p, .metier-card p {
+  overflow-wrap: break-word;
+}
+.chiffre-graphe, .chiffre-graphe svg { max-width: 100%; }
+
+/* Téléphone : les vignettes « Dynamique locale » restent DEUX par
+   ligne mais tiennent dans l'écran, textes redimensionnés. */
+@media (max-width: 768px) {
+  .chiffres-cles { padding: 1.1rem 0.9rem; }
+  .chiffres-grille { gap: 0.55rem; }
+  .chiffre-carte { padding: 0.75rem 0.35rem; min-width: 0; }
+  .chiffre-emoji { font-size: 1.3rem; }
+  .chiffre-nb { font-size: 1.25rem; }
+  .chiffre-libelle { font-size: 0.72rem; }
+  .home-how-section { padding: 1.3rem 0.9rem; }
+  .how-column { padding: 1rem 0.85rem; }
+  .metier-card { padding: 1.1rem; }
+}
