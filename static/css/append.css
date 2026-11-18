@@ -6423,3 +6423,83 @@ html.dark .carte-edition input {
     width: 38px; height: 38px; margin: 0;
   }
 }
+
+/* ===== REVUE V3.26 — Burger mobile : une seule fleche, libelles
+       partout, rubrique courante identifiee (mais repliee) et bandeau
+       tenant sur UNE ligne. ===== */
+/* Une SEULE fleche sur les rubriques a sous-menu : la V3.24 la pose
+   via ::before ; l'ancienne fleche en ::after (posee avec content
+   !important, y compris au survol) est retiree partout : elle
+   doublait le symbole et ecrasait le libelle mobile. */
+.nav-gestion-titre::after,
+.nav-gestion:hover .nav-gestion-titre::after,
+.nav-gestion:focus-within .nav-gestion-titre::after,
+.nav-gestion.ouvert .nav-gestion-titre::after,
+.nav-gestion-titre.nav-actif::after { content: none !important; }
+@media (max-width: 820px) {
+  /* Mobile : le ::after des titres de groupe redevient le LIBELLE
+     (data-libelle), comme pour les pastilles nav-icone. */
+  .nav-gestion-titre::after,
+  .nav-gestion:hover .nav-gestion-titre::after,
+  .nav-gestion:focus-within .nav-gestion-titre::after,
+  .nav-gestion.ouvert .nav-gestion-titre::after,
+  .nav-gestion-titre.nav-actif::after {
+    content: attr(data-libelle) !important;
+    display: block !important; position: static !important;
+    background: none !important; transform: none !important;
+    height: auto !important; width: auto !important;
+    left: auto !important; right: auto !important;
+    bottom: auto !important; top: auto !important;
+    font-size: 0.92rem; font-weight: 600;
+    flex: 1; order: 1; text-align: left;
+  }
+  /* La rubrique COURANTE est identifiee par sa pastille active mais
+     son sous-menu reste REPLIE : un tap pour l'ouvrir, comme les
+     autres groupes. */
+  .nav-gestion:has(.nav-actif) .nav-gestion-menu { display: none; }
+  /* « Trouver » : pastille libellee comme les autres entrees du
+     burger (compte client, pro ou admin). */
+  .nav-links a.nav-chercher {
+    justify-content: flex-start; gap: 0.5rem;
+    background: #f1f5ec; border: 1px solid #dde5d3; color: #2c4a1a;
+    border-radius: 10px; padding: 0.55rem 0.7rem;
+  }
+  html.dark .nav-links a.nav-chercher {
+    background: rgba(255, 255, 255, 0.06); border-color: #4a5640;
+    color: #e6e4da;
+  }
+  .nav-links a.nav-chercher::after {
+    content: attr(data-libelle) !important;
+    display: block !important; position: static !important;
+    background: none !important; transform: none !important;
+    height: auto !important; width: auto !important;
+    left: auto !important; right: auto !important;
+    bottom: auto !important; top: auto !important;
+    font-size: 0.92rem; font-weight: 600;
+    flex: 1; order: 1; text-align: left;
+  }
+  /* Bouton session : libelle « Se deconnecter / Se connecter » a
+     cote du point, en pastille pleine largeur. */
+  .nav-links .btn-session {
+    width: 100%; justify-content: flex-start; gap: 0.5rem;
+    background: #f1f5ec; border: 1px solid #dde5d3; color: #2c4a1a;
+    border-radius: 10px; padding: 0.55rem 0.7rem;
+  }
+  html.dark .nav-links .btn-session {
+    background: rgba(255, 255, 255, 0.06); border-color: #4a5640;
+    color: #e6e4da;
+  }
+  .nav-links .btn-session::after {
+    content: attr(data-libelle); font-size: 0.92rem; font-weight: 600;
+  }
+  /* Bandeau sur UNE ligne : marges du conteneur et du brand
+     reduites, boutons darkmode / espace resserres. */
+  .nav { flex-wrap: nowrap; }
+  .nav.container { padding-left: 0.45rem; padding-right: 0.45rem; }
+  .nav-gauche { gap: 0.35rem; }
+  .brand { gap: 0.3rem; font-size: 1rem; letter-spacing: -0.3px;
+           white-space: nowrap; }
+  .brand-logo { width: 26px; height: 26px; }
+  .btn-darkmode, .btn-espace { width: 28px; height: 28px;
+                               font-size: 0.85rem; }
+}
