@@ -148,6 +148,7 @@
                 </div>
                 <div class="cat-media-ajout">
                   <input type="url" class="cat-media-url" placeholder="Coller un lien (Drive, cloud, photo en ligne…)">
+                  <button type="button" class="btn btn-sm btn-outline btn-lien-drive" title="Coller un lien de PARTAGE Google Drive : converti en lien d'affichage direct">🅶</button>
                   <button type="button" class="btn btn-sm cat-media-ajouter" title="Ajouter ce lien à la catégorie">➕ Ajouter le média</button>
                 </div>
                 <p class="muted cat-medias-aide">Ajoutez ou retirez des lignes, puis
@@ -188,7 +189,10 @@
                 <label class="gestion-champ gestion-champ-large"><span>Descriptif</span>
                   <textarea name="desc_{{ produit.pk }}" rows="3" maxlength="500" class="gestion-desc" placeholder="Descriptif court pour la vitrine">{{ produit.description }}</textarea></label>
                 <label class="gestion-champ gestion-champ-large"><span>Média</span>
-                  <input type="url" name="media_{{ produit.pk }}" value="{{ produit.image_externe }}" placeholder="Lien photo externe (drive, cloud…)"></label>
+                  <span class="gestion-media-champ">
+                  <input type="url" name="media_{{ produit.pk }}" value="{{ produit.image_externe }}" placeholder="Lien photo externe (drive, cloud…)">
+                  <button type="button" class="btn btn-sm btn-outline btn-lien-drive" title="Coller un lien de PARTAGE Google Drive : converti automatiquement en lien d'affichage direct">🅶</button>
+                  </span></label>
                 <span class="gestion-actions">
                   <a class="btn btn-sm btn-outline" href="{% url 'portal:product_edit' produit.pk %}" title="Édition détaillée : photo, descriptif complet">📝</a>
                   <select name="categorie_cible_{{ produit.pk }}" class="gestion-cat-select" title="Changer de catégorie (sans glisser-déposer)">
@@ -414,6 +418,61 @@
     saisie.placeholder = "Coller un lien (Drive, cloud, photo en ligne…)";
     var ind = document.getElementById("gestion-indice-modifs");
     if (ind) { ind.hidden = false; }
+  });
+})();
+</script>
+<script>
+/* Boutons 🅶 « lien Drive » : un lien de PARTAGE Google Drive
+   (…/file/d/ID/view?usp=sharing) ne s'affiche pas dans une balise
+   <img>. Le bouton ouvre une fenêtre « collez le lien de partage »,
+   le convertit en lien d'affichage direct (uc?export=view&id=ID)
+   et remplit le champ média voisin ; un lien Drive collé à la main
+   dans un champ média est aussi converti automatiquement. */
+(function () {
+  function lienDirect(url) {
+    url = (url || "").trim();
+    var m = url.match(/drive\.google\.com\/file\/d\/([^\/?#]+)/);
+    if (m) { return "https://drive.google.com/uc?export=view&id=" + m[1]; }
+    if (url.indexOf("drive.google.com") !== -1) {
+      m = url.match(/[?&]id=([^&#]+)/);
+      if (m) { return "https://drive.google.com/uc?export=view&id=" + m[1]; }
+    }
+    return null;
+  }
+  document.addEventListener("paste", function (e) {
+    var cible = e.target;
+    if (!cible || !cible.matches) { return; }
+    if (cible.matches("input[type='url'][name^='media_'], " +
+                      ".cat-media-url, " +
+                      "input[type='url'][name^='medias_cat_']")) {
+      setTimeout(function () {
+        var direct = lienDirect(cible.value);
+        if (direct) { cible.value = direct; }
+      }, 0);
+    }
+  });
+  document.addEventListener("click", function (e) {
+    var btn = e.target && e.target.closest
+      ? e.target.closest(".btn-lien-drive") : null;
+    if (!btn) { return; }
+    e.preventDefault();
+    var brut = window.prompt(
+        "Collez le lien de PARTAGE Google Drive de l'image " +
+        "(dans Drive : clic droit sur l'image > Partager > Copier le lien) :");
+    var direct = lienDirect(brut || "");
+    if (!direct) {
+      if (brut) { window.alert("Lien Drive non reconnu : utilisez " +
+                  "« Partager > Copier le lien » dans Google Drive."); }
+      return;
+    }
+    var conteneur = btn.closest("label.gestion-champ") ||
+                    btn.closest(".cat-media-ajout");
+    var champ = conteneur && (conteneur.querySelector("input[type='url']") ||
+                               conteneur.querySelector(".cat-media-url"));
+    if (champ) {
+      champ.value = direct;
+      champ.dispatchEvent(new Event("input", {bubbles: true}));
+    }
   });
 })();
 </script>
