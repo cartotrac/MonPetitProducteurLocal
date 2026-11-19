@@ -5,49 +5,89 @@
 <p class="muted">Votre vitrine affiche la carte <strong>active</strong> en
    permanence, en plus de « {{ exploitant.titre_semaine }} ». Composez
    plusieurs cartes (brouillons, versions archivées et republiables) :
-   une seule est publiée à la fois. Les lignes reprennent vos produits
-   du catalogue actif{% if catalogue_actif %} « {{ catalogue_actif.nom }} » ✅{% endif %}
+   une seule est publiée à la fois. Chaque onglet est une carte — ✅ la
+   publiée, ✏️ les brouillons, 📥 les archives. Les lignes reprennent
+   vos produits du catalogue actif{% if catalogue_actif %} « {{ catalogue_actif.nom }} » ✅{% endif %}
    ou restent libres (plat du jour, menu…) : prix, unités, descriptifs
    et médias sont préchargés du catalogue, puis ajustables ligne à ligne, comme dans « Mes catalogues » : une seule sauvegarde 💾 par carte.</p>
 
+{% if cartes %}
+<nav class="quick-actions catalogue-onglets" aria-label="Mes cartes (✅ = publiée sur la vitrine)">
+  {% for c in cartes %}
+    <a class="btn {% if carte_courante and c.pk == carte_courante.pk %}catalogue-onglet-courant{% else %}btn-outline{% endif %} btn-sm carte-onglet catalogue-onglet"
+       href="{% url 'portal:cartes_manage' %}?carte={{ c.pk }}"
+       title="{% if c.statut == 'ACTIVE' %}Publiée sur la vitrine publique{% elif c.statut == 'BROUILLON' %}Brouillon en préparation — ✅ pour le publier{% else %}Archivée : cliquez pour la consulter ou la republier{% endif %}">
+      {% if c.statut == 'ACTIVE' %}✅{% elif c.statut == 'BROUILLON' %}✏️{% else %}📥{% endif %}
+      {{ c.nom }} <span class="muted">({{ c.lignes.count }})</span>
+    </a>
+  {% endfor %}
+  <details class="carte-creation-inline">
+    <summary class="btn btn-outline btn-sm catalogue-onglet" title="Créer une nouvelle carte">➕ Nouvelle carte</summary>
+    <form method="post" class="form carte-creation-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="creer">
+      <label for="id_nom_carte">Nom de la nouvelle carte / boutique</label>
+      <input type="text" id="id_nom_carte" name="nom" placeholder="Ex : Carte du moment, Menu de fête, En boutique en ce moment…" required>
+      <button class="btn btn-sm" type="submit">➕ Créer en brouillon</button>
+    </form>
+  </details>
+</nav>
+{% endif %}
+
+{% if not cartes %}
 <section class="harvest-bloc">
   <div class="card">
+    <h2>➕ Créez votre première carte</h2>
+    <p class="muted">Une « carte » est une liste publiée sur votre vitrine :
+       carte de plats (restaurant, foodtruck), buffets (traiteur) ou
+       articles en boutique (fromager, apiculteur, conserverie…). Les
+       lignes reprennent les produits du catalogue actif ou restent
+       libres (plat du jour, menu…). Créez-la en brouillon, ajoutez vos
+       lignes, puis publiez-la quand elle est prête.</p>
     <form method="post" class="form">
       {% csrf_token %}
       <input type="hidden" name="action" value="creer">
-      <label for="id_nom_carte">Nouvelle carte / boutique</label>
+      <label for="id_nom_carte">Nom de la carte / boutique</label>
       <input type="text" id="id_nom_carte" name="nom" placeholder="Ex : Carte du moment, Menu de fête, En boutique en ce moment…" required>
       <button class="btn" type="submit">➕ Créer en brouillon</button>
     </form>
   </div>
 </section>
-
-{% for carte in cartes %}
+{% elif carte_courante %}
 <section class="harvest-bloc">
   <div class="card">
     <h2>
-      {% if carte.statut == 'ACTIVE' %}<span class="badge badge-ok">Publiée</span>
-      {% elif carte.statut == 'BROUILLON' %}<span class="badge badge-encours">Brouillon</span>
+      {% if carte_courante.statut == 'ACTIVE' %}<span class="badge badge-ok">Publiée</span>
+      {% elif carte_courante.statut == 'BROUILLON' %}<span class="badge badge-encours">Brouillon</span>
       {% else %}<span class="badge badge-off">Archivée</span>{% endif %}
-      {{ carte.nom }}
-      <span class="muted">({{ carte.lignes.count }} ligne{{ carte.lignes.count|pluralize }})</span>
+      {{ carte_courante.nom }}
+      <span class="muted">({{ carte_courante.lignes.count }} ligne{{ carte_courante.lignes.count|pluralize }})</span>
     </h2>
-    <form method="post" class="inline">
-      {% csrf_token %}
-      <input type="hidden" name="carte_id" value="{{ carte.pk }}">
-      {% if carte.statut != 'ACTIVE' %}<button class="btn btn-sm" name="action" value="activer" type="submit">✅ Publier sur la vitrine</button>{% endif %}
-      {% if carte.statut == 'ACTIVE' %}<button class="btn btn-sm btn-outline" name="action" value="archiver" type="submit">📦 Archiver</button>{% endif %}
-      <button class="btn btn-sm btn-outline" name="action" value="dupliquer" type="submit">📄 Dupliquer</button>
-      <button class="btn btn-sm btn-outline" name="action" value="supprimer" type="submit">🗑️ Supprimer</button>
-    </form>
+
+    <div class="carte-barre-outils">
+      <form method="post" class="inline carte-renommer">
+        {% csrf_token %}
+        <input type="hidden" name="carte_id" value="{{ carte_courante.pk }}">
+        <input class="gestion-catalogue-nom" type="text" name="nouveau_nom" value="{{ carte_courante.nom }}" maxlength="120" title="Nom de la carte — modifiable à tout moment, même publiée">
+        <button class="btn btn-sm" name="action" value="renommer" type="submit" title="Enregistrer le nouveau nom de la carte">✏️ Renommer</button>
+      </form>
+      <form method="post" class="inline carte-actions">
+        {% csrf_token %}
+        <input type="hidden" name="carte_id" value="{{ carte_courante.pk }}">
+        {% if carte_courante.statut != 'ACTIVE' %}<button class="btn btn-sm" name="action" value="activer" type="submit">✅ Publier sur la vitrine</button>{% endif %}
+        {% if carte_courante.statut == 'ACTIVE' %}<button class="btn btn-sm btn-outline" name="action" value="archiver" type="submit">📦 Archiver</button>{% endif %}
+        <button class="btn btn-sm btn-outline" name="action" value="dupliquer" type="submit">📄 Dupliquer</button>
+        <button class="btn btn-sm btn-outline" name="action" value="supprimer" type="submit">🗑️ Supprimer</button>
+      </form>
+    </div>
 
     <form method="post" class="form carte-edition">
       {% csrf_token %}
-      <input type="hidden" name="carte_id" value="{{ carte.pk }}">
+      <input type="hidden" name="carte_id" value="{{ carte_courante.pk }}">
       <table class="table">
         <thead><tr><th></th><th>Produit / plat · section</th><th>Prix €</th><th>Stock publié</th><th>Descriptif</th><th></th></tr></thead>
         <tbody>
-        {% for ligne in carte.lignes.all %}
+        {% for ligne in carte_courante.lignes.all %}
           <tr>
             <td class="muted">{{ forloop.counter }}</td>
             <td>{% if ligne.produit and ligne.produit.illustration %}<img class="vignette-produit" src="{{ ligne.produit.illustration.url }}" alt="">{% elif ligne.produit and ligne.produit.image_externe %}<img class="vignette-produit" src="{{ ligne.produit.image_externe }}" alt="" loading="lazy">{% endif %}{% if ligne.produit %}{% if ligne.emoji %}{{ ligne.emoji }} {% endif %}<strong>{{ ligne.nom }}</strong>
@@ -72,46 +112,50 @@
       <button class="btn" type="submit" name="action" value="enregistrer">💾 Enregistrer la carte</button>
     </form>
 
-    <form method="post" class="form">
-      {% csrf_token %}
-      <input type="hidden" name="carte_id" value="{{ carte.pk }}">
-      <h3>➕ Ajouter à « {{ carte.nom }} »</h3>
-      <label for="produit_{{ carte.pk }}">Un produit du catalogue actif</label>
-      <select id="produit_{{ carte.pk }}" name="produit_id" class="carte-select-produit">
-        <option value="">— ou ligne libre ci-dessous —</option>
-        {% regroup produits by categorie.nom as familles %}
-        {% for famille in familles %}
-        <optgroup label="{{ famille.grouper|default:"Sans catégorie" }}">
-          {% for produit in famille.list %}
-          <option value="{{ produit.pk }}" data-prix="{{ produit.prix|default_if_none:'' }}" data-desc="{{ produit.description }}">{{ produit.emoji }} {{ produit.nom }}</option>
+    <details class="carte-ajout">
+      <summary>➕ Ajouter une ligne ou importer une catégorie dans « {{ carte_courante.nom }} »</summary>
+      <form method="post" class="form">
+        {% csrf_token %}
+        <input type="hidden" name="carte_id" value="{{ carte_courante.pk }}">
+        <p class="muted">Trois façons d'alimenter la carte : un produit du
+           catalogue actif (prix, unité et descriptif préchargés), toute
+           une catégorie d'un coup, ou une ligne libre (plat du jour,
+           menu…).</p>
+        <label for="produit_{{ carte_courante.pk }}">Un produit du catalogue actif</label>
+        <select id="produit_{{ carte_courante.pk }}" name="produit_id" class="carte-select-produit">
+          <option value="">— ou ligne libre ci-dessous —</option>
+          {% regroup produits by categorie.nom as familles %}
+          {% for famille in familles %}
+          <optgroup label="{{ famille.grouper|default:"Sans catégorie" }}">
+            {% for produit in famille.list %}
+            <option value="{{ produit.pk }}" data-prix="{{ produit.prix|default_if_none:'' }}" data-desc="{{ produit.description }}">{{ produit.emoji }} {{ produit.nom }}</option>
+            {% endfor %}
+          </optgroup>
           {% endfor %}
-        </optgroup>
-        {% endfor %}
-      </select>
-      {% if categories %}
-      <label for="catimport_{{ carte.pk }}">Ou importer TOUTE une catégorie du catalogue (un produit par ligne, tout préchargé)</label>
-      <select id="catimport_{{ carte.pk }}" name="categorie_id">
-        {% for cat in categories %}<option value="{{ cat.pk }}">{{ cat.nom }}</option>{% endfor %}
-      </select>
-      {% endif %}
-      <label for="libre_{{ carte.pk }}">Ou ligne libre (plat, menu…)</label>
-      <input type="text" id="libre_{{ carte.pk }}" name="nom_libre" placeholder="Ex : Menu du marché, Plat du jour…">
-      <label for="section_{{ carte.pk }}">Section (optionnel)</label>
-      <input type="text" id="section_{{ carte.pk }}" name="section" placeholder="Ex : Entrées, Plats, Fromages au lait cru…">
-      <label for="desc_{{ carte.pk }}">Description (optionnel)</label>
-      <input type="text" id="desc_{{ carte.pk }}" name="description">
-      <label for="prix_{{ carte.pk }}">Prix € (vide = prix du produit lié)</label>
-      <input type="text" id="prix_{{ carte.pk }}" name="prix" placeholder="Ex : 12,50">
-      <label for="stock_{{ carte.pk }}">Stock publié (vide = illimité, sans suivi)</label>
-      <input type="text" id="stock_{{ carte.pk }}" name="stock" placeholder="Ex : 12">
-      <button class="btn" type="submit" name="action" value="ajouter_ligne">➕ Ajouter la ligne</button>
-      {% if categories %}<button class="btn btn-outline" type="submit" name="action" value="importer_categorie">📥 Importer la catégorie entière</button>{% endif %}
-    </form>
+        </select>
+        {% if categories %}
+        <label for="catimport_{{ carte_courante.pk }}">Ou importer TOUTE une catégorie du catalogue (un produit par ligne, tout préchargé)</label>
+        <select id="catimport_{{ carte_courante.pk }}" name="categorie_id">
+          {% for cat in categories %}<option value="{{ cat.pk }}">{{ cat.nom }}</option>{% endfor %}
+        </select>
+        {% endif %}
+        <label for="libre_{{ carte_courante.pk }}">Ou ligne libre (plat, menu…)</label>
+        <input type="text" id="libre_{{ carte_courante.pk }}" name="nom_libre" placeholder="Ex : Menu du marché, Plat du jour…">
+        <label for="section_{{ carte_courante.pk }}">Section (optionnel)</label>
+        <input type="text" id="section_{{ carte_courante.pk }}" name="section" placeholder="Ex : Entrées, Plats, Fromages au lait cru…">
+        <label for="desc_{{ carte_courante.pk }}">Description (optionnel)</label>
+        <input type="text" id="desc_{{ carte_courante.pk }}" name="description">
+        <label for="prix_{{ carte_courante.pk }}">Prix € (vide = prix du produit lié)</label>
+        <input type="text" id="prix_{{ carte_courante.pk }}" name="prix" placeholder="Ex : 12,50">
+        <label for="stock_{{ carte_courante.pk }}">Stock publié (vide = illimité, sans suivi)</label>
+        <input type="text" id="stock_{{ carte_courante.pk }}" name="stock" placeholder="Ex : 12">
+        <button class="btn" type="submit" name="action" value="ajouter_ligne">➕ Ajouter la ligne</button>
+        {% if categories %}<button class="btn btn-outline" type="submit" name="action" value="importer_categorie">📥 Importer la catégorie entière</button>{% endif %}
+      </form>
+    </details>
   </div>
 </section>
-{% empty %}
-<p class="muted">Aucune carte pour l'instant : créez-en une ci-dessus.</p>
-{% endfor %}
+{% endif %}
 <script>
 /* Ajout d'une ligne depuis le catalogue : la sélection d'un produit
    précharge son descriptif et rappelle son prix de référence (le

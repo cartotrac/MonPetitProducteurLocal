@@ -3730,10 +3730,14 @@ def cartes_manage(request):
         carte = Carte.objects.filter(
             exploitant=exploitant,
             pk=request.POST.get("carte_id") or 0).first()
+        nouvelle_carte = None
+        carte_apres = carte.pk if carte is not None else 0
         if action == "creer":
             nom = request.POST.get("nom", "").strip()
             if nom:
-                Carte.objects.create(exploitant=exploitant, nom=nom)
+                nouvelle_carte = Carte.objects.create(
+                    exploitant=exploitant, nom=nom)
+                carte_apres = nouvelle_carte.pk
                 messages.success(request, "Carte « " + nom + " » créée "
                                  "en brouillon : ajoutez vos lignes, "
                                  "puis publiez-la.")
@@ -3741,6 +3745,19 @@ def cartes_manage(request):
                 messages.error(request, "Donnez un nom à la carte.")
         elif carte is None:
             messages.error(request, "Carte introuvable.")
+        elif action == "renommer":
+            # Le nom d'une carte publiée reste modifiable à tout moment
+            # (il apparaît sur la vitrine) — même logique que le
+            # renommage des catalogues.
+            nom = request.POST.get("nouveau_nom", "").strip()
+            if nom:
+                carte.nom = nom
+                carte.save(update_fields=["nom"])
+                messages.success(request, "Carte renommée en « "
+                                 + nom + " ».")
+            else:
+                messages.error(request, "Le nom de la carte ne peut "
+                               "pas être vide.")
         elif action == "enregistrer" or action.startswith("ligne_"):
             # Édition en place : le 💾 ET les actions de ligne (▲ ▼ ✕)
             # appliquent d'abord tous les champs édités de la carte.
@@ -3916,6 +3933,11 @@ def cartes_manage(request):
                     except InvalidOperation:
                         messages.error(request, "Stock invalide : "
                                        + brut + ".")
+        # Après chaque action, revenir sur l'ONGLET de la carte traitée
+        # (pas en haut de la page) : la carte courante est conservée.
+        if carte_apres:
+            return redirect(reverse("portal:cartes_manage")
+                            + "?carte=" + str(carte_apres))
         return redirect("portal:cartes_manage")
 
     ordre = {Carte.Statut.ACTIVE: 0, Carte.Statut.BROUILLON: 1,
@@ -3923,10 +3945,22 @@ def cartes_manage(request):
     cartes = sorted(
         exploitant.cartes.prefetch_related("lignes__produit"),
         key=lambda c: (ordre.get(c.statut, 3), -c.pk))
+    # Onglets : UNE carte affichée à la fois, choisie par ?carte=
+    # (même logique que les onglets de la page Mes catalogues) —
+    # par défaut la publiée, sinon le brouillon le plus récent.
+    try:
+        carte_demandee = int(request.GET.get("carte", "") or 0)
+    except (TypeError, ValueError):
+        carte_demandee = 0
+    carte_courante = next(
+        (c for c in cartes if c.pk == carte_demandee), None)
+    if carte_courante is None and cartes:
+        carte_courante = cartes[0]
     catalogue = _catalogue_actif(exploitant)
     return render(request, "portal/pro/cartes.html", {
         "exploitant": exploitant,
         "cartes": cartes,
+        "carte_courante": carte_courante,
         "catalogue_actif": catalogue,
         "produits": (exploitant.produits
                      .filter(actif=True, catalogue=catalogue)

@@ -6628,3 +6628,37 @@ html.dark .categorie-media-lien {
   color: #e6e4da;
 }
 html.dark .categorie-media-lien:hover { background: #33422a; }
+/* ============================================================
+   REVUE V3.32 — Ergonomie cartes/boutiques et catalogues
+   Cartes : onglets par carte (réutilise .catalogue-onglets), barre
+   d'outils (renommage + actions), ajout replié (.carte-ajout).
+   Catalogues : bouton 🅶 lien Drive à côté des champs média
+   (produit et catégorie), champ url flexible.
+   ============================================================ */
+.carte-barre-outils {
+  display: flex; flex-wrap: wrap; gap: .6rem;
+  align-items: center; margin: .4rem 0 .8rem;
+}
+.carte-barre-outils .carte-renommer {
+  display: flex; gap: .4rem; align-items: center; margin: 0;
+}
+.carte-barre-outils .carte-actions { margin: 0; }
+.carte-creation-inline { display: inline-block; }
+.carte-creation-inline > summary { list-style: none; cursor: pointer; }
+.carte-creation-inline[open] > summary { margin-bottom: .3rem; }
+.carte-creation-inline .carte-creation-form {
+  display: flex; flex-wrap: wrap; gap: .5rem;
+  align-items: flex-end; margin: .3rem 0 .6rem;
+  max-width: 34rem;
+}
+.carte-ajout { margin-top: .8rem; }
+.carte-ajout > summary {
+  cursor: pointer; font-weight: 600; margin-bottom: .2rem;
+}
+.carte-ajout[open] > summary { margin-bottom: .6rem; }
+.gestion-media-champ {
+  display: flex; gap: .35rem; align-items: center;
+}
+.gestion-media-champ input[type="url"] { flex: 1 1 auto; min-width: 0; }
+.gestion-media-champ .btn-lien-drive { flex: 0 0 auto; }
+.cat-media-ajout .btn-lien-drive { flex: 0 0 auto; }
