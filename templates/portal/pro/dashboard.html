@@ -13,6 +13,9 @@
       vent {{ meteo.vent }} km/h · pluie du jour : {{ meteo.pluie }} mm</div>
     <div class="muted meteo-lieu">📍 {{ meteo.lieu }} — météo en direct</div>
   </div>
+  <div class="meteo-date muted" title="Date et heure du jour">
+    Nous sommes le {% now "l j F Y" %},<br>il est {% now "H:i" %}
+  </div>
 </div>
 {% endif %}
 
@@ -41,23 +44,22 @@
 <div class="dash-pleine-largeur">
 
 <div class="quick-actions">
-  {% comment %}Boutons d'action selon le MÉTIER : les métiers à
-     carte/boutique (restauration, fromagerie, élevage…) pilotent
-     boutiques éphémères + carte + commandes directes ; les métiers de
-     récoltes (maraîcher, arboriculteur) pilotent leurs publications.
-     Les 4 boutons de gestion sont communs.{% endcomment %}
-  {% if est_proprietaire or user.is_superuser %}
-    <a class="btn btn-outline" href="{% url 'portal:product_list' %}">📚 Catalogue</a>
-  {% endif %}
+  {% comment %}Ligne 1 : la GESTION courante (clients, points,
+     favoris). Ligne 2 : CATALOGUE puis PUBLICATION DE LA PÉRIODE
+     puis saisie directe — ordre demandé par les gérants ; le libellé
+     de la publication suit la fréquence réglée (titre_semaine).{% endcomment %}
   <a class="btn btn-outline" href="{% url 'portal:clients_suivi' %}">👤 Mes clients</a>
   <a class="btn btn-outline" href="{% url 'portal:points_manage' %}">📍 Points & créneaux</a>
   <a class="btn btn-outline" href="{% url 'portal:mes_producteurs' %}">⭐ Mes favoris</a>
 </div>
 <div class="quick-actions quick-actions-ligne2">
   {% if exploitant.a_carte_boutique %}
-    <a class="btn" href="{% url 'portal:order_direct' %}">📝 Saisir une commande</a>
-    <a class="btn btn-outline" href="{% url 'portal:harvest_list' %}">🛍️ Boutiques éphémères</a>
+    {% if est_proprietaire or user.is_superuser %}
+      <a class="btn btn-outline" href="{% url 'portal:product_list' %}">📚 Catalogue</a>
+    {% endif %}
+    <a class="btn" href="{% url 'portal:harvest_new' %}">🛍️ {{ exploitant.titre_semaine }}</a>
     <a class="btn btn-outline" href="{% url 'portal:cartes_manage' %}">🧾 {{ exploitant.titre_carte_boutique }}</a>
+    <a class="btn btn-outline" href="{% url 'portal:order_direct' %}">📝 Commande directe</a>
   {% else %}
     <a class="btn" href="{% url 'portal:harvest_new' %}">{{ exploitant.vocab.nouvelle_recolte }}</a>
     <a class="btn btn-outline" href="{% url 'portal:harvest_list' %}">{{ exploitant.vocab.recoltes_emoji }} {{ exploitant.vocab.recoltes_titre }}</a>

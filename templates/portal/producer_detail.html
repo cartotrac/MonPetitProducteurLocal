@@ -93,6 +93,9 @@
     <div class="muted">Max {{ meteo.max }} °C / min {{ meteo.min }} °C · vent {{ meteo.vent }} km/h · pluie du jour : {{ meteo.pluie }} mm</div>
     <div class="muted meteo-lieu">📍 {{ meteo.lieu }} — météo en direct</div>
   </div>
+  <div class="meteo-date muted" title="Date et heure du jour">
+    Nous sommes le {% now "l j F Y" %},<br>il est {% now "H:i" %}
+  </div>
 </div>
 {% endif %}
 
@@ -267,8 +270,8 @@
                   {{ ligne.produit.nom }}
                 </span>
               </td>
-              <td class="muted">~ {{ ligne.quantite_estimee|qte }} {{ ligne.quantite_estimee|unite:ligne.produit }}</td>
-              <td><strong>{{ ligne.prix_unitaire }} €</strong></td>
+              <td class="muted">{% if ligne.quantite_estimee is not None %}~ {{ ligne.quantite_estimee|qte }} {{ ligne.quantite_estimee|unite:ligne.produit }}{% else %}à volonté{% endif %}</td>
+              <td>{% if ligne.prix_unitaire %}<strong>{{ ligne.prix_unitaire }} €</strong>{% else %}<span class="muted">à la demande</span>{% endif %}</td>
               <td style="text-align: right;">
                 {% with reste=restes|get_item:ligne.produit_id %}
                   {% if reste != '' and reste <= 0 %}
