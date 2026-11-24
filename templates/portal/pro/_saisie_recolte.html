@@ -40,7 +40,7 @@ et retour="dashboard" (édition en ligne).
         <span class="muted">({{ groupe.nb_choisis }} retenue{{ groupe.nb_choisis|pluralize }} sur {{ groupe.rows|length }} au catalogue)</span>
         {% for m in groupe.medias %}<img class="vignette-produit recolte-media-cat" src="{{ m }}" alt="" loading="lazy">{% endfor %}</h3>
       <table class="table">
-        <thead><tr><th>Produit</th><th>Quantité estimée</th><th>Prix unitaire (€)</th><th></th></tr></thead>
+        <thead><tr><th>Produit</th><th>Quantité estimée (facultatif)</th><th>Prix unitaire (€)</th><th></th></tr></thead>
         <tbody>
         {% for row in groupe.rows %}{% if row.choisi %}
           <tr class="{% if row.reprise %}reprise{% endif %}">
@@ -95,7 +95,9 @@ et retour="dashboard" (édition en ligne).
 /* Import sélectif depuis le catalogue actif : ➕ fait remonter un
    produit « disponible » dans la saisie (prix et unité préchargés),
    « importer » affiche tous les produits restants de la catégorie.
-   Rien n'est envoyé tant que quantité ET prix ne sont pas saisis. */
+   Un produit entre dans la publication dès que sa quantité OU son
+   prix est saisi : l'autre reste facultatif, le prix de référence
+   du catalogue sert de repli. */
 (function () {
   document.addEventListener("click", function (e) {
     var un = e.target.closest(".recolte-ajouter");

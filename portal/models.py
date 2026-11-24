@@ -874,10 +874,14 @@ class LigneRecolte(models.Model):
                                 related_name="lignes")
     produit = models.ForeignKey(Produit, on_delete=models.CASCADE,
                                 related_name="lignes_recolte")
+    # Facultatifs (restauration : une carte de plats n'a pas de volume
+    # estimé) — null = publié sans plafond de disponibilité.
     quantite_estimee = models.DecimalField("Quantité estimée",
-                                           max_digits=8, decimal_places=2)
+                                           max_digits=8, decimal_places=2,
+                                           null=True, blank=True)
     prix_unitaire = models.DecimalField("Prix unitaire (€)",
-                                        max_digits=6, decimal_places=2)
+                                        max_digits=6, decimal_places=2,
+                                        null=True, blank=True)
 
     class Meta:
         verbose_name = "Ligne de récolte (estimation)"

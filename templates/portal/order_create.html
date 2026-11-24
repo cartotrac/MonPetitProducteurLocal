@@ -36,8 +36,8 @@
           <tr>
             <td>{% if offre.produit.emoji %}{{ offre.produit.emoji }} {% endif %}{{ offre.produit.nom }}</td>
             {% if mode == 'recolte' %}
-              <td class="muted">~ {{ offre.estime }} {{ offre.estime|unite:offre.produit }}</td>
-              <td>{% if offre.reste > 0 %}<strong>~ {{ offre.reste|qte }} {{ offre.reste|unite:offre.produit }}</strong>{% else %}<span class="muted">complet</span>{% endif %}</td>
+              <td class="muted">{% if offre.estime is not None %}~ {{ offre.estime }} {{ offre.estime|unite:offre.produit }}{% else %}à volonté{% endif %}</td>
+              <td>{% if offre.reste is not None %}{% if offre.reste > 0 %}<strong>~ {{ offre.reste|qte }} {{ offre.reste|unite:offre.produit }}</strong>{% else %}<span class="muted">complet</span>{% endif %}{% else %}<span class="muted">libre</span>{% endif %}</td>
             {% elif mode == 'carte' %}
               <td>{% if offre.reste is not None %}{% if offre.reste > 0 %}<strong>{{ offre.reste|qte }} {{ offre.reste|unite:offre.produit }}</strong>{% else %}<span class="muted">complet</span>{% endif %}{% else %}<span class="muted">à volonté</span>{% endif %}</td>
             {% endif %}
