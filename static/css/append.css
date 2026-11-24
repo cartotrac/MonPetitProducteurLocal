@@ -6662,3 +6662,14 @@ html.dark .categorie-media-lien:hover { background: #33422a; }
 .gestion-media-champ input[type="url"] { flex: 1 1 auto; min-width: 0; }
 .gestion-media-champ .btn-lien-drive { flex: 0 0 auto; }
 .cat-media-ajout .btn-lien-drive { flex: 0 0 auto; }
+
+
+/* ============ REVUE V3.33 — widget météo : date et heure du jour ==== */
+.meteo-hero { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+.meteo-date { margin-left: auto; text-align: right; white-space: nowrap; font-weight: 600; }
+@media (max-width: 640px) {
+  .meteo-date { margin-left: 0; text-align: left; white-space: normal; }
+  .meteo-date br { display: none; }
+}
+.dark .meteo-date { color: var(--texte-secondaire-sombre, #a6b0bf); }
+/* ============ fin REVUE V3.33 ======================================= */
