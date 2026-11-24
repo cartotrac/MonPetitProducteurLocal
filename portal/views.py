@@ -1047,7 +1047,8 @@ def producer_detail(request, slug):
     restes = {}
     if semaine:
         offres_recolte, _mode = _offres_commande(exploitant, semaine)
-        restes = {o["produit"].pk: o["reste"] for o in offres_recolte}
+        restes = {o["produit"].pk: o["reste"] for o in offres_recolte
+                  if o["reste"] is not None}
     est_favori = (request.user.is_authenticated
                   and Favori.objects.filter(user=request.user,
                                             exploitant=exploitant).exists())
@@ -2543,15 +2544,28 @@ def harvest_manage(request, semaine_id=None, nouvelle=False):
                 actif=True, catalogue=catalogue):
             qty = request.POST.get(f"qty_{produit.pk}", "").strip()
             prix = request.POST.get(f"price_{produit.pk}", "").strip()
-            if not qty or not prix:
+            # Quantite et prix FACULTATIFS (restauration : une carte
+            # de plats n'a pas de volume estime) : le produit entre dans
+            # la publication des qu'un des deux est saisi, l'autre
+            # prend la valeur du catalogue (prix) ou reste libre (qty).
+            if not qty and not prix:
                 continue
             try:
-                qty, prix = Decimal(qty), Decimal(prix)
+                qty_d = Decimal(qty) if qty else None
             except InvalidOperation:
+                continue
+            try:
+                prix_d = (Decimal(prix) if prix
+                          else (produit.prix if produit.prix is not None
+                                else None))
+            except InvalidOperation:
+                continue
+            if qty_d is None and prix_d is None:
                 continue
             LigneRecolte.objects.update_or_create(
                 recolte=semaine, produit=produit,
-                defaults={"quantite_estimee": qty, "prix_unitaire": prix})
+                defaults={"quantite_estimee": qty_d,
+                          "prix_unitaire": prix_d})
         for ligne in semaine.lignes.all():
             if f"qty_{ligne.produit_id}" not in request.POST:
                 ligne.delete()
@@ -2559,7 +2573,7 @@ def harvest_manage(request, semaine_id=None, nouvelle=False):
                          + semaine.lundi.strftime("%d/%m/%Y")
                          + " enregistrée.")
         if request.POST.get("retour") == "dashboard":
-            return redirect("portal:dashboard"
+            return redirect(reverse("portal:dashboard")
                             + "?publication=" + str(semaine.pk))
         return redirect("portal:harvest_list")
 
@@ -2837,7 +2851,9 @@ def order_direct_create(request):
     if semaine:
         offres_semaine, mode = _offres_commande(exploitant, semaine)
         restes = {o["produit"].pk: (o["estime"], o["reste"])
-                  for o in offres_semaine}
+                  for o in offres_semaine
+                  if (o["estime"] is not None
+                      or o["reste"] is not None)}
     # Produits regroupés par catégorie (même présentation que la
     # vitrine et la page de commande client).
     groupes_produits, ordre_cats = {}, []
@@ -4558,8 +4574,11 @@ def _offres_commande(exploitant, semaine):
             consomme[produit_id] = (consomme.get(produit_id, Decimal("0"))
                                     + quantite)
         for ligne in semaine.lignes.select_related("produit__categorie"):
-            reste = (ligne.quantite_estimee
-                     - consomme.get(ligne.produit_id, Decimal("0")))
+            # Quantite estimee facultative : sans volume publie, le
+            # restant n'est pas plafonne (None), jamais "complet".
+            reste = (None if ligne.quantite_estimee is None
+                     else (ligne.quantite_estimee
+                           - consomme.get(ligne.produit_id, Decimal("0"))))
             offres.append({"cle": f"qty_{ligne.pk}",
                            "produit": ligne.produit,
                            "prix": ligne.prix_unitaire,
