@@ -243,6 +243,77 @@
   .cal-periode { display: block; font-weight: 600; }
 </style>
 <script>
+/* Raccourcis clavier du dashboard pro : une touche = une action
+   fréquente. Inactifs pendant la saisie (champ focalisé) et avec
+   Ctrl / Alt / Cmd (laissés au navigateur). « ? » ouvre l'aide. */
+(function () {
+  var corps = document.body.classList.contains("nav-pro")
+           || document.querySelector(".dash-pleine-largeur");
+  var raccourcis = [
+    ["P", "Publier la période", "{% url 'portal:harvest_new' %}"],
+    ["C", "Mes clients", "{% url 'portal:clients_suivi' %}"],
+    ["G", "Gérer les catalogues", "{% url 'portal:product_list' %}"],
+    ["L", "Points & créneaux", "{% url 'portal:points_manage' %}"],
+    ["V", "Voir ma vitrine", "#vitrine"]
+  ];
+  var aideVisible = false;
+  function aideEl() {
+    var el = document.getElementById("aide-raccourcis");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "aide-raccourcis";
+      el.className = "aide-raccourcis";
+      el.setAttribute("role", "dialog");
+      el.innerHTML = "<strong>⌨️ Raccourcis</strong>" +
+        "<ul>" + raccourcis.map(function (r) {
+          return "<li><kbd>" + r[0] + "</kbd> " + r[1] + "</li>";
+        }).join("") +
+        "<li><kbd>?</kbd> afficher / masquer cette aide</li></ul>";
+      el.addEventListener("click", function () { masquer(); });
+    }
+    return el;
+  }
+  function masquer() {
+    var el = aideEl();
+    if (el.parentNode) { el.parentNode.removeChild(el); }
+    aideVisible = false;
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) { return; }
+    var t = e.target;
+    if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" ||
+              t.tagName === "SELECT" || t.isContentEditable)) { return; }
+    var cle = (e.key || "").toUpperCase();
+    if (cle === "?") {
+      if (aideVisible) { masquer(); }
+      else {
+        document.body.appendChild(aideEl());
+        aideVisible = true;
+      }
+      e.preventDefault();
+      return;
+    }
+    if (aideVisible) { masquer(); return; }
+    for (var i = 0; i < raccourcis.length; i++) {
+      if (raccourcis[i][0] === cle) {
+        var cible = raccourcis[i][2];
+        if (cible.charAt(0) === "#") {
+          var rubrique = document.querySelector(
+            "details" + cible.replace(/[^\w-]/g, ""));
+          if (rubrique) {
+            rubrique.open = true;
+            rubrique.scrollIntoView({behavior: "smooth"});
+          }
+        } else {
+          window.location.href = cible;
+        }
+        return;
+      }
+    }
+  });
+})();
+</script>
+<script>
 /* Depuis le bandeau « Gestion » ou une ancre (#recoltes…), la rubrique
    ciblée du dashboard se déplie automatiquement. */
 (function () {

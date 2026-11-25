@@ -6714,3 +6714,29 @@ html.dark .rappel-publication {
   background: rgba(245, 166, 35, 0.10); border-color: #6b5222;
 }
 /* ============ fin REVUE V3.36 ======================================= */
+
+
+/* ============ REVUE V3.37 — aide des raccourcis clavier =========
+   Petit panneau discret de l'aide « ? » du dashboard pro. ==== */
+.aide-raccourcis {
+  position: fixed; bottom: 5rem; right: 1rem; z-index: 90;
+  background: #fff; border: 1px solid #dde5d3; border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  padding: 0.8rem 1.1rem; max-width: 16rem; cursor: pointer;
+}
+.aide-raccourcis ul { list-style: none; margin: 0.4rem 0 0;
+                      padding: 0; }
+.aide-raccourcis li { padding: 0.2rem 0; }
+.aide-raccourcis kbd {
+  display: inline-block; min-width: 1.2rem; text-align: center;
+  border: 1px solid #c9d1bd; border-bottom-width: 2px;
+  border-radius: 6px; padding: 0 0.3rem; font-weight: 700;
+  background: #f1f5ec;
+}
+.aide-raccourcis .fermer { float: right; opacity: 0.6; }
+html.dark .aide-raccourcis {
+  background: #2c3327; border-color: #4a5640;
+}
+html.dark .aide-raccourcis kbd { background: #3c4433;
+                                  border-color: #5a684c; }
+/* ============ fin REVUE V3.37 ======================================= */
