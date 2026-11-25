@@ -39,7 +39,7 @@ et retour="dashboard" (édition en ligne).
       <span class="muted">— absent du catalogue ? créez-le ici : il rejoint le catalogue actif ET cette publication en un seul 💾</span></summary>
     <div class="form-row saisie-nouveau-champs">
       <label>Nom
-        <input type="text" name="np_nom" maxlength="150" required></label>
+        <input type="text" name="np_nom" maxlength="150"></label>
       <label>Emoji
         <input type="text" name="np_emoji" maxlength="8" placeholder="🥕" class="emoji-choix"
                title="Facultatif : cliquez pour choisir, un emoji est deviné sinon"></label>
@@ -325,6 +325,24 @@ et retour="dashboard" (édition en ligne).
         && !e.ctrlKey && !e.metaKey && !e.altKey) {
       e.preventDefault();
       aide();
+    }
+  });
+})();
+
+/* « ✨ Nouveau article » : le champ Nom n'est requis QUE pendant que
+   le bloc est déplié. Un champ required caché dans un <details>
+   replié BLOQUE la soumission du formulaire entier (validation HTML5
+   du navigateur) : le bouton 💾 paraissait mort, page inchangée. */
+(function () {
+  var bloc = document.querySelector(".saisie-nouveau");
+  var champs = bloc ? bloc.querySelectorAll("input, select") : [];
+  if (!bloc) { return; }
+  bloc.addEventListener("toggle", function () {
+    for (var i = 0; i < champs.length; i++) {
+      var c = champs[i];
+      if (c.getAttribute("name") === "np_nom") {
+        c.required = bloc.open;
+      }
     }
   });
 })();
