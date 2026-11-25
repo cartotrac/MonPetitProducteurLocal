@@ -131,7 +131,10 @@
           <header class="gestion-cat-tete">
             {% if cat.pk %}
               <span class="gestion-poignee" aria-hidden="true" title="Glissez pour réordonner les catégories (à la souris)">⠿</span>
-              <input class="gestion-cat-nom" type="text" name="nom_cat_{{ cat.pk }}" value="{{ cat.nom }}" maxlength="80" title="Libellé de la catégorie — enregistré par le 💾 Tout enregistrer en bas de page">
+              <input class="gestion-cat-emoji" type="text" name="emoji_cat_{{ cat.pk }}" maxlength="8"
+               value="{{ cat.emoji|default:'' }}" placeholder="🥕"
+               title="Emoji de la rubrique (facultatif) : affiché en tête de ses groupes dans les publications — enregistré par le 💾 Tout enregistrer">
+            <input class="gestion-cat-nom" type="text" name="nom_cat_{{ cat.pk }}" value="{{ cat.nom }}" maxlength="80" title="Libellé de la catégorie — enregistré par le 💾 Tout enregistrer en bas de page">
               <button type="submit" name="mouvement" value="categorie:{{ cat.pk }}:haut" class="btn btn-sm" title="Catégorie vers le haut" aria-label="Monter la catégorie">▲</button>
               <button type="submit" name="mouvement" value="categorie:{{ cat.pk }}:bas" class="btn btn-sm" title="Catégorie vers le bas" aria-label="Descendre la catégorie">▼</button>
               <button type="submit" name="action" value="categorie_supprimer:{{ cat.pk }}"
