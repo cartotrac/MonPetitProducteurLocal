@@ -1587,7 +1587,7 @@ def _groupes_publication(groupes, ordre):
         paires.append({
             "categorie": cat,
             "nom": cat.nom if cat else "Sans catégorie",
-            "emoji": (cat.emoji if cat and cat.emoji else ""),
+            "emoji": (getattr(cat, "emoji", "") if cat else ""),
             "medias": list(cat.medias) if cat else [],
             "rows": rows,
             "nb_choisis": nb_choisis,
