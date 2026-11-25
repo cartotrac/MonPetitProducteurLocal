@@ -2365,8 +2365,8 @@ def produit_edition_rapide(request):
             for cat in Categorie.objects.filter(
                     exploitant=exploitant, catalogue=catalogue):
                 nom = (request.POST.get(f"nom_cat_{cat.pk}", "") or "").strip()
-            emoji_cat = (request.POST.get(f"emoji_cat_{cat.pk}", "")
-                         or "").strip()
+                emoji_cat = (request.POST.get(f"emoji_cat_{cat.pk}", "")
+                             or "").strip()
                 medias = [u.strip() for u in
                           request.POST.getlist(f"medias_cat_{cat.pk}")
                           if u.strip()]
