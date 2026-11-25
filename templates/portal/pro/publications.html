@@ -57,7 +57,11 @@
       <p>{{ bulletin.corps|linebreaksbr }}</p>
     </div>
   {% empty %}
-    <p class="muted">Aucune newsletter pour l'instant.</p>
+    <p class="card etat-vide"><span class="etat-vide-emoji">✉️</span>
+    Aucune newsletter pour l'instant. Une newsletter annonce vos
+    {{ exploitant.vocab.recoltes|default:"récoltes" }} de la semaine ou vos
+    actualités à toutes les adresses e-mail connues de vos clients.
+    Créez la première ci-dessus, puis diffusez-la quand elle est prête.</p>
   {% endfor %}
 </section>
 
@@ -86,7 +90,10 @@
       <p>{{ annonce.corps|linebreaksbr }}</p>
     </div>
   {% empty %}
-    <p class="muted">Aucune annonce pour l'instant.</p>
+    <p class="card etat-vide"><span class="etat-vide-emoji">📌</span>
+    Aucune annonce pour l'instant. Une annonce est ponctuelle et courte
+    (« paniers disponibles samedi », « fermeture exceptionnelle ») :
+    rédigée ci-dessus, elle part vers vos clients en un clic.</p>
   {% endfor %}
 </section>
 
