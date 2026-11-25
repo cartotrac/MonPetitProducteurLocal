@@ -534,74 +534,97 @@
 })();
 </script>
 <script>
-/* Sélecteur d'emoji : au focus d'un champ .emoji-choix, palette des
-   symboles alimentaires courants ; clic = choix appliqué, saisie
-   libre toujours possible, Échap ou clic ailleurs = fermeture. */
+/* Palette d'émojis v2 : familles filtrables, saisie libre conservée. */
 (function () {
-  if (window.__mpplEmojiChoix) { return; }
-  window.__mpplEmojiChoix = true;
-  var SYMBOLES = ["🥕","🍅","🥔","🧅","🧄","🥒","🎃","🍆","🫑","🌶️",
-    "🥬","🥦","🌿","🌽","🍄","🌱","🍎","🍐","🍑","🍒","🍓","🫐","🍇",
-    "🍈","🍉","🥝","🍋","🍊","🥑","🌰","🥚","🥛","🧀","🧈","🍯",
-    "🍞","🥧","🍰","🍫","🧃","🍹","🍺","🥫","🍲","🥘","🌾","🫘","🫒",
-    "🐄","🐂","🐑","🐖","🌭","🥓","🐔","🦆","🦃","🐇","🐟","🐌"];
-  var panneau = null;
+  "use strict";
+  if (window.__mpplPaletteEmojiV2) { return; }
+  window.__mpplPaletteEmojiV2 = true;
+  var FAMILLES = [
+    ["Légumes", "🥕 🌽 🥔 🍠 🧄 🧅 🫑 🌶️ 🥦 🥬 🍆 🍅 🥒 🫒 🥗 🫘 🍄 🫚"],
+    ["Fruits", "🍎 🍐 🍊 🍋 🍌 🍇 🍓 🫐 🍑 🍒 🥝 🍍 🥭 🍉 🍈 🥑"],
+    ["Crèmerie", "🥛 🧈 🧀 🍦 🥧 🍮 🥣 🍶"],
+    ["Boulangerie & douceurs", "🥐 🥖 🥨 🥯 🍞 🧇 🥞 🥪 🍩 🍪 🧁 🎂 🍫 🍬 🍭"],
+    ["Viandes & poissons", "🥩 🍗 🍖 🥓 🐟 🦐 🦞 🦀 🦑 🐙 🥚"],
+    ["Boissons", "🍺 🍻 🥂 🍷 🥃 🍸 🍹 🧃 ☕ 🍵 🥤 🫖 🧋 🍯"],
+    ["Restauration", "🍕 🍔 🌮 🌯 🥙 🍜 🍛 🍣 🥟 🍤 🍚 🍲 🫕 🥘 🍝 🧆 🫓 🍟 🌭"],
+    ["Ferme & élevage", "🐔 🐓 🐄 🐂 🐖 🐑 🐐 🐝 🦆 🐇 🦃"],
+    ["Divers", "⭐ ✨ ❤️ 🔥 🎁 🏷️ 🧺 🪣 📍 🚚 🏠"]
+  ];
+  var panneau = null, champ = null, famille = -1;
   function fermer() {
-    if (panneau) { panneau.remove(); panneau = null; }
+    if (panneau && panneau.parentNode) { panneau.parentNode.removeChild(panneau); }
+    panneau = null; champ = null; famille = -1;
   }
-  function ouvrir(champ) {
-    fermer();
-    panneau = document.createElement("div");
-    panneau.className = "emoji-palette";
-    SYMBOLES.forEach(function (s) {
-      var b = document.createElement("button");
-      b.type = "button";
-      b.textContent = s;
-      b.addEventListener("click", function (ev) {
-        ev.preventDefault();
-        champ.value = s;
-        fermer();
-        champ.focus();
+  function dessiner() {
+    var g = panneau.querySelector(".emoji2-grille");
+    g.innerHTML = "";
+    FAMILLES.forEach(function (f, i) {
+      if (famille >= 0 && famille !== i) { return; }
+      f[1].split(" ").forEach(function (s) {
+        if (!s) { return; }
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "emoji2-choix"; b.textContent = s;
+        b.addEventListener("click", function (ev) {
+          ev.preventDefault(); ev.stopPropagation();
+          if (champ) { champ.value = s; champ.focus(); }
+          fermer();
+        });
+        g.appendChild(b);
       });
-      panneau.appendChild(b);
     });
-    var vider = document.createElement("button");
-    vider.type = "button";
-    vider.className = "emoji-vider";
-    vider.textContent = "⌫";
-    vider.title = "Effacer l'emoji";
-    vider.addEventListener("click", function (ev) {
-      ev.preventDefault();
-      champ.value = "";
-      fermer();
-      champ.focus();
-    });
-    panneau.appendChild(vider);
-    var aide = document.createElement("span");
-    aide.className = "emoji-aide";
-    aide.textContent = "Cliquez un symbole, ou tapez votre emoji.";
-    panneau.appendChild(aide);
-    document.body.appendChild(panneau);
-    var rect = champ.getBoundingClientRect();
-    panneau.style.left = Math.max(
-      8, Math.min(rect.left,
-        window.innerWidth - panneau.offsetWidth - 8)) + "px";
-    panneau.style.top = rect.bottom + 4 + "px";
   }
-  document.addEventListener("focusin", function (e) {
-    var c = e.target;
-    if (c && c.matches && c.matches("input.emoji-choix")) { ouvrir(c); }
+  function marquerActif(btn) {
+    Array.prototype.forEach.call(panneau.querySelectorAll(".emoji2-famille"),
+      function (x) { x.classList.remove("actif"); });
+    if (famille >= 0 && btn) { btn.classList.add("actif"); }
+  }
+  function ouvrir(c) {
+    fermer();
+    champ = c; famille = -1;
+    panneau = document.createElement("div");
+    panneau.className = "emoji2-panneau";
+    var fra = document.createElement("div"); fra.className = "emoji2-fratrie";
+    var t = document.createElement("button");
+    t.type = "button"; t.className = "emoji2-famille tous"; t.textContent = "Tous";
+    t.addEventListener("click", function () { famille = -1; marquerActif(null); dessiner(); });
+    fra.appendChild(t);
+    FAMILLES.forEach(function (f, i) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "emoji2-famille"; b.textContent = f[0];
+      b.addEventListener("click", function () {
+        famille = (famille === i) ? -1 : i;
+        marquerActif(famille === i ? b : null);
+        dessiner();
+      });
+      fra.appendChild(b);
+    });
+    panneau.appendChild(fra);
+    var g = document.createElement("div"); g.className = "emoji2-grille";
+    panneau.appendChild(g);
+    var hint = document.createElement("div"); hint.className = "emoji2-aide";
+    hint.textContent = "Filtrez par famille, ou tapez librement votre émoji dans le champ.";
+    panneau.appendChild(hint);
+    document.body.appendChild(panneau);
+    var r = champ.getBoundingClientRect();
+    var l = Math.max(8, Math.min(r.left, (document.documentElement.clientWidth || 320) - 330));
+    panneau.style.left = l + "px";
+    panneau.style.top = (r.bottom + 6 + window.scrollY) + "px";
+    dessiner();
+  }
+  document.addEventListener("click", function (ev) {
+    var cible = ev.target;
+    var c = (cible && cible.closest) ? cible.closest("input.emoji-choix") : null;
+    if (c) {
+      if (panneau && champ === c) { fermer(); } else { ouvrir(c); }
+      return;
+    }
+    if (panneau && !panneau.contains(cible)) { fermer(); }
+  }, true);
+  document.addEventListener("keydown", function (ev) {
+    if (ev.key === "Escape" && panneau) { fermer(); }
   });
-  document.addEventListener("mousedown", function (e) {
-    if (panneau && !panneau.contains(e.target)
-        && !(e.target && e.target.closest
-             && e.target.closest("input.emoji-choix"))) { fermer(); }
-  }, true);
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && panneau) { fermer(); e.stopPropagation(); }
-  }, true);
-  window.addEventListener("scroll", fermer, true);
-  window.addEventListener("resize", fermer, true);
+  window.addEventListener("resize", function () { if (panneau) { fermer(); } });
 })();
 </script>
+
 {% endblock %}
