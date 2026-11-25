@@ -6741,6 +6741,27 @@ html.dark .aide-raccourcis {
 html.dark .aide-raccourcis kbd { background: #3c4433;
                                   border-color: #5a684c; }
 /* ============ fin REVUE V3.37 ======================================= */
+/* ===== V3.45 — REVUE PARCOURS PRO lot 3 : gestion graphique =====
+   de la publication : boutons d'action par ligne (▲▼ ⇄ ⛔ ➕),
+   retrait barré en attente, panneau « déplacer de rubrique ». ===== */
+.recolte-actions { white-space: nowrap; width: 1%; }
+.recolte-actions .btn { margin-left: 0.15rem; }
+tr.retrait-attente td { opacity: 0.5; }
+tr.retrait-attente .produit-nom, tr.retrait-attente strong {
+  text-decoration: line-through; }
+.org-rubrique-panneau { position: absolute; z-index: 1200;
+  display: flex; flex-direction: column; gap: 0.4rem;
+  width: 17rem; padding: 0.6rem 0.7rem;
+  background: var(--tbl-fond, #fff);
+  border: 1px solid rgba(127, 127, 127, 0.4);
+  border-radius: 0.6rem;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25); }
+.org-rubrique-panneau select,
+.org-rubrique-nom { width: 100%; }
+.org-rubrique-panneau div { display: flex; gap: 0.4rem; }
+html.dark .org-rubrique-panneau { background: #26301f;
+  border-color: rgba(255, 255, 255, 0.25); }
+/* ===== fin V3.45 ===== */
 
 /* ===== V3.44 — REVUE PARCOURS PRO lot 2 : palette émojis v2 ===== */
 .emoji2-panneau { position: absolute; z-index: 1200; display: flex; flex-direction: column;

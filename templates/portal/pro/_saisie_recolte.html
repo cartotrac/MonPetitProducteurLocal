@@ -66,7 +66,7 @@ et retour="dashboard" (édition en ligne).
   </details>
 
   {% for groupe in paires %}
-    <section class="harvest-cat">
+    <section class="harvest-cat" data-cat="{{ groupe.categorie.pk|default:'' }}" data-nom="{{ groupe.nom }}">
       <h3>{% if groupe.emoji %}{{ groupe.emoji }} {% endif %}{{ groupe.nom }}
         <span class="muted">({{ groupe.nb_choisis }} retenue{{ groupe.nb_choisis|pluralize }} sur {{ groupe.rows|length }} au catalogue)</span>
         {% for m in groupe.medias %}<img class="vignette-produit recolte-media-cat" src="{{ m }}" alt="" loading="lazy">{% endfor %}</h3>
@@ -85,7 +85,18 @@ et retour="dashboard" (édition en ligne).
                        value="{% if row.qty %}{{ row.qty|unlocalize }}{% endif %}"></td>
             <td><input type="number" step="0.01" min="0" name="price_{{ row.produit.pk }}"
                        value="{% if row.price %}{{ row.price|unlocalize }}{% endif %}"></td>
-            <td></td>
+            <td class="recolte-actions">
+              {% if est_proprietaire or user.is_superuser %}
+              <button form="org-form" class="btn btn-sm btn-outline recolte-org" type="submit" name="op" value="monter:{{ row.produit.pk }}"
+                      title="Monter dans la rubrique (l'ordre est celui du catalogue, repris partout)">▲</button>
+              <button form="org-form" class="btn btn-sm btn-outline recolte-org" type="submit" name="op" value="descendre:{{ row.produit.pk }}"
+                      title="Descendre dans la rubrique">▼</button>
+              <button type="button" class="btn btn-sm btn-outline recolte-rubrique" data-pk="{{ row.produit.pk }}"
+                      title="Déplacer vers une autre rubrique — ou en créer une nouvelle">⇄</button>
+              {% endif %}
+              <button type="button" class="btn btn-sm btn-outline recolte-retirer"
+                      title="Retirer de la publication : quantité et prix vidés, la ligne quittera la publication au prochain 💾">⛔</button>
+            </td>
           </tr>
         {% endif %}{% endfor %}
         </tbody>
@@ -99,14 +110,15 @@ et retour="dashboard" (édition en ligne).
               {% if row.produit.description %}<br><span class="muted">{{ row.produit.description|truncatechars:70 }}</span>{% endif %}</td>
             <td><input type="number" step="{{ row.step }}" min="0" name="qty_{{ row.produit.pk }}" placeholder="quantité…"></td>
             <td><input type="number" step="0.01" min="0" name="price_{{ row.produit.pk }}"
-                       value="{% if row.price %}{{ row.price|unlocalize }}{% endif %}" title="Prix de référence du catalogue préchargé : ajustez librement"></td>
-            <td><button type="button" class="btn btn-sm btn-outline recolte-ajouter" title="Importer ce produit dans la publication (prix et unité préchargés du catalogue)">➕</button></td>
+                       value="" data-ref="{{ row.price|unlocalize }}"
+                       title="Prix de référence du catalogue : {% if row.price %}{{ row.price }} € — {% endif %}cliquez ➕ ou saisissez pour retenir ce produit"></td>
+            <td><button type="button" class="btn btn-sm btn-outline recolte-ajouter" title="Importer ce produit dans la publication (son prix de référence est repris)">➕</button></td>
           </tr>
         {% endif %}{% endfor %}
         </tbody>
         {% endif %}
       </table>
-      {% if groupe.nb_dispo %}<button type="button" class="btn btn-sm btn-outline recolte-ajouter-tout">➕ {{ groupe.nb_dispo }} produit{{ groupe.nb_dispo|pluralize }} du catalogue non affiché{{ groupe.nb_dispo|pluralize }} — les importer</button>{% endif %}
+      {% if groupe.nb_dispo %}<button type="button" class="btn btn-sm btn-outline recolte-ajouter-tout" title="Importe la rubrique entière : chaque produit reprend son prix de référence et entre dans la publication">➕ Importer les {{ groupe.nb_dispo }} produit{{ groupe.nb_dispo|pluralize }} non affiché{{ groupe.nb_dispo|pluralize }}</button>{% endif %}
     </section>
   {% empty %}
     <p class="muted">Ajoutez d'abord des {{ exploitant_courant.vocab.articles }} à votre catalogue
@@ -124,6 +136,127 @@ et retour="dashboard" (édition en ligne).
     {% endif %}
   </div>
 </form>
+{% if est_proprietaire or user.is_superuser %}
+<form id="org-form" method="post" action="{% url 'portal:catalogue_organiser' %}" hidden>
+  {% csrf_token %}
+  <input type="hidden" name="suivant" value="{{ request.get_full_path }}">
+</form>
+{% endif %}
+<script>
+/* Gestion graphique de la publication :
+   - ⛔ retire une ligne retenue : champs vidés, ligne barrée en
+     attente, elle quittera la publication au prochain 💾 ;
+   - ▲▼ ⇄ (gérant) réorganisent le catalogue actif — la publication
+     hérite de sa structure (rubriques, ordre) ;
+   - ➕ importe un produit (son prix de référence devient prix de la
+     publication), « tout importer » fait la rubrique entière. */
+(function () {
+  document.addEventListener("click", function (e) {
+    var retirer = e.target.closest(".recolte-retirer");
+    if (retirer) {
+      var tr = retirer.closest("tr");
+      var deja = tr.classList.toggle("retrait-attente");
+      tr.querySelectorAll('input[name^="qty_"], input[name^="price_"]')
+        .forEach(function (i) { i.value = ""; });
+      retirer.title = deja
+        ? "Retenue retirée : elle quittera la publication au 💾 "
+          + "(re-cliquez pour annuler après avoir ressaisi)"
+        : "Retirer de la publication : quantité et prix vidés, la "
+          + "ligne quittera la publication au prochain 💾";
+      return;
+    }
+    var fleche = e.target.closest(".recolte-rubrique");
+    if (fleche) { ouvrirRubriques(fleche); return; }
+  });
+  /* ⛄ annulé si l'utilisateur ressaisit une valeur */
+  document.addEventListener("input", function (e) {
+    var tr = e.target.closest("tr.retrait-attente");
+    if (tr) { tr.classList.remove("retrait-attente"); }
+  });
+
+  /* ⇄ : mini-panneau rubrique existante ou nouvelle (créée au
+     déplacement), soumis par le formulaire externe org-form. */
+  var panneau = null;
+  function fermerRubriques() {
+    if (panneau) { panneau.remove(); panneau = null; }
+  }
+  function ouvrirRubriques(btn) {
+    fermerRubriques();
+    panneau = document.createElement("div");
+    panneau.className = "org-rubrique-panneau";
+    var form = document.getElementById("org-form");
+    var rubriques = document.querySelectorAll("section.harvest-cat");
+    var html = "<strong>Déplacer vers…</strong>";
+    var sectionCourante = btn.closest("section.harvest-cat");
+    if (rubriques.length > 1) {
+      html += '<select name="rubrique_pk">'
+        + '<option value="">— choisir une rubrique —</option>';
+      rubriques.forEach(function (s) {
+        var pk = s.getAttribute("data-cat");
+        if (pk && s !== sectionCourante) {
+          html += '<option value="' + pk + '">' + s.getAttribute("data-nom")
+            + "</option>";
+        }
+      });
+      html += "</select>";
+    }
+    html += '<input type="text" name="rubrique_nom" class="org-rubrique-nom"'
+      + ' placeholder="…ou nouvelle rubrique" maxlength="80">'
+      + '<div><button type="button" class="btn btn-sm">Déplacer</button>'
+      + ' <button type="button" class="btn btn-sm btn-outline org-rubrique-annuler">Annuler</button></div>';
+    panneau.innerHTML = html;
+    document.body.appendChild(panneau);
+    var r = btn.getBoundingClientRect();
+    panneau.style.left = Math.max(8, Math.min(r.left,
+      (document.documentElement.clientWidth || 320) - 280)) + "px";
+    panneau.style.top = (r.bottom + 6 + window.scrollY) + "px";
+    var pkCible = null;
+    panneau.addEventListener("click", function (ev) {
+      if (ev.target.closest(".org-rubrique-annuler")) { fermerRubriques(); return; }
+      if (!ev.target.classList.contains("btn")) { return; }
+      var nom = panneau.querySelector("[name=rubrique_nom]").value.trim();
+      var sel = panneau.querySelector("[name=rubrique_pk]");
+      var pkRub = sel ? sel.value : "";
+      if (!nom && !pkRub) {
+        panneau.querySelector("[name=rubrique_nom]").focus();
+        return;
+      }
+      if (!form) {
+        fermerRubriques();
+        alert("Gestion réservée au gérant de l\'espace.");
+        return;
+      }
+      ["op", "rubrique_pk", "rubrique_nom"].forEach(function (n) {
+        var ancienChamp = form.querySelector('[name="' + n + '"]');
+        if (ancienChamp) { ancienChamp.remove(); }
+      });
+      [["op", "rubrique:" + btn.getAttribute("data-pk")],
+       ["rubrique_pk", pkRub], ["rubrique_nom", nom]]
+        .forEach(function (paire) {
+          var i = document.createElement("input");
+          i.type = "hidden"; i.name = paire[0]; i.value = paire[1];
+          form.appendChild(i);
+        });
+      form.submit();
+    });
+    var sel2 = panneau.querySelector("[name=rubrique_pk]");
+    if (sel2) {
+      sel2.addEventListener("change", function () {
+        panneau.querySelector("[name=rubrique_nom]").value = "";
+      });
+    }
+  }
+  /* échappe / clic dehors / resize ferment le panneau ⇄ */
+  document.addEventListener("click", function (e) {
+    if (panneau && !panneau.contains(e.target)
+        && !e.target.closest(".recolte-rubrique")) { fermerRubriques(); }
+  }, true);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") { fermerRubriques(); }
+  });
+  window.addEventListener("resize", fermerRubriques);
+})();
+</script>
 <script>
 /* Import sélectif depuis le catalogue actif : ➕ fait remonter un
    produit « disponible » dans la saisie (prix et unité préchargés),
@@ -139,6 +272,12 @@ et retour="dashboard" (édition en ligne).
       var table = un.closest("table");
       un.parentNode.innerHTML = "";
       table.querySelector("tbody").appendChild(tr);
+      /* ➕ = importer : le prix de référence devient le prix de la
+         publication (le produit est retenu). */
+      var price = tr.querySelector('input[name^="price_"]');
+      if (price && !price.value && price.getAttribute("data-ref")) {
+        price.value = price.getAttribute("data-ref");
+      }
       var qty = tr.querySelector('input[name^="qty_"]');
       if (qty) { qty.focus(); }
       var section = tr.closest(".harvest-cat");
@@ -154,7 +293,17 @@ et retour="dashboard" (édition en ligne).
     if (tous) {
       var bloc = tous.closest(".harvest-cat");
       var tbody = bloc.querySelector(".recolte-dispo");
-      if (tbody) { tbody.hidden = false; }
+      if (tbody) {
+        tbody.hidden = false;
+        /* import de la rubrique ENTIÈRE : chaque produit reprend son
+           prix de référence et entre dans la publication. */
+        tbody.querySelectorAll('input[name^="price_"]').forEach(
+          function (p) {
+            if (!p.value && p.getAttribute("data-ref")) {
+              p.value = p.getAttribute("data-ref");
+            }
+          });
+      }
       tous.remove();
     }
   });
