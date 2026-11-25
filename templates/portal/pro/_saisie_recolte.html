@@ -74,7 +74,9 @@ et retour="dashboard" (édition en ligne).
         <thead><tr><th>Produit</th><th>Quantité estimée (facultatif)</th><th>Prix unitaire (€)</th><th></th></tr></thead>
         <tbody>
         {% for row in groupe.rows %}{% if row.choisi %}
-          <tr class="{% if row.reprise %}reprise{% endif %}">
+          <tr class="{% if row.reprise %}reprise{% endif %}{% if est_proprietaire or user.is_superuser %} recolte-tirable{% endif %}"
+              {% if est_proprietaire or user.is_superuser %}draggable="true"{% endif %}
+              title="{% if est_proprietaire or user.is_superuser %}Glissez cette ligne pour la déplacer dans la rubrique ou vers une autre rubrique ; {% endif %}⛔ la retire de la publication">
             <td>{% if row.produit.illustration %}<img class="vignette-produit" src="{{ row.produit.illustration.url }}" alt="">{% elif row.produit.image_externe %}<img class="vignette-produit" src="{{ row.produit.image_externe }}" alt="" loading="lazy">{% endif %}{% if row.produit.emoji %}{{ row.produit.emoji }} {% elif row.produit.origine_standard and row.produit.origine_standard.emoji %}{{ row.produit.origine_standard.emoji }} {% endif %}<strong>{{ row.produit.nom }}</strong>
               <span class="muted">({{ row.produit.get_unite_vente_display }})</span>
               {% if row.produit.origine_standard %}<span class="origine-produit importe" title="Importé depuis la liste {{ row.produit.origine_standard.get_activite_display }}">📦</span>{% else %}<span class="origine-produit perso" title="Article créé par vous">✍️</span>{% endif %}
@@ -86,14 +88,6 @@ et retour="dashboard" (édition en ligne).
             <td><input type="number" step="0.01" min="0" name="price_{{ row.produit.pk }}"
                        value="{% if row.price %}{{ row.price|unlocalize }}{% endif %}"></td>
             <td class="recolte-actions">
-              {% if est_proprietaire or user.is_superuser %}
-              <button form="org-form" class="btn btn-sm btn-outline recolte-org" type="submit" name="op" value="monter:{{ row.produit.pk }}"
-                      title="Monter dans la rubrique (l'ordre est celui du catalogue, repris partout)">▲</button>
-              <button form="org-form" class="btn btn-sm btn-outline recolte-org" type="submit" name="op" value="descendre:{{ row.produit.pk }}"
-                      title="Descendre dans la rubrique">▼</button>
-              <button type="button" class="btn btn-sm btn-outline recolte-rubrique" data-pk="{{ row.produit.pk }}"
-                      title="Déplacer vers une autre rubrique — ou en créer une nouvelle">⇄</button>
-              {% endif %}
               <button type="button" class="btn btn-sm btn-outline recolte-retirer"
                       title="Retirer de la publication : quantité et prix vidés, la ligne quittera la publication au prochain 💾">⛔</button>
             </td>
@@ -103,7 +97,7 @@ et retour="dashboard" (édition en ligne).
         {% if groupe.nb_dispo %}
         <tbody class="recolte-dispo" hidden>
         {% for row in groupe.rows %}{% if not row.choisi %}
-          <tr>
+          <tr data-nom="{{ row.produit.nom }}">
             <td>{% if row.produit.illustration %}<img class="vignette-produit" src="{{ row.produit.illustration.url }}" alt="">{% elif row.produit.image_externe %}<img class="vignette-produit" src="{{ row.produit.image_externe }}" alt="" loading="lazy">{% endif %}{% if row.produit.emoji %}{{ row.produit.emoji }} {% elif row.produit.origine_standard and row.produit.origine_standard.emoji %}{{ row.produit.origine_standard.emoji }} {% endif %}{{ row.produit.nom }}
               <span class="muted">({{ row.produit.get_unite_vente_display }})</span>
               {% if row.produit.prix %}<span class="muted">· réf. {{ row.produit.prix }} €</span>{% endif %}
@@ -125,6 +119,9 @@ et retour="dashboard" (édition en ligne).
       (par exemple via « Importer des produits types »).</p>
   {% endfor %}
 
+{% if est_proprietaire or user.is_superuser %}
+  <div class="recolte-zone-rubrique" id="recolte-zone-rubrique">➕ Nouvelle rubrique : glissez-déposez ici un article pour créer une rubrique</div>
+{% endif %}
   <div class="save-bar">
     <span class="saisie-compteur" id="saisie-compteur"></span>
     <button class="btn btn-lg" type="submit"
@@ -146,11 +143,19 @@ et retour="dashboard" (édition en ligne).
 /* Gestion graphique de la publication :
    - ⛔ retire une ligne retenue : champs vidés, ligne barrée en
      attente, elle quittera la publication au prochain 💾 ;
-   - ▲▼ ⇄ (gérant) réorganisent le catalogue actif — la publication
-     hérite de sa structure (rubriques, ordre) ;
-   - ➕ importe un produit (son prix de référence devient prix de la
-     publication), « tout importer » fait la rubrique entière. */
+   - GLISSER-DÉPOSER (gérant) réorganise le catalogue actif : dans
+     la rubrique (ordre), vers une autre rubrique (déposez la ligne
+     dessus), ou vers une NOUVELLE rubrique (zone dédiée en bas).
+     Les déplacements partent par fetch (pas de rechargement : les
+     saisies en cours sont conservées). */
 (function () {
+  var forme = document.getElementById("org-form");
+  var jeton = forme
+    ? forme.querySelector('[name="csrfmiddlewaretoken"]').value : "";
+  var peutGlisser = !!forme;
+  var tiree = null;
+  var urlOrg = forme ? forme.getAttribute("action") : "";
+
   document.addEventListener("click", function (e) {
     var retirer = e.target.closest(".recolte-retirer");
     if (retirer) {
@@ -163,98 +168,145 @@ et retour="dashboard" (édition en ligne).
           + "(re-cliquez pour annuler après avoir ressaisi)"
         : "Retirer de la publication : quantité et prix vidés, la "
           + "ligne quittera la publication au prochain 💾";
-      return;
     }
-    var fleche = e.target.closest(".recolte-rubrique");
-    if (fleche) { ouvrirRubriques(fleche); return; }
   });
-  /* ⛄ annulé si l'utilisateur ressaisit une valeur */
+  /* ⛔ annulé si l'utilisateur ressaisit une valeur */
   document.addEventListener("input", function (e) {
-    var tr = e.target.closest("tr.retrait-attente");
+    var tr = e.target.closest("tr");
     if (tr) { tr.classList.remove("retrait-attente"); }
   });
 
-  /* ⇄ : mini-panneau rubrique existante ou nouvelle (créée au
-     déplacement), soumis par le formulaire externe org-form. */
-  var panneau = null;
-  function fermerRubriques() {
-    if (panneau) { panneau.remove(); panneau = null; }
+  /* --- moteur de glisser-déposer --- */
+  function pksAffiches(section) {
+    var pks = [];
+    section.querySelectorAll("tbody:not(.recolte-dispo) tr").forEach(
+      function (tr) {
+        var q = tr.querySelector('input[name^="qty_"]');
+        if (q) { pks.push(q.name.slice(4)); }
+      });
+    return pks;
   }
-  function ouvrirRubriques(btn) {
-    fermerRubriques();
-    panneau = document.createElement("div");
-    panneau.className = "org-rubrique-panneau";
-    var form = document.getElementById("org-form");
-    var rubriques = document.querySelectorAll("section.harvest-cat");
-    var html = "<strong>Déplacer vers…</strong>";
-    var sectionCourante = btn.closest("section.harvest-cat");
-    if (rubriques.length > 1) {
-      html += '<select name="rubrique_pk">'
-        + '<option value="">— choisir une rubrique —</option>';
-      rubriques.forEach(function (s) {
-        var pk = s.getAttribute("data-cat");
-        if (pk && s !== sectionCourante) {
-          html += '<option value="' + pk + '">' + s.getAttribute("data-nom")
-            + "</option>";
-        }
-      });
-      html += "</select>";
-    }
-    html += '<input type="text" name="rubrique_nom" class="org-rubrique-nom"'
-      + ' placeholder="…ou nouvelle rubrique" maxlength="80">'
-      + '<div><button type="button" class="btn btn-sm">Déplacer</button>'
-      + ' <button type="button" class="btn btn-sm btn-outline org-rubrique-annuler">Annuler</button></div>';
-    panneau.innerHTML = html;
-    document.body.appendChild(panneau);
-    var r = btn.getBoundingClientRect();
-    panneau.style.left = Math.max(8, Math.min(r.left,
-      (document.documentElement.clientWidth || 320) - 280)) + "px";
-    panneau.style.top = (r.bottom + 6 + window.scrollY) + "px";
-    var pkCible = null;
-    panneau.addEventListener("click", function (ev) {
-      if (ev.target.closest(".org-rubrique-annuler")) { fermerRubriques(); return; }
-      if (!ev.target.classList.contains("btn")) { return; }
-      var nom = panneau.querySelector("[name=rubrique_nom]").value.trim();
-      var sel = panneau.querySelector("[name=rubrique_pk]");
-      var pkRub = sel ? sel.value : "";
-      if (!nom && !pkRub) {
-        panneau.querySelector("[name=rubrique_nom]").focus();
-        return;
+  function envoyer(donnees, apres) {
+    donnees.append("op", "ordonner");
+    var corps = new URLSearchParams();
+    donnees.forEach(function (v, k) { corps.append(k, v); });
+    fetch(urlOrg, {
+      method: "POST", body: corps, credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-CSRFToken": jeton
       }
-      if (!form) {
-        fermerRubriques();
-        alert("Gestion réservée au gérant de l\'espace.");
-        return;
-      }
-      ["op", "rubrique_pk", "rubrique_nom"].forEach(function (n) {
-        var ancienChamp = form.querySelector('[name="' + n + '"]');
-        if (ancienChamp) { ancienChamp.remove(); }
-      });
-      [["op", "rubrique:" + btn.getAttribute("data-pk")],
-       ["rubrique_pk", pkRub], ["rubrique_nom", nom]]
-        .forEach(function (paire) {
-          var i = document.createElement("input");
-          i.type = "hidden"; i.name = paire[0]; i.value = paire[1];
-          form.appendChild(i);
-        });
-      form.submit();
+    }).then(function (r) {
+      if (!r.ok) { throw new Error("erreur " + r.status); }
+      if (apres) { apres(); }
+    }).catch(function (err) {
+      alert("Déplacement non enregistré (" + err.message
+            + "). Rechargez la page et réessayez.");
     });
-    var sel2 = panneau.querySelector("[name=rubrique_pk]");
-    if (sel2) {
-      sel2.addEventListener("change", function () {
-        panneau.querySelector("[name=rubrique_nom]").value = "";
+  }
+  function classerSection(section, apres) {
+    if (!peutGlisser || !section) { return; }
+    var pks = pksAffiches(section);
+    if (!pks.length) { return; }
+    var donnees = new FormData();
+    donnees.append("pks", pks.join(","));
+    donnees.append("rubrique_pk", section.getAttribute("data-cat") || "");
+    donnees.append("suivant", location.pathname + location.search);
+    envoyer(donnees, apres);
+  }
+  function propre() {
+    if (tiree) { tiree.classList.remove("recolte-tiree"); }
+    tiree = null;
+    var zone = document.getElementById("recolte-zone-rubrique");
+    if (zone) { zone.classList.remove("recolte-zone-active"); }
+  }
+
+  if (peutGlisser) {
+    document.querySelectorAll(".harvest-form tbody:not(.recolte-dispo)")
+      .forEach(function (tbody) {
+        tbody.addEventListener("dragstart", function (e) {
+          var tr = (e.target.closest ? e.target.closest("tr") : null);
+          if (!tr || !tbody.contains(tr)) { e.preventDefault(); return; }
+          tiree = tr;
+          tr.classList.add("recolte-tiree");
+          e.dataTransfer.effectAllowed = "move";
+          try { e.dataTransfer.setData("text/plain", "mppl"); }
+          catch (err) { }
+        });
+        tbody.addEventListener("dragend", propre);
+        tbody.addEventListener("dragover", function (e) {
+          if (!tiree) { return; }
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          var tr = e.target.closest ? e.target.closest("tr") : null;
+          if (tr === tiree) { return; }
+          if (tr) {
+            var rect = tr.getBoundingClientRect();
+            if (e.clientY < rect.top + rect.height / 2) {
+              tbody.insertBefore(tiree, tr);
+            } else {
+              tbody.insertBefore(tiree, tr.nextSibling);
+            }
+          } else if (tbody !== tiree.parentNode) {
+            tbody.appendChild(tiree);
+          }
+        });
+        tbody.addEventListener("drop", function (e) {
+          if (!tiree) { return; }
+          e.preventDefault();
+          var section = tbody.closest("section.harvest-cat");
+          classerSection(section, function () { propre(); compter(); });
+        });
+      });
+
+    /* dépôt « nouvelle rubrique » : nom demandé, puis classement */
+    var zone = document.getElementById("recolte-zone-rubrique");
+    if (zone) {
+      zone.addEventListener("dragover", function (e) {
+        if (!tiree) { return; }
+        e.preventDefault();
+        zone.classList.add("recolte-zone-active");
+      });
+      zone.addEventListener("dragleave", function () {
+        zone.classList.remove("recolte-zone-active");
+      });
+      zone.addEventListener("drop", function (e) {
+        if (!tiree) { return; }
+        e.preventDefault();
+        zone.classList.remove("recolte-zone-active");
+        var article = tiree.querySelector("strong");
+        var nomArticle = article ? article.textContent.trim() : "";
+        var nom = prompt("Nom de la nouvelle rubrique où placer "
+                         + "« " + nomArticle + " » :");
+        if (nom === null) { propre(); return; }
+        nom = nom.trim();
+        if (!nom) {
+          alert("Nom vide : le déplacement est annulé, la ligne reste "
+                + "dans sa rubrique.");
+          propre();
+          return;
+        }
+        tiree.classList.remove("recolte-tiree");
+        var donnees = new FormData();
+        var pks = [tiree.querySelector('input[name^="qty_"]').name.slice(4)];
+        donnees.append("pks", pks.join(","));
+        donnees.append("rubrique_nom", nom);
+        donnees.append("suivant", location.pathname + location.search);
+        envoyer(donnees, function () {
+          propre();
+          alert("Rubrique « " + nom + " » créée : « " + nomArticle
+                + " » y est classé. Enregistrez vos saisies (💾) puis "
+                + "rechargez la page pour voir la rubrique.");
+        });
       });
     }
   }
-  /* échappe / clic dehors / resize ferment le panneau ⇄ */
-  document.addEventListener("click", function (e) {
-    if (panneau && !panneau.contains(e.target)
-        && !e.target.closest(".recolte-rubrique")) { fermerRubriques(); }
-  }, true);
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") { fermerRubriques(); }
-  });
-  window.addEventListener("resize", fermerRubriques);
+
+  /* mise à jour du compteur si le script de comptage est présent */
+  function compter() {
+    var f = document.querySelector("form.harvest-form");
+    if (f) { f.dispatchEvent(new Event("input")); }
+  }
 })();
 </script>
 <script>
@@ -278,6 +330,10 @@ et retour="dashboard" (édition en ligne).
       if (price && !price.value && price.getAttribute("data-ref")) {
         price.value = price.getAttribute("data-ref");
       }
+      if (document.getElementById("org-form")) {
+        tr.classList.add("recolte-tirable");
+        tr.draggable = true;
+      }
       var qty = tr.querySelector('input[name^="qty_"]');
       if (qty) { qty.focus(); }
       var section = tr.closest(".harvest-cat");
@@ -293,6 +349,18 @@ et retour="dashboard" (édition en ligne).
     if (tous) {
       var bloc = tous.closest(".harvest-cat");
       var tbody = bloc.querySelector(".recolte-dispo");
+      if (!tbody || !tbody.children.length) { return; }
+      /* recap AVANT l'import : liste exacte des produits retenus */
+      var noms = [];
+      tbody.querySelectorAll("tr[data-nom]").forEach(function (t) {
+        noms.push(t.getAttribute("data-nom"));
+      });
+      var rubrique = bloc.getAttribute("data-nom");
+      if (!confirm("Importer toute la rubrique « " + rubrique + " ?\n\n"
+        + noms.length + " produit" + (noms.length > 1 ? "s" : "")
+        + " : " + noms.join(", ")
+        + "\n\nChacun reprend son prix de référence et entre "
+        + "dans la publication.")) { return; }
       if (tbody) {
         tbody.hidden = false;
         /* import de la rubrique ENTIÈRE : chaque produit reprend son

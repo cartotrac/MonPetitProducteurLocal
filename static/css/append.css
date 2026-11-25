@@ -6762,6 +6762,28 @@ tr.retrait-attente .produit-nom, tr.retrait-attente strong {
 html.dark .org-rubrique-panneau { background: #26301f;
   border-color: rgba(255, 255, 255, 0.25); }
 /* ===== fin V3.45 ===== */
+/* ===== V3.46 — lot 3 bis : GLISSER-DÉPOSER des lignes de la
+   publication (ordre dans la rubrique, changement de rubrique,
+   création par la zone dédiée) ; les boutons ▲▼⇄ disparaissent,
+   seul ⛔ reste, l'import de rubrique est confirmé par une
+   recap. ===== */
+tr.recolte-tirable { cursor: grab; }
+tr.recolte-tirable input, tr.recolte-tirable select,
+tr.recolte-tirable button, tr.recolte-tirable a { cursor: auto; }
+tr.recolte-tiree { opacity: 0.4; outline: 2px dashed currentColor;
+  outline-offset: -2px; }
+tr.recolte-tirable.retrait-attente td { opacity: 0.5; }
+.recolte-zone-rubrique { margin: 0.6rem 0 0.3rem; padding: 0.7rem 1rem;
+  text-align: center; color: var(--muted, #777);
+  border: 2px dashed rgba(127, 127, 127, 0.5);
+  border-radius: 0.6rem; background: transparent;
+  transition: background 0.15s, color 0.15s; }
+.recolte-zone-active { color: inherit;
+  background: rgba(120, 180, 90, 0.15);
+  border-color: rgba(120, 180, 90, 0.8); }
+html.dark .recolte-zone-rubrique { border-color: rgba(255,255,255,0.3); }
+html.dark .recolte-zone-active { background: rgba(150, 200, 110, 0.2); }
+/* ===== fin V3.46 ===== */
 
 /* ===== V3.44 — REVUE PARCOURS PRO lot 2 : palette émojis v2 ===== */
 .emoji2-panneau { position: absolute; z-index: 1200; display: flex; flex-direction: column;
