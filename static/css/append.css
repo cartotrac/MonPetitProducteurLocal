@@ -6767,3 +6767,10 @@ html.dark :focus-visible { outline-color: #a5d6a7; }
    d'ecran (l'operation n'est pas possible au clavier). */
 .gestion-poignee { cursor: grab; }
 /* ============ fin REVUE V3.39 ======================================= */
+
+
+/* ============ REVUE V3.41 — emoji de rubrique + duplication ====
+   Champ emoji court devant le nom de rubrique (edition rapide
+   produits) ; largeur mini, centre. ============================= */
+.gestion-cat-emoji { width: 4.5rem; text-align: center; }
+/* ============ fin REVUE V3.41 ======================================= */
