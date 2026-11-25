@@ -43,6 +43,33 @@
 
 <div class="dash-pleine-largeur">
 
+{% if onboarding_reste %}
+<div class="card onboarding" id="onboarding">
+  <div class="onboarding-titre">
+    <strong>🚀 Bienvenue dans votre espace</strong>
+    <span class="muted">{{ onboarding_reste }} étape{{ onboarding_reste|pluralize }}
+      avant que tout soit prêt</span>
+  </div>
+  <ul class="onboarding-liste">
+    {% for cle, fait in onboarding %}
+      <li class="{% if fait %}onboarding-fait{% endif %}">
+        {% if fait %}✅{% else %}⬜{% endif %}
+        {% if cle == "catalogue" %}
+          Créez votre catalogue d'{% if exploitant %}{{ exploitant.vocab.articles }}{% else %}articles{% endif %}
+          {% if not fait %}— <a href="{% url 'portal:product_list' %}">c'est par ici</a>{% endif %}
+        {% elif cle == "publication" %}
+          Publiez votre première publication (elle apparaît sur votre vitrine)
+          {% if not fait %}— <a href="{% url 'portal:harvest_new' %}">publier maintenant</a>{% endif %}
+        {% else %}
+          Indiquez où vous livrez / remettez les commandes
+          {% if not fait %}— <a href="{% url 'portal:points_manage' %}">définir un point</a>{% endif %}
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
 <div class="quick-actions">
   {% comment %}Ligne 1 : la GESTION courante (clients, points,
      favoris). Ligne 2 : CATALOGUE puis PUBLICATION DE LA PÉRIODE
