@@ -1587,6 +1587,7 @@ def _groupes_publication(groupes, ordre):
         paires.append({
             "categorie": cat,
             "nom": cat.nom if cat else "Sans catégorie",
+            "emoji": (getattr(cat, "emoji", "") if cat else ""),
             "medias": list(cat.medias) if cat else [],
             "rows": rows,
             "nb_choisis": nb_choisis,
@@ -2499,6 +2500,30 @@ def harvest_list(request):
             semaine.delete()
             messages.info(request, "Récolte du "
                           + lundi_sup.strftime("%d/%m/%Y") + " supprimée.")
+        elif action == "dupliquer":
+            # 📑 Duplication (récurrences, cartes de fête annuelles) :
+            # copie sur la prochaine période LIBRE après le lundi
+            # d'origine, en BROUILLON relu avant publication, lignes
+            # reprises telles quelles (produits, quantités, prix).
+            cible = semaine.lundi + datetime.timedelta(days=7)
+            while SemaineRecolte.objects.filter(
+                    exploitant=exploitant, lundi=cible).exists():
+                cible = cible + datetime.timedelta(days=7)
+            with transaction.atomic():
+                copie = SemaineRecolte.objects.create(
+                    exploitant=exploitant, lundi=cible,
+                    note=semaine.note, publiee=False)
+                for l in semaine.lignes.all():
+                    LigneRecolte.objects.create(
+                        recolte=copie, produit=l.produit,
+                        quantite_estimee=l.quantite_estimee,
+                        prix_unitaire=l.prix_unitaire)
+            messages.success(
+                request, "📑 Brouillon créé pour le "
+                + cible.strftime("%d/%m/%Y") + " à partir de la "
+                "publication du " + semaine.lundi.strftime("%d/%m/%Y")
+                + " : relisez-le puis publiez quand c'est prêt.")
+            return redirect("portal:harvest_manage", copie.pk)
         return redirect("portal:harvest_list")
 
     semaines = list(SemaineRecolte.objects
@@ -2576,6 +2601,79 @@ def harvest_manage(request, semaine_id=None, nouvelle=False):
         semaine.publiee = bool(request.POST.get("publiee"))
         semaine.save()
         catalogue = _catalogue_actif(exploitant)
+        # ✨ Création EN DIRECT (sans quitter la publication) : le
+        # produit est créé dans le catalogue ACTIF et rejoint la
+        # publication en cours — même geste que « Mes catalogues »,
+        # sans aller-retour. La rubrique saisie est rattachée si
+        # elle existe (ou créée sinon) ; prix et quantité restent
+        # facultatifs, comme pour tout produit de la publication.
+        produits_directs = set()
+        np_nom = (request.POST.get("np_nom", "") or "").strip()
+        if np_nom:
+            erreurs_np = []
+            np_unite = (request.POST.get("np_unite", "") or "").strip()
+            if not _unite_valide(np_unite):
+                erreurs_np.append("Unité inconnue : choisissez dans la "
+                                  "liste.")
+            np_emoji = (request.POST.get("np_emoji", "") or "").strip()
+            np_prix = None
+            np_brut = (request.POST.get("np_prix", "")
+                       or "").strip().replace(",", ".")
+            if np_brut:
+                try:
+                    np_prix = Decimal(np_brut)
+                except InvalidOperation:
+                    erreurs_np.append("Prix invalide.")
+            np_cat = None
+            np_cat_nom = (request.POST.get("np_cat_nom", "") or "").strip()
+            if np_cat_nom:
+                np_cat = (Categorie.objects.filter(
+                    exploitant=exploitant, catalogue=catalogue,
+                    nom__iexact=np_cat_nom).first())
+                if np_cat is None:
+                    position_cat = (Categorie.objects.filter(
+                        exploitant=exploitant, catalogue=catalogue)
+                        .aggregate(m=Max("position"))["m"] or 0)
+                    np_cat = Categorie.objects.create(
+                        exploitant=exploitant, nom=np_cat_nom[:80],
+                        position=position_cat + 1, catalogue=catalogue)
+            if erreurs_np:
+                messages.error(request, " ".join(erreurs_np))
+            else:
+                position_p = (max(
+                    (p.position
+                     for p in _produits_de_la_categorie(np_cat)),
+                    default=0) + 1)
+                produit_direct = Produit.objects.create(
+                    exploitant=exploitant, nom=np_nom[:150],
+                    categorie=np_cat, catalogue=catalogue,
+                    unite_vente=np_unite, prix=np_prix,
+                    position=position_p, perso=True,
+                    emoji=(np_emoji or emoji_pour_nom(np_nom[:150])))
+                produits_directs.add(produit_direct.pk)
+                np_qty = None
+                np_qty_brut = (request.POST.get("np_qty", "")
+                               or "").strip().replace(",", ".")
+                if np_qty_brut:
+                    try:
+                        np_qty = Decimal(np_qty_brut)
+                    except InvalidOperation:
+                        np_qty = None
+                if np_qty is not None or np_prix is not None:
+                    LigneRecolte.objects.update_or_create(
+                        recolte=semaine, produit=produit_direct,
+                        defaults={"quantite_estimee": np_qty,
+                                  "prix_unitaire": np_prix})
+                    detail = (" et à la publication (relu dans la "
+                              "liste de sa rubrique)")
+                else:
+                    detail = (" ; il vous attend ci-dessous parmi les "
+                              "produits disponibles à la rubrique « "
+                              + (np_cat.nom if np_cat else "Sans catégorie")
+                              + " »)")
+                messages.success(
+                    request, "✨ « " + produit_direct.nom + " » ajouté au "
+                    "catalogue actif" + detail + ".")
         for produit in exploitant.produits.filter(
                 actif=True, catalogue=catalogue):
             qty = request.POST.get(f"qty_{produit.pk}", "").strip()
@@ -2603,7 +2701,8 @@ def harvest_manage(request, semaine_id=None, nouvelle=False):
                 defaults={"quantite_estimee": qty_d,
                           "prix_unitaire": prix_d})
         for ligne in semaine.lignes.all():
-            if f"qty_{ligne.produit_id}" not in request.POST:
+            if (ligne.produit_id not in produits_directs
+                    and f"qty_{ligne.produit_id}" not in request.POST):
                 ligne.delete()
         messages.success(request, "Récolte du "
                          + semaine.lundi.strftime("%d/%m/%Y")
