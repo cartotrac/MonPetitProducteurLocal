@@ -85,7 +85,7 @@
       </p>
     </div>
 
-    <div class="card gestion-ajout">
+    <div class="card gestion-ajout" id="ajout-catalogue">
       <h3>➕ Ajouter au catalogue « {{ catalogue.nom }} »</h3>
       <div class="form-row">
         <label>{{ exploitant.vocab.article|capfirst }} <input type="text" name="nouveau_nom" placeholder="Ex : Radis rose"></label>
@@ -116,11 +116,13 @@
     </div>
 
     {% if not paires %}
-      <p class="muted">Ce catalogue est vide pour l'instant — ajoutez un
-         {{ exploitant.vocab.article }} ci-dessus (ou <a href="{% url 'portal:catalogue_standard' %}">importez des
-         produits types</a>) ; vous pourrez aussi glisser ci-dessous des
-         {{ exploitant.vocab.articles }} d'autres catalogues après les avoir
-         réactivés.</p>
+      <p class="card etat-vide"><span class="etat-vide-emoji">📚</span>
+         Ce catalogue est vide pour l'instant. Ajoutez un premier
+         {{ exploitant.vocab.article }} ci-dessous, ou partez d'une liste
+         toute prête : les {{ exploitant.vocab.articles }} types de votre
+         métier sont importés en un clic, puis libres d'être modifiés.
+         <a class="btn btn-sm" href="#ajout-catalogue">➕ Ajouter un {{ exploitant.vocab.article }}</a>
+         <a class="btn btn-outline btn-sm" href="{% url 'portal:catalogue_standard' %}">📦 Importer des {{ exploitant.vocab.articles }} types</a></p>
     {% endif %}
 
     <div id="bloc-produits" class="gestion-catalogue">

@@ -31,9 +31,11 @@
       </div>
     </div>
   {% else %}
-    <p class="muted">Aucune {{ exploitant.vocab.recolte }} pour la semaine en cours.
-      <a href="{% url 'portal:harvest_new' %}">En créer une</a> — les valeurs
-      de la semaine précédente seront reprises automatiquement.</p>
+    <p class="card etat-vide"><span class="etat-vide-emoji">📅</span>
+      Aucune {{ exploitant.vocab.recolte }} pour la semaine en cours : votre
+      vitrine n'affiche donc rien de nouveau. Les valeurs de la semaine
+      précédente seront reprises automatiquement.
+      <a class="btn btn-sm" href="{% url 'portal:harvest_new' %}">➕ Publier la {{ exploitant.vocab.recolte }} de la semaine</a></p>
   {% endif %}
 </section>
 

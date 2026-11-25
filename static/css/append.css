@@ -6673,3 +6673,14 @@ html.dark .categorie-media-lien:hover { background: #33422a; }
 }
 .dark .meteo-date { color: var(--texte-secondaire-sombre, #a6b0bf); }
 /* ============ fin REVUE V3.33 ======================================= */
+
+
+/* ============ REVUE V3.34 — etats vides guides ==============
+   Le motif .card.etat-vide (emoji + texte + boutons d'action),
+   deja utilise dans commandes/paniers/points, devient la norme :
+   ici on s'assure que les boutons d'action passent a la ligne et
+   gardent un espace, meme dans une cellule de tableau. ========= */
+.etat-vide .btn { margin-top: 0.5rem; margin-right: 0.35rem; }
+td .etat-vide { text-align: left; }
+.etat-vide strong { display: block; margin-bottom: 0.2rem; }
+/* ============ fin REVUE V3.34 ======================================= */

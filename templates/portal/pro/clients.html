@@ -11,7 +11,7 @@
   {% if q %}<a class="btn btn-outline btn-sm" href="{% url 'portal:clients_suivi' %}">Tout voir</a>{% endif %}
 </form>
 
-<details class="bloc-replie">
+<details class="bloc-replie" id="import-clients">
   <summary><h2>📥 Importer ma liste de clients (CSV, XLSX, ODS)</h2>
     <span class="aide-replier">reprendre mes contacts historiques</span></summary>
   <form method="post" enctype="multipart/form-data"
@@ -49,8 +49,13 @@
       <td>{{ e.canal }}</td>
     </tr>
   {% empty %}
-    <tr><td colspan="7" class="muted">Aucun client pour l'instant : les
-      commandes et paniers créés alimenteront ce suivi.</td></tr>
+    <tr><td colspan="7">
+      <p class="card etat-vide"><span class="etat-vide-emoji">👤</span>
+      Aucun client pour l'instant. Deux façons d'alimenter ce suivi :
+      reprenez vos contacts historiques en important une liste, ou
+      laissez les commandes et paniers créés le remplir au fil du temps.
+      <a class="btn btn-outline btn-sm" href="#import-clients">📥 Importer ma liste de clients</a></p>
+    </td></tr>
   {% endfor %}
   </tbody>
 </table>
