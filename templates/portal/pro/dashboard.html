@@ -43,6 +43,42 @@
 
 <div class="dash-pleine-largeur">
 
+{% if onboarding_reste %}
+<div class="card onboarding" id="onboarding">
+  <div class="onboarding-titre">
+    <strong>🚀 Bienvenue dans votre espace</strong>
+    <span class="muted">{{ onboarding_reste }} étape{{ onboarding_reste|pluralize }}
+      avant que tout soit prêt</span>
+  </div>
+  <ul class="onboarding-liste">
+    {% for cle, fait in onboarding %}
+      <li class="{% if fait %}onboarding-fait{% endif %}">
+        {% if fait %}✅{% else %}⬜{% endif %}
+        {% if cle == "catalogue" %}
+          Créez votre catalogue d'{% if exploitant %}{{ exploitant.vocab.articles }}{% else %}articles{% endif %}
+          {% if not fait %}— <a href="{% url 'portal:product_list' %}">c'est par ici</a>{% endif %}
+        {% elif cle == "publication" %}
+          Publiez votre première publication (elle apparaît sur votre vitrine)
+          {% if not fait %}— <a href="{% url 'portal:harvest_new' %}">publier maintenant</a>{% endif %}
+        {% else %}
+          Indiquez où vous livrez / remettez les commandes
+          {% if not fait %}— <a href="{% url 'portal:points_manage' %}">définir un point</a>{% endif %}
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{% if retard_publication %}
+<div class="card rappel-publication">
+  ⏰ Dernière publication publiée il y a {{ retard_publication }} jours :
+  la fréquence réglée de l'espace ({{ exploitant.frequence_publication }})
+  laisse penser qu'une nouvelle est attendue.
+  <a href="{% url 'portal:harvest_new' %}">Publier maintenant</a>
+</div>
+{% endif %}
+
 <div class="quick-actions">
   {% comment %}Ligne 1 : la GESTION courante (clients, points,
      favoris). Ligne 2 : CATALOGUE puis PUBLICATION DE LA PÉRIODE
@@ -52,6 +88,9 @@
   <a class="btn btn-outline" href="{% url 'portal:points_manage' %}">📍 Points & créneaux</a>
   <a class="btn btn-outline" href="{% url 'portal:mes_producteurs' %}">⭐ Mes favoris</a>
 </div>
+<p class="muted raccourcis-astuce">⌨️ Gagnez du temps : touches rapides <kbd>P</kbd> publier,
+   <kbd>C</kbd> clients, <kbd>G</kbd> catalogues, <kbd>L</kbd> points,
+   <kbd>V</kbd> vitrine — appuyez sur <kbd>?</kbd> pour l'aide.</p>
 <div class="quick-actions quick-actions-ligne2">
   {% if exploitant.a_carte_boutique %}
     {% if est_proprietaire or user.is_superuser %}
@@ -206,6 +245,77 @@
   .timeline-nav .btn { min-width: 2.4rem; text-align: center; }
   .cal-periode { display: block; font-weight: 600; }
 </style>
+<script>
+/* Raccourcis clavier du dashboard pro : une touche = une action
+   fréquente. Inactifs pendant la saisie (champ focalisé) et avec
+   Ctrl / Alt / Cmd (laissés au navigateur). « ? » ouvre l'aide. */
+(function () {
+  var corps = document.body.classList.contains("nav-pro")
+           || document.querySelector(".dash-pleine-largeur");
+  var raccourcis = [
+    ["P", "Publier la période", "{% url 'portal:harvest_new' %}"],
+    ["C", "Mes clients", "{% url 'portal:clients_suivi' %}"],
+    ["G", "Gérer les catalogues", "{% url 'portal:product_list' %}"],
+    ["L", "Points & créneaux", "{% url 'portal:points_manage' %}"],
+    ["V", "Voir ma vitrine", "#vitrine"]
+  ];
+  var aideVisible = false;
+  function aideEl() {
+    var el = document.getElementById("aide-raccourcis");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "aide-raccourcis";
+      el.className = "aide-raccourcis";
+      el.setAttribute("role", "dialog");
+      el.innerHTML = "<strong>⌨️ Raccourcis</strong>" +
+        "<ul>" + raccourcis.map(function (r) {
+          return "<li><kbd>" + r[0] + "</kbd> " + r[1] + "</li>";
+        }).join("") +
+        "<li><kbd>?</kbd> afficher / masquer cette aide</li></ul>";
+      el.addEventListener("click", function () { masquer(); });
+    }
+    return el;
+  }
+  function masquer() {
+    var el = aideEl();
+    if (el.parentNode) { el.parentNode.removeChild(el); }
+    aideVisible = false;
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) { return; }
+    var t = e.target;
+    if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" ||
+              t.tagName === "SELECT" || t.isContentEditable)) { return; }
+    var cle = (e.key || "").toUpperCase();
+    if (cle === "?") {
+      if (aideVisible) { masquer(); }
+      else {
+        document.body.appendChild(aideEl());
+        aideVisible = true;
+      }
+      e.preventDefault();
+      return;
+    }
+    if (aideVisible) { masquer(); return; }
+    for (var i = 0; i < raccourcis.length; i++) {
+      if (raccourcis[i][0] === cle) {
+        var cible = raccourcis[i][2];
+        if (cible.charAt(0) === "#") {
+          var rubrique = document.querySelector(
+            "details" + cible.replace(/[^\w-]/g, ""));
+          if (rubrique) {
+            rubrique.open = true;
+            rubrique.scrollIntoView({behavior: "smooth"});
+          }
+        } else {
+          window.location.href = cible;
+        }
+        return;
+      }
+    }
+  });
+})();
+</script>
 <script>
 /* Depuis le bandeau « Gestion » ou une ancre (#recoltes…), la rubrique
    ciblée du dashboard se déplie automatiquement. */

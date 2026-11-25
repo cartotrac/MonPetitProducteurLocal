@@ -6673,3 +6673,97 @@ html.dark .categorie-media-lien:hover { background: #33422a; }
 }
 .dark .meteo-date { color: var(--texte-secondaire-sombre, #a6b0bf); }
 /* ============ fin REVUE V3.33 ======================================= */
+
+
+/* ============ REVUE V3.34 — etats vides guides ==============
+   Le motif .card.etat-vide (emoji + texte + boutons d'action),
+   deja utilise dans commandes/paniers/points, devient la norme :
+   ici on s'assure que les boutons d'action passent a la ligne et
+   gardent un espace, meme dans une cellule de tableau. ========= */
+.etat-vide .btn { margin-top: 0.5rem; margin-right: 0.35rem; }
+td .etat-vide { text-align: left; }
+.etat-vide strong { display: block; margin-bottom: 0.2rem; }
+/* ============ fin REVUE V3.34 ======================================= */
+
+
+/* ============ REVUE V3.35 — check-list d'onboarding ==============
+   Bandeau d'accueil des espaces neufs (3 fondamentaux) ; il
+   disparaît de lui-même une fois tout en place. ============== */
+.onboarding { border: 1px solid var(--accent, #4a7c2f);
+              background: #f4f8ef; padding: 0.9rem 1.1rem; }
+.onboarding-titre { display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem;
+                    align-items: baseline; margin-bottom: 0.5rem; }
+.onboarding-liste { list-style: none; margin: 0; padding: 0; }
+.onboarding-liste li { padding: 0.28rem 0; line-height: 1.5; }
+.onboarding-liste li.onboarding-fait { opacity: 0.65;
+                                       text-decoration: line-through; }
+.onboarding-liste li.onboarding-fait { text-decoration-color: transparent; }
+.onboarding-liste a { font-weight: 600; }
+html.dark .onboarding { background: rgba(255, 255, 255, 0.05);
+                        border-color: #4a5640; }
+/* ============ fin REVUE V3.35 ======================================= */
+
+
+/* ============ REVUE V3.36 — rappel de publication ==============
+   Bandeau discret quand la derniere publication publiee depasse
+   la frequence reglee (hebdo / quinzaine / mensuelle). ======= */
+.rappel-publication { border: 1px solid #f5a623; background: #fff8ec;
+                      padding: 0.75rem 1rem; margin-bottom: 0.9rem; }
+.rappel-publication a { font-weight: 700; }
+html.dark .rappel-publication {
+  background: rgba(245, 166, 35, 0.10); border-color: #6b5222;
+}
+/* ============ fin REVUE V3.36 ======================================= */
+
+
+/* ============ REVUE V3.37 — aide des raccourcis clavier =========
+   Petit panneau discret de l'aide « ? » du dashboard pro. ==== */
+.aide-raccourcis {
+  position: fixed; bottom: 5rem; right: 1rem; z-index: 90;
+  background: #fff; border: 1px solid #dde5d3; border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  padding: 0.8rem 1.1rem; max-width: 16rem; cursor: pointer;
+}
+.aide-raccourcis ul { list-style: none; margin: 0.4rem 0 0;
+                      padding: 0; }
+.aide-raccourcis li { padding: 0.2rem 0; }
+.aide-raccourcis kbd {
+  display: inline-block; min-width: 1.2rem; text-align: center;
+  border: 1px solid #c9d1bd; border-bottom-width: 2px;
+  border-radius: 6px; padding: 0 0.3rem; font-weight: 700;
+  background: #f1f5ec;
+}
+.aide-raccourcis .fermer { float: right; opacity: 0.6; }
+html.dark .aide-raccourcis {
+  background: #2c3327; border-color: #4a5640;
+}
+html.dark .aide-raccourcis kbd { background: #3c4433;
+                                  border-color: #5a684c; }
+/* ============ fin REVUE V3.37 ======================================= */
+
+
+/* ============ REVUE V3.38 — astuce raccourcis (dashboard) ======
+   Ligne discrete sous les boutons du dashboard qui revele les
+   touches rapides ; meme style kbd que l'aide « ? ». ========= */
+.raccourcis-astuce { font-size: 0.85rem; margin: 0.45rem 0 0.9rem; }
+.raccourcis-astuce kbd, .raccourcis-astuce .kbd {
+  display: inline-block; min-width: 1.2rem; text-align: center;
+  border: 1px solid #c9d1bd; border-bottom-width: 2px;
+  border-radius: 6px; padding: 0 0.3rem; font-weight: 700;
+  background: #f1f5ec;
+}
+html.dark .raccourcis-astuce kbd { background: #3c4433;
+                                    border-color: #5a684c; }
+/* ============ fin REVUE V3.38 ======================================= */
+
+
+/* ============ REVUE V3.39 — accessibilite clavier ==============
+   Focus net et visible pour la navigation au clavier seulement
+   (:focus-visible ne gene pas le clic) ; les lecteurs d'ecran ont
+   maintenant des aria-label sur les boutons icones (▲ ▼ 🗑 ✕ ⇄ 🅶). */
+:focus-visible { outline: 3px solid #2e7d32; outline-offset: 2px; }
+html.dark :focus-visible { outline-color: #a5d6a7; }
+/* Poignees de glisser-deposer : decoratives pour les lecteurs
+   d'ecran (l'operation n'est pas possible au clavier). */
+.gestion-poignee { cursor: grab; }
+/* ============ fin REVUE V3.39 ======================================= */
