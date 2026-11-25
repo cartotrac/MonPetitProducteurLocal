@@ -61,7 +61,7 @@
               <button type="submit" name="action" value="catalogue_activer:{{ c.pk }}" class="btn btn-sm" title="Réactiver ce catalogue et en faire le catalogue actif">♻️ Réactiver</button>
               <button type="submit" name="action" value="catalogue_supprimer:{{ c.pk }}"
                       onclick="if(!confirm('Supprimer DÉFINITIVEMENT « {{ c.nom }} » avec ses catégories et produits ? Cette action est irréversible.'))event.preventDefault();"
-                      class="btn btn-sm btn-danger" title="Supprimer définitivement ce catalogue archivé">🗑</button>
+                      class="btn btn-sm btn-danger" title="Supprimer définitivement ce catalogue archivé" aria-label="Supprimer ce catalogue archivé">🗑</button>
             </div>
           {% endfor %}
         </div>
@@ -130,13 +130,13 @@
         <section class="gestion-cat card" data-cat="{% if cat.pk %}{{ cat.pk }}{% else %}sans{% endif %}">
           <header class="gestion-cat-tete">
             {% if cat.pk %}
-              <span class="gestion-poignee" title="Glissez pour réordonner les catégories">⠿</span>
+              <span class="gestion-poignee" aria-hidden="true" title="Glissez pour réordonner les catégories (à la souris)">⠿</span>
               <input class="gestion-cat-nom" type="text" name="nom_cat_{{ cat.pk }}" value="{{ cat.nom }}" maxlength="80" title="Libellé de la catégorie — enregistré par le 💾 Tout enregistrer en bas de page">
-              <button type="submit" name="mouvement" value="categorie:{{ cat.pk }}:haut" class="btn btn-sm" title="Catégorie vers le haut">▲</button>
-              <button type="submit" name="mouvement" value="categorie:{{ cat.pk }}:bas" class="btn btn-sm" title="Catégorie vers le bas">▼</button>
+              <button type="submit" name="mouvement" value="categorie:{{ cat.pk }}:haut" class="btn btn-sm" title="Catégorie vers le haut" aria-label="Monter la catégorie">▲</button>
+              <button type="submit" name="mouvement" value="categorie:{{ cat.pk }}:bas" class="btn btn-sm" title="Catégorie vers le bas" aria-label="Descendre la catégorie">▼</button>
               <button type="submit" name="action" value="categorie_supprimer:{{ cat.pk }}"
                       onclick="if(!confirm('Supprimer la catégorie « {{ cat.nom }} » ? Les produits deviennent « sans catégorie » (aucun produit supprimé).'))event.preventDefault();"
-                      class="btn btn-sm btn-danger" title="Supprimer la catégorie (les produits sont conservés)">🗑</button>
+                      class="btn btn-sm btn-danger" title="Supprimer la catégorie (les produits sont conservés)" aria-label="Supprimer la catégorie">🗑</button>
               <details class="gestion-cat-medias">
                 <summary title="Un ou plusieurs médias pour personnaliser la catégorie">🖼 Médias{% if cat.medias %} ({{ cat.medias|length }}){% endif %}</summary>
                 <div class="cat-medias-liste" data-cat="{{ cat.pk }}">
@@ -144,13 +144,13 @@
                     <div class="cat-media-ligne">
                       <img src="{{ m }}" alt="Média de la catégorie {{ cat.nom }}" loading="lazy">
                       <input type="url" name="medias_cat_{{ cat.pk }}" value="{{ m }}" title="Lien de ce média (drive, cloud…)">
-                      <button type="button" class="btn btn-sm btn-outline cat-media-retirer" title="Retirer ce média">✖</button>
+                      <button type="button" class="btn btn-sm btn-outline cat-media-retirer" title="Retirer ce média" aria-label="Retirer ce média">✖</button>
                     </div>
                   {% endfor %}
                 </div>
                 <div class="cat-media-ajout">
                   <input type="url" class="cat-media-url" placeholder="Coller un lien (Drive, cloud, photo en ligne…)">
-                  <button type="button" class="btn btn-sm btn-outline btn-lien-drive" title="Coller un lien de PARTAGE Google Drive : converti en lien d'affichage direct">🅶</button>
+                  <button type="button" class="btn btn-sm btn-outline btn-lien-drive" aria-label="Coller un lien de partage Google Drive" title="Coller un lien de PARTAGE Google Drive : converti en lien d'affichage direct">🅶</button>
                   <button type="button" class="btn btn-sm cat-media-ajouter" title="Ajouter ce lien à la catégorie">➕ Ajouter le média</button>
                 </div>
                 <p class="muted cat-medias-aide">Ajoutez ou retirez des lignes, puis
@@ -165,13 +165,13 @@
           <div class="gestion-liste">
             {% for produit in liste %}
               <div class="gestion-produit" data-pk="{{ produit.pk }}">
-                <span class="gestion-poignee" title="Glissez pour réordonner ou changer de catégorie">⠿</span>
+                <span class="gestion-poignee" aria-hidden="true" title="Glissez pour réordonner ou changer de catégorie (à la souris)">⠿</span>
                 <span class="gestion-visuel">
                   {% if produit.image_externe %}<img src="{{ produit.image_externe }}" alt="Média de {{ produit.nom }}">
                   {% elif produit.illustration %}<img src="{{ produit.illustration.url }}" alt="Illustration de {{ produit.nom }}">
                   {% else %}<span class="gestion-visuel-emoji">{{ produit.emoji|default:"🥕" }}</span>{% endif %}
                 </span>
-                <span class="gestion-origine" title="{% if produit.origine_standard %}Importé depuis la liste des produits types : {{ produit.origine_standard.get_activite_display }}{% else %}Article créé par vous{% endif %}">{% if produit.origine_standard %}📦{% else %}✍️{% endif %}</span>
+                <span class="gestion-origine" role="img" title="{% if produit.origine_standard %}Importé depuis la liste des produits types : {{ produit.origine_standard.get_activite_display }}{% else %}Article créé par vous{% endif %}">{% if produit.origine_standard %}📦{% else %}✍️{% endif %}</span>
                 <label class="gestion-champ"><span>Nom</span>
                   <input type="text" name="nom_{{ produit.pk }}" value="{{ produit.nom }}" maxlength="150"></label>
                 <label class="gestion-champ"><span>Unité</span>
@@ -193,23 +193,23 @@
                 <label class="gestion-champ gestion-champ-large"><span>Média</span>
                   <span class="gestion-media-champ">
                   <input type="url" name="media_{{ produit.pk }}" value="{{ produit.image_externe }}" placeholder="Lien photo externe (drive, cloud…)">
-                  <button type="button" class="btn btn-sm btn-outline btn-lien-drive" title="Coller un lien de PARTAGE Google Drive : converti automatiquement en lien d'affichage direct">🅶</button>
+                  <button type="button" class="btn btn-sm btn-outline btn-lien-drive" aria-label="Coller un lien de partage Google Drive" title="Coller un lien de PARTAGE Google Drive : converti automatiquement en lien d'affichage direct">🅶</button>
                   </span></label>
                 <span class="gestion-actions">
-                  <a class="btn btn-sm btn-outline" href="{% url 'portal:product_edit' produit.pk %}" title="Édition détaillée : photo, descriptif complet">📝</a>
+                  <a class="btn btn-sm btn-outline" href="{% url 'portal:product_edit' produit.pk %}" title="Édition détaillée : photo, descriptif complet" aria-label="Éditer en détail">📝</a>
                   <select name="categorie_cible_{{ produit.pk }}" class="gestion-cat-select" title="Changer de catégorie (sans glisser-déposer)">
                     <option value=""{% if produit.categorie is None %} selected{% endif %}>— sans catégorie —</option>
                     {% for c in categories %}
                       <option value="{{ c.pk }}"{% if produit.categorie_id == c.pk %} selected{% endif %}>{{ c.nom }}</option>
                     {% endfor %}
                   </select>
-                  <button type="submit" name="appliquer_categorie" value="{{ produit.pk }}" class="btn btn-sm" title="Déplacer dans la catégorie choisie">⇄</button>
-                  <button type="submit" name="mouvement" value="produit:{{ produit.pk }}:haut" class="btn btn-sm" title="Vers le haut">▲</button>
-                  <button type="submit" name="mouvement" value="produit:{{ produit.pk }}:bas" class="btn btn-sm" title="Vers le bas">▼</button>
+                  <button type="submit" name="appliquer_categorie" value="{{ produit.pk }}" class="btn btn-sm" title="Déplacer dans la catégorie choisie" aria-label="Déplacer dans la catégorie">⇄</button>
+                  <button type="submit" name="mouvement" value="produit:{{ produit.pk }}:haut" class="btn btn-sm" title="Vers le haut" aria-label="Monter">▲</button>
+                  <button type="submit" name="mouvement" value="produit:{{ produit.pk }}:bas" class="btn btn-sm" title="Vers le bas" aria-label="Descendre">▼</button>
                   <input type="checkbox" name="supprimer" value="{{ produit.pk }}" title="Cocher pour retirer du catalogue">
                   <button type="submit" name="action" value="produit_retirer:{{ produit.pk }}"
                           onclick="if(!confirm('Retirer « {{ produit.nom }} » du catalogue ? Les commandes passées sont conservées.'))event.preventDefault();"
-                          class="btn btn-sm btn-danger" title="Retirer ce produit du catalogue">🗑</button>
+                          class="btn btn-sm btn-danger" title="Retirer ce produit du catalogue" aria-label="Retirer du catalogue">🗑</button>
                 </span>
               </div>
             {% endfor %}

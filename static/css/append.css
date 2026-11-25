@@ -6755,3 +6755,15 @@ html.dark .aide-raccourcis kbd { background: #3c4433;
 html.dark .raccourcis-astuce kbd { background: #3c4433;
                                     border-color: #5a684c; }
 /* ============ fin REVUE V3.38 ======================================= */
+
+
+/* ============ REVUE V3.39 — accessibilite clavier ==============
+   Focus net et visible pour la navigation au clavier seulement
+   (:focus-visible ne gene pas le clic) ; les lecteurs d'ecran ont
+   maintenant des aria-label sur les boutons icones (▲ ▼ 🗑 ✕ ⇄ 🅶). */
+:focus-visible { outline: 3px solid #2e7d32; outline-offset: 2px; }
+html.dark :focus-visible { outline-color: #a5d6a7; }
+/* Poignees de glisser-deposer : decoratives pour les lecteurs
+   d'ecran (l'operation n'est pas possible au clavier). */
+.gestion-poignee { cursor: grab; }
+/* ============ fin REVUE V3.39 ======================================= */
