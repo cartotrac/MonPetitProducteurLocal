@@ -114,7 +114,9 @@ et retour="dashboard" (édition en ligne).
   {% endfor %}
 
   <div class="save-bar">
-    <button class="btn btn-lg" type="submit">💾 Enregistrer la {{ exploitant_courant.vocab.recolte }}</button>
+    <span class="saisie-compteur" id="saisie-compteur"></span>
+    <button class="btn btn-lg" type="submit"
+            title="Ctrl + Entrée (ou ⌘ + Entrée) enregistre aussi la publication">💾 Enregistrer la {{ exploitant_courant.vocab.recolte }}</button>
     {% if retour %}
       <a class="btn btn-outline" href="{% url 'portal:dashboard' %}">Annuler</a>
     {% else %}
@@ -227,5 +229,80 @@ et retour="dashboard" (édition en ligne).
   }, true);
   window.addEventListener("scroll", fermer, true);
   window.addEventListener("resize", fermer, true);
+})();
+</script>
+
+<script>
+/* Confort de la saisie d'une publication :
+   - compteur en direct dans la barre d'enregistrement (articles
+     retenus au sens métier : quantité OU prix saisi ; rubriques
+     actives), recalculé à chaque frappe ;
+   - Ctrl + Entrée (⌘ + Entrée) enregistre depuis n'importe où ;
+   - « ? » ouvre l'aide, même panneau que sur les autres pages pro. */
+(function () {
+  var form = document.querySelector("form.harvest-form");
+  if (!form) { return; }
+
+  function retenue(tr) {
+    var q = tr.querySelector('input[name^="qty_"]');
+    var p = tr.querySelector('input[name^="price_"]');
+    return ((q && q.value.trim()) || (p && p.value.trim())) ? 1 : 0;
+  }
+  function compter() {
+    var nb = 0;
+    var rubriques = 0;
+    form.querySelectorAll("section.harvest-cat").forEach(function (sec) {
+      var dansRubrique = 0;
+      sec.querySelectorAll("tbody tr").forEach(function (tr) {
+        dansRubrique += retenue(tr);
+      });
+      if (dansRubrique) { nb += dansRubrique; rubriques += 1; }
+    });
+    var cible = document.getElementById("saisie-compteur");
+    if (cible) {
+      cible.textContent = nb + " retenue" + (nb > 1 ? "s" : "")
+        + (rubriques ? " · " + rubriques + " rubrique"
+           + (rubriques > 1 ? "s" : "") : "");
+    }
+  }
+  form.addEventListener("input", compter);
+  compter();
+
+  form.addEventListener("keydown", function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  function saisie(cible) {
+    if (!cible) { return false; }
+    var t = cible.tagName;
+    return t === "INPUT" || t === "TEXTAREA" || t === "SELECT"
+      || cible.isContentEditable;
+  }
+  function aide() {
+    var p = document.querySelector(".aide-raccourcis");
+    if (p) { p.remove(); return; }
+    p = document.createElement("div");
+    p.className = "aide-raccourcis";
+    p.innerHTML = "<span class='fermer'>✕</span>Saisie d'une publication"
+      + "<ul>"
+      + "<li><kbd>Ctrl</kbd> + <kbd>↵</kbd> enregistrer</li>"
+      + "<li>Un {{ article }} entre dans la publication dès que sa"
+      + " quantité OU son prix est saisi</li>"
+      + "<li>➕ : importer du catalogue un article non affiché</li>"
+      + "<li><kbd>?</kbd> ouvrir / fermer cette aide</li>"
+      + "</ul>";
+    document.body.appendChild(p);
+    p.addEventListener("click", function () { p.remove(); });
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "?" && !saisie(e.target)
+        && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      aide();
+    }
+  });
 })();
 </script>
