@@ -2709,9 +2709,30 @@ def harvest_manage(request, semaine_id=None, nouvelle=False):
             if (ligne.produit_id not in produits_directs
                     and f"qty_{ligne.produit_id}" not in request.POST):
                 ligne.delete()
-        messages.success(request, "Récolte du "
-                         + semaine.lundi.strftime("%d/%m/%Y")
-                         + " enregistrée.")
+        # 🔍 Le flash dit maintenant combien d'articles sont
+        # réellement retenus, et prévient les publications vides :
+        # une récolte publiée sans ligne s'affiche « 0 produit » sur
+        # le dashboard et la vitrine sans explication.
+        nb_lignes = semaine.lignes.count()
+        if nb_lignes == 0 and semaine.publiee:
+            messages.warning(
+                request, "Publication publiée SANS article : elle "
+                "apparaît vide sur la vitrine (rubrique « publiée · "
+                "0 » du dashboard).")
+        if nb_lignes:
+            messages.success(
+                request, "Récolte du "
+                + semaine.lundi.strftime("%d/%m/%Y")
+                + " enregistrée : " + str(nb_lignes) + " article"
+                + ("s retenus" if nb_lignes > 1 else " retenu")
+                + ".")
+        else:
+            messages.success(
+                request, "Récolte du "
+                + semaine.lundi.strftime("%d/%m/%Y")
+                + " enregistrée — AUCUN article retenu (les valeurs "
+                  "« reprise » affichées ne sont pas encore "
+                  "enregistrées).")
         if request.POST.get("retour") == "dashboard":
             return redirect(reverse("portal:dashboard")
                             + "?publication=" + str(semaine.pk))
