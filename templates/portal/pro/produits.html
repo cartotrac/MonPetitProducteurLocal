@@ -92,8 +92,8 @@
       <h3>➕ Ajouter au catalogue « {{ catalogue.nom }} »</h3>
       <div class="form-row">
         <label>{{ exploitant.vocab.article|capfirst }} <input type="text" name="nouveau_nom" placeholder="Ex : Radis rose"></label>
-        <label>Emoji <input type="text" name="nouveau_emoji" maxlength="8" placeholder="🥕" size="2"
-               title="Facultatif : affiché dans les publications et la vitrine, un emoji est deviné sinon"></label>
+        <label>Emoji <input type="text" name="nouveau_emoji" maxlength="8" placeholder="🥕" size="2" class="emoji-choix"
+               title="Facultatif : cliquez pour choisir, affiché dans les publications et la vitrine, un emoji est deviné sinon"></label>
         <label>Unité
           <select name="nouveau_unite">
             {% for code, libelle in unite_choices %}
@@ -178,8 +178,8 @@
                 </span>
                 <span class="gestion-origine" role="img" title="{% if produit.origine_standard %}Importé depuis la liste des produits types : {{ produit.origine_standard.get_activite_display }}{% else %}Article créé par vous{% endif %}">{% if produit.origine_standard %}📦{% else %}✍️{% endif %}</span>
                 <label class="gestion-champ"><span>Emoji</span>
-                  <input type="text" name="emoji_{{ produit.pk }}" value="{{ produit.emoji }}" maxlength="8" size="2" placeholder="🥕"
-                         title="Emoji de l'article (facultatif) : affiché dans les publications et la vitrine — enregistré par le 💾 Tout enregistrer"></label>
+                  <input type="text" name="emoji_{{ produit.pk }}" value="{{ produit.emoji }}" maxlength="8" size="2" placeholder="🥕" class="emoji-choix"
+                         title="Emoji de l'article (facultatif) : cliquez pour choisir, affiché dans les publications et la vitrine — enregistré par le 💾 Tout enregistrer"></label>
                 <label class="gestion-champ"><span>Nom</span>
                   <input type="text" name="nom_{{ produit.pk }}" value="{{ produit.nom }}" maxlength="150"></label>
                 <label class="gestion-champ"><span>Unité</span>
@@ -531,6 +531,77 @@
       if (form) { form.requestSubmit(bouton); }
     }
   });
+})();
+</script>
+<script>
+/* Sélecteur d'emoji : au focus d'un champ .emoji-choix, palette des
+   symboles alimentaires courants ; clic = choix appliqué, saisie
+   libre toujours possible, Échap ou clic ailleurs = fermeture. */
+(function () {
+  if (window.__mpplEmojiChoix) { return; }
+  window.__mpplEmojiChoix = true;
+  var SYMBOLES = ["🥕","🍅","🥔","🧅","🧄","🥒","🎃","🍆","🫑","🌶️",
+    "🥬","🥦","🌿","🌽","🍄","🌱","🍎","🍐","🍑","🍒","🍓","🫐","🍇",
+    "🍈","🍉","🥝","🍋","🍊","🥑","🌰","🥚","🥛","🧀","🧈","🍯",
+    "🍞","🥧","🍰","🍫","🧃","🍹","🍺","🥫","🍲","🥘","🌾","🫘","🫒",
+    "🐄","🐂","🐑","🐖","🌭","🥓","🐔","🦆","🦃","🐇","🐟","🐌"];
+  var panneau = null;
+  function fermer() {
+    if (panneau) { panneau.remove(); panneau = null; }
+  }
+  function ouvrir(champ) {
+    fermer();
+    panneau = document.createElement("div");
+    panneau.className = "emoji-palette";
+    SYMBOLES.forEach(function (s) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = s;
+      b.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        champ.value = s;
+        fermer();
+        champ.focus();
+      });
+      panneau.appendChild(b);
+    });
+    var vider = document.createElement("button");
+    vider.type = "button";
+    vider.className = "emoji-vider";
+    vider.textContent = "⌫";
+    vider.title = "Effacer l'emoji";
+    vider.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      champ.value = "";
+      fermer();
+      champ.focus();
+    });
+    panneau.appendChild(vider);
+    var aide = document.createElement("span");
+    aide.className = "emoji-aide";
+    aide.textContent = "Cliquez un symbole, ou tapez votre emoji.";
+    panneau.appendChild(aide);
+    document.body.appendChild(panneau);
+    var rect = champ.getBoundingClientRect();
+    panneau.style.left = Math.max(
+      8, Math.min(rect.left,
+        window.innerWidth - panneau.offsetWidth - 8)) + "px";
+    panneau.style.top = rect.bottom + 4 + "px";
+  }
+  document.addEventListener("focusin", function (e) {
+    var c = e.target;
+    if (c && c.matches && c.matches("input.emoji-choix")) { ouvrir(c); }
+  });
+  document.addEventListener("mousedown", function (e) {
+    if (panneau && !panneau.contains(e.target)
+        && !(e.target && e.target.closest
+             && e.target.closest("input.emoji-choix"))) { fermer(); }
+  }, true);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && panneau) { fermer(); e.stopPropagation(); }
+  }, true);
+  window.addEventListener("scroll", fermer, true);
+  window.addEventListener("resize", fermer, true);
 })();
 </script>
 {% endblock %}

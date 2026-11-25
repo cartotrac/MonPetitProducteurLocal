@@ -6675,12 +6675,6 @@ html.dark .categorie-media-lien:hover { background: #33422a; }
 /* ============ fin REVUE V3.33 ======================================= */
 
 
-/* ============ REVUE V3.41 — emoji de rubrique ======================
-   Champ emoji court devant le nom de rubrique (edition rapide
-   produits) ; largeur mini, centre. ============================= */
-.gestion-cat-emoji { width: 4.5rem; text-align: center; }
-/* ============ fin REVUE V3.41 ======================================= */
-
 
 /* ============ REVUE V3.34 — etats vides guides ==============
    Le motif .card.etat-vide (emoji + texte + boutons d'action),
@@ -6747,6 +6741,32 @@ html.dark .aide-raccourcis {
 html.dark .aide-raccourcis kbd { background: #3c4433;
                                   border-color: #5a684c; }
 /* ============ fin REVUE V3.37 ======================================= */
+
+/* ============ REVUE V3.42 — selecteur d'emojis (produits) ======
+   Palette de choix commune : au focus d'un champ emoji (classe
+   .emoji-choix) les symboles alimentaires courants sont proposés ;
+   la saisie libre reste possible pour un emoji personnel. ==== */
+.emoji-choix { width: 3.2rem; text-align: center; font-size: 1.05rem; }
+.saisie-nouveau-champs input.emoji-choix { min-width: 0; }
+.emoji-palette { position: fixed; z-index: 120; background: #fff;
+                 border: 1px solid #c9d1bd; border-radius: 10px;
+                 box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+                 padding: 0.4rem; max-width: 21rem;
+                 display: grid;
+                 grid-template-columns: repeat(auto-fill, minmax(2rem, 1fr));
+                 gap: 0.1rem; }
+.emoji-palette button { font-size: 1.15rem; line-height: 1.4;
+                        padding: 0.1rem 0; background: none;
+                        border: none; border-radius: 6px;
+                        cursor: pointer; }
+.emoji-palette button:hover { background: #eef4ea; }
+.emoji-palette button.emoji-vider { font-size: 0.85rem;
+                                    font-weight: 700; color: #8d4b00; }
+.emoji-palette .emoji-aide { grid-column: 1 / -1; font-size: 0.72rem;
+                             color: #777; padding: 0.25rem 0.15rem 0; }
+html.dark .emoji-palette { background: #2c3327; border-color: #4a5640; }
+html.dark .emoji-palette button:hover { background: #3c4433; }
+/* ============ fin REVUE V3.42 ======================================= */
 
 
 /* ============ REVUE V3.38 — astuce raccourcis (dashboard) ======
