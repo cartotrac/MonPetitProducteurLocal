@@ -2365,6 +2365,8 @@ def produit_edition_rapide(request):
             for cat in Categorie.objects.filter(
                     exploitant=exploitant, catalogue=catalogue):
                 nom = (request.POST.get(f"nom_cat_{cat.pk}", "") or "").strip()
+            emoji_cat = (request.POST.get(f"emoji_cat_{cat.pk}", "")
+                         or "").strip()
                 medias = [u.strip() for u in
                           request.POST.getlist(f"medias_cat_{cat.pk}")
                           if u.strip()]
@@ -2372,6 +2374,9 @@ def produit_edition_rapide(request):
                 modifie = False
                 if nom and nom != cat.nom:
                     cat.nom = nom[:80]
+                    modifie = True
+                if emoji_cat != cat.emoji:
+                    cat.emoji = emoji_cat[:8]
                     modifie = True
                 if medias != anciens:
                     attributs = dict(cat.attributs or {})
@@ -3889,6 +3894,29 @@ def cartes_manage(request):
                                  "puis publiez-la.")
             else:
                 messages.error(request, "Donnez un nom à la carte.")
+        elif action == "dupliquer" and carte is not None:
+            # 📑 Copie de la carte en BROUILLON (l'originale reste en
+            # place) : toutes ses lignes sont reprises telles quelles,
+            # prêtes à être ajustées puis publiées.
+            copie = Carte.objects.create(
+                exploitant=exploitant,
+                nom=(carte.nom + " (copie)")[:120])
+            LigneCarte.objects.bulk_create([
+                LigneCarte(carte=copie,
+                           produit_id=l.produit_id,
+                           nom_libre=l.nom_libre,
+                           section=l.section,
+                           description=l.description,
+                           unite_vente=l.unite_vente,
+                           prix=l.prix,
+                           stock=l.stock,
+                           position=l.position)
+                for l in carte.lignes.all().order_by("section", "position", "id")
+            ])
+            messages.success(request, "📑 Carte dupliquée en brouillon (« "
+                             + copie.nom + " ») : ajustez-la puis publiez-la.")
+            return redirect(reverse("portal:cartes_manage")
+                             + "?carte=" + str(copie.pk))
         elif carte is None:
             messages.error(request, "Carte introuvable.")
         elif action == "renommer":

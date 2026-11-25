@@ -6675,6 +6675,13 @@ html.dark .categorie-media-lien:hover { background: #33422a; }
 /* ============ fin REVUE V3.33 ======================================= */
 
 
+/* ============ REVUE V3.41 — emoji de rubrique ======================
+   Champ emoji court devant le nom de rubrique (edition rapide
+   produits) ; largeur mini, centre. ============================= */
+.gestion-cat-emoji { width: 4.5rem; text-align: center; }
+/* ============ fin REVUE V3.41 ======================================= */
+
+
 /* ============ REVUE V3.34 — etats vides guides ==============
    Le motif .card.etat-vide (emoji + texte + boutons d'action),
    deja utilise dans commandes/paniers/points, devient la norme :
