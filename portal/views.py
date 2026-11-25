@@ -2480,14 +2480,18 @@ def produit_edition_rapide(request):
 @proprietaire_requis
 def catalogue_organiser(request):
     """Réorganisation graphique DEPUIS la saisie d'une publication :
-    ▲▼ déplacent le produit dans sa rubrique, ⇄ le déplace vers une
+    GLISSER-DÉPOSER une ligne la déplace dans sa rubrique ou vers une
     autre rubrique (créée à la volée si son nom est inconnu). La
     structure modifiée est celle du CATALOGUE ACTIF — la publication
     en hérite : un seul endroit structure, tout le reste affiche.
 
-    POST : op=\"monter|descendre|rubrique:<produit.pk>\", plus pour
-    « rubrique » : rubrique_pk (rubrique existante) ou rubrique_nom
-    (création), et « suivant » (retour, chemin interne)."""
+    POST : op="ordonner" avec pks = liste ordonnée des
+    produits déplacés et rubrique_pk (rubrique cible, "" = sans
+    rubrique) ou rubrique_nom (création à la volée) ; ou les boutons
+    historiques op="monter|descendre|rubrique:<produit.pk>" ;
+    « suivant » est le retour (chemin interne). L'appel JavaScript
+    utilise fetch : pas de rechargement, les saisies en cours
+    (quantités, prix) ne sont pas perdues."""
     if request.method != "POST":
         return redirect("portal:dashboard")
     exploitant = exploitant_actif(request)
@@ -2497,6 +2501,66 @@ def catalogue_organiser(request):
         suivant = reverse("portal:dashboard")
     op = request.POST.get("op", "")
     action, _, pk = op.partition(":")
+
+    if action == "ordonner":
+        # Glisser-déposer : la page renvoie les lignes retenues de
+        # la rubrique cible DANS LEUR ORDRE AFFICHÉ ; elles prennent
+        # les positions 1..n, les autres produits de la rubrique
+        # suivent derrière (leur ordre relatif est conservé).
+        cible = None
+        nom = (request.POST.get("rubrique_nom") or "").strip()
+        if nom:
+            cible = (Categorie.objects.filter(
+                exploitant=exploitant, catalogue=catalogue,
+                nom__iexact=nom).first())
+            if cible is None:
+                derniere = (Categorie.objects.filter(
+                    exploitant=exploitant, catalogue=catalogue)
+                    .aggregate(m=Max("position"))["m"] or 0)
+                cible = Categorie.objects.create(
+                    exploitant=exploitant, catalogue=catalogue,
+                    nom=nom[:80], position=derniere + 1)
+        elif "rubrique_pk" in request.POST:
+            brut = request.POST.get("rubrique_pk") or ""
+            if brut.isdigit():
+                cible = (Categorie.objects.filter(
+                    pk=brut, exploitant=exploitant,
+                    catalogue=catalogue).first())
+        pks = []
+        for morceau in (request.POST.get("pks") or "").split(","):
+            morceau = morceau.strip()
+            if morceau.isdigit() and int(morceau) not in pks:
+                pks.append(int(morceau))
+        par_pk = {p.pk: p for p in Produit.objects.filter(
+            pk__in=pks, exploitant=exploitant, catalogue=catalogue,
+            actif=True)}
+        deplaces = [par_pk[x] for x in pks if x in par_pk]
+        if not deplaces:
+            messages.error(request, "Articles introuvables : "
+                                    "rafraîchissez la page.")
+        else:
+            deplaces_ids = {p.pk for p in deplaces}
+            autres = (Produit.objects.filter(
+                exploitant=exploitant, catalogue=catalogue, actif=True,
+                categorie=cible).exclude(pk__in=deplaces_ids)
+                .order_by("position", "id"))
+            with transaction.atomic():
+                for i, prod in enumerate(deplaces, 1):
+                    prod.categorie = cible
+                    prod.position = i
+                    prod.save(update_fields=["categorie", "position"])
+                for j, prod in enumerate(autres, len(deplaces) + 1):
+                    if prod.position != j:
+                        prod.position = j
+                        prod.save(update_fields=["position"])
+            rubetiquette = (cible.nom if cible
+                            else "sans rubrique")
+            messages.success(
+                request, str(len(deplaces)) + " article(s) classé(s) "
+                "dans « " + rubetiquette + " » (catalogue mis à jour, "
+                "affichage suivi partout).")
+        return redirect(suivant)
+
     produit = (Produit.objects
                .filter(pk=pk, exploitant=exploitant, catalogue=catalogue,
                        actif=True).first())
