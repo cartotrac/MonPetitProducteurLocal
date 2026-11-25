@@ -46,6 +46,8 @@ urlpatterns = [
          name="renvoyer_verification"),
 
     # Espace pro
+    path("espace-pro/organiser-article/", views.catalogue_organiser,
+         name="catalogue_organiser"),
     path("espace-pro/", views.dashboard, name="dashboard"),
     path("parametres/", views.parametres, name="parametres"),
     path("parametres/<str:rubrique>/", views.param_rubrique,

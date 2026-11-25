@@ -1009,6 +1009,7 @@ def producer_detail(request, slug):
         (l.produit.categorie.position if l.produit.categorie else 9999)
         or 9999,
         l.produit.categorie.nom if l.produit.categorie else "zz",
+        l.produit.position if l.produit.position is not None else 9999,
         l.produit.nom))
     groupes, courant = [], None
     for ligne in lignes:
@@ -1623,7 +1624,8 @@ def _edition_recolte(exploitant, semaine, lundi_defaut):
     catalogue = _catalogue_actif(exploitant)
     produits = (exploitant.produits.filter(actif=True, catalogue=catalogue)
                 .select_related("categorie", "origine_standard")
-                .order_by("categorie__position", "categorie__nom", "nom"))
+                .order_by("categorie__position", "categorie__nom",
+                          "position", "id", "nom"))
     groupes, ordre = {}, []
     for p in produits:
         cat = p.categorie
@@ -2475,6 +2477,101 @@ def produit_edition_rapide(request):
 
 @login_required
 @exploitant_requis
+@proprietaire_requis
+def catalogue_organiser(request):
+    """Réorganisation graphique DEPUIS la saisie d'une publication :
+    ▲▼ déplacent le produit dans sa rubrique, ⇄ le déplace vers une
+    autre rubrique (créée à la volée si son nom est inconnu). La
+    structure modifiée est celle du CATALOGUE ACTIF — la publication
+    en hérite : un seul endroit structure, tout le reste affiche.
+
+    POST : op=\"monter|descendre|rubrique:<produit.pk>\", plus pour
+    « rubrique » : rubrique_pk (rubrique existante) ou rubrique_nom
+    (création), et « suivant » (retour, chemin interne)."""
+    if request.method != "POST":
+        return redirect("portal:dashboard")
+    exploitant = exploitant_actif(request)
+    catalogue = _catalogue_actif(exploitant)
+    suivant = request.POST.get("suivant") or ""
+    if not suivant.startswith("/") or suivant.startswith("//"):
+        suivant = reverse("portal:dashboard")
+    op = request.POST.get("op", "")
+    action, _, pk = op.partition(":")
+    produit = (Produit.objects
+               .filter(pk=pk, exploitant=exploitant, catalogue=catalogue,
+                       actif=True).first())
+    if produit is None:
+        messages.error(request, "Article introuvable : rafraîchissez "
+                                "la page.")
+        return redirect(suivant)
+
+    def ordre(cat):
+        return list(Produit.objects.filter(
+            exploitant=exploitant, catalogue=catalogue, actif=True,
+            categorie=cat).order_by("position", "id"))
+
+    if action in ("monter", "descendre"):
+        lignes = ordre(produit.categorie)
+        # Positions séquencées au premier déplacement (catalogues
+        # historiques où tout est à 0) : l'ordre affiché fait loi.
+        if len({p.position for p in lignes}) != len(lignes):
+            for i, p in enumerate(lignes):
+                if p.position != i + 1:
+                    p.position = i + 1
+                    p.save(update_fields=["position"])
+            lignes = ordre(produit.categorie)
+        i = lignes.index(produit)
+        j = i - 1 if action == "monter" else i + 1
+        if 0 <= j < len(lignes):
+            autre = lignes[j]
+            produit.position, autre.position = autre.position, produit.position
+            if produit.position == autre.position:
+                # égalité résiduelle : décaler de part et d'autre
+                produit.position = min(i, j) + 1
+                autre.position = min(i, j) + 2
+            Produit.objects.filter(pk=produit.pk).update(
+                position=produit.position)
+            Produit.objects.filter(pk=autre.pk).update(
+                position=autre.position)
+    elif action == "rubrique":
+        cible = None
+        nom = (request.POST.get("rubrique_nom") or "").strip()
+        if nom:
+            cible = (Categorie.objects.filter(
+                exploitant=exploitant, catalogue=catalogue,
+                nom__iexact=nom).first())
+            if cible is None:
+                derniere = (Categorie.objects.filter(
+                    exploitant=exploitant, catalogue=catalogue)
+                    .aggregate(m=Max("position"))["m"] or 0)
+                cible = Categorie.objects.create(
+                    exploitant=exploitant, catalogue=catalogue,
+                    nom=nom[:80], position=derniere + 1)
+        elif request.POST.get("rubrique_pk"):
+            cible = (Categorie.objects.filter(
+                pk=request.POST.get("rubrique_pk"), exploitant=exploitant,
+                catalogue=catalogue).first())
+        if cible is None:
+            messages.error(request, "Rubrique inconnue : indiquez une "
+                                    "rubrique existante ou un nouveau "
+                                    "nom.")
+        elif cible.pk == produit.categorie_id:
+            messages.info(request, "« " + produit.nom + " » est déjà "
+                                  "dans la rubrique « " + cible.nom
+                                  + " ».")
+        else:
+            dernier = (ordre(cible)[-1].position if ordre(cible) else 0)
+            produit.categorie = cible
+            produit.position = dernier + 1
+            produit.save(update_fields=["categorie", "position"])
+            messages.success(
+                request, "« " + produit.nom + " » déplacé vers la "
+                "rubrique « " + cible.nom + " ».")
+    return redirect(suivant)
+
+
+@login_required
+@exploitant_requis
 def harvest_list(request):
     """Toutes les récoltes de l'exploitant (fréquence libre : hebdo,
     moins souvent… c'est lui qui choisit). Publication / dépublication
@@ -2706,8 +2803,13 @@ def harvest_manage(request, semaine_id=None, nouvelle=False):
                 defaults={"quantite_estimee": qty_d,
                           "prix_unitaire": prix_d})
         for ligne in semaine.lignes.all():
+            vide = (not request.POST.get(
+                        f"qty_{ligne.produit_id}", "").strip()
+                    and not request.POST.get(
+                        f"price_{ligne.produit_id}", "").strip())
             if (ligne.produit_id not in produits_directs
-                    and f"qty_{ligne.produit_id}" not in request.POST):
+                    and (f"qty_{ligne.produit_id}" not in request.POST
+                         or vide)):
                 ligne.delete()
         # 🔍 Le flash dit maintenant combien d'articles sont
         # réellement retenus, et prévient les publications vides :
@@ -2774,7 +2876,8 @@ def harvest_manage(request, semaine_id=None, nouvelle=False):
     catalogue = _catalogue_actif(exploitant)
     produits = (exploitant.produits.filter(actif=True, catalogue=catalogue)
                 .select_related("categorie", "origine_standard")
-                .order_by("categorie__position", "categorie__nom", "nom"))
+                .order_by("categorie__position", "categorie__nom",
+                          "position", "id", "nom"))
     groupes, ordre = {}, []
     for p in produits:
         cat = p.categorie
@@ -2808,6 +2911,7 @@ def harvest_manage(request, semaine_id=None, nouvelle=False):
         "paires": paires,
         "catalogue_actif": catalogue,
         "lundi_defaut": lundi_defaut,
+        "est_proprietaire": exploitant.user_id == request.user.id,
     })
 
 
