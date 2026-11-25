@@ -1742,6 +1742,22 @@ def dashboard(request):
     ]
     onboarding_reste = sum(1 for _, fait in onboarding if not fait)
 
+    # Rappel de ryte : la derniere publication publiee prend de l'age
+    # par rapport a la frequence reglee (hebdomadaire, quinzaine,
+    # mensuelle) -> bandeau discret sur le dashboard.
+    retard_publication = None
+    seuils_frequence = {"HEBDO": 7, "QUINZAINE": 14, "MENSUEL": 31}
+    seuil = seuils_frequence.get(
+        getattr(exploitant, "frequence_publication", "") or "", 0)
+    if seuil:
+        derniere = (SemaineRecolte.objects.filter(
+            exploitant=exploitant, publiee=True)
+            .order_by("-lundi").first())
+        if derniere is not None:
+            ecart = (timezone.localdate() - derniere.lundi).days
+            if ecart > seuil:
+                retard_publication = ecart
+
     return render(request, "portal/pro/dashboard.html", {
         "exploitant": exploitant,
         "nb_produits": len(produits),
@@ -1767,6 +1783,7 @@ def dashboard(request):
                             .exclude(statut=Panier.Statut.RECU).count(),
         "onboarding": onboarding,
         "onboarding_reste": onboarding_reste,
+        "retard_publication": retard_publication,
     })
 
 def _catalogue_actif(exploitant):

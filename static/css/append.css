@@ -6702,3 +6702,15 @@ td .etat-vide { text-align: left; }
 html.dark .onboarding { background: rgba(255, 255, 255, 0.05);
                         border-color: #4a5640; }
 /* ============ fin REVUE V3.35 ======================================= */
+
+
+/* ============ REVUE V3.36 — rappel de publication ==============
+   Bandeau discret quand la derniere publication publiee depasse
+   la frequence reglee (hebdo / quinzaine / mensuelle). ======= */
+.rappel-publication { border: 1px solid #f5a623; background: #fff8ec;
+                      padding: 0.75rem 1rem; margin-bottom: 0.9rem; }
+.rappel-publication a { font-weight: 700; }
+html.dark .rappel-publication {
+  background: rgba(245, 166, 35, 0.10); border-color: #6b5222;
+}
+/* ============ fin REVUE V3.36 ======================================= */

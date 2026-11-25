@@ -70,6 +70,15 @@
 </div>
 {% endif %}
 
+{% if retard_publication %}
+<div class="card rappel-publication">
+  ⏰ Dernière publication publiée il y a {{ retard_publication }} jours :
+  la fréquence réglée de l'espace ({{ exploitant.frequence_publication }})
+  laisse penser qu'une nouvelle est attendue.
+  <a href="{% url 'portal:harvest_new' %}">Publier maintenant</a>
+</div>
+{% endif %}
+
 <div class="quick-actions">
   {% comment %}Ligne 1 : la GESTION courante (clients, points,
      favoris). Ligne 2 : CATALOGUE puis PUBLICATION DE LA PÉRIODE
