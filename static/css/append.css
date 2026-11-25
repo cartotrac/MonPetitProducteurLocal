@@ -6740,3 +6740,18 @@ html.dark .aide-raccourcis {
 html.dark .aide-raccourcis kbd { background: #3c4433;
                                   border-color: #5a684c; }
 /* ============ fin REVUE V3.37 ======================================= */
+
+
+/* ============ REVUE V3.38 — astuce raccourcis (dashboard) ======
+   Ligne discrete sous les boutons du dashboard qui revele les
+   touches rapides ; meme style kbd que l'aide « ? ». ========= */
+.raccourcis-astuce { font-size: 0.85rem; margin: 0.45rem 0 0.9rem; }
+.raccourcis-astuce kbd, .raccourcis-astuce .kbd {
+  display: inline-block; min-width: 1.2rem; text-align: center;
+  border: 1px solid #c9d1bd; border-bottom-width: 2px;
+  border-radius: 6px; padding: 0 0.3rem; font-weight: 700;
+  background: #f1f5ec;
+}
+html.dark .raccourcis-astuce kbd { background: #3c4433;
+                                    border-color: #5a684c; }
+/* ============ fin REVUE V3.38 ======================================= */
