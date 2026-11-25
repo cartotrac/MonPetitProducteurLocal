@@ -1587,7 +1587,8 @@ def _groupes_publication(groupes, ordre):
         paires.append({
             "categorie": cat,
             "nom": cat.nom if cat else "Sans catégorie",
-            "emoji": (getattr(cat, "emoji", "") if cat else ""),
+            "emoji": next((r["produit"].emoji for r in rows
+                           if r["produit"].emoji), ""),
             "medias": list(cat.medias) if cat else [],
             "rows": rows,
             "nb_choisis": nb_choisis,
@@ -2349,11 +2350,15 @@ def produit_edition_rapide(request):
                     (p.position
                      for p in _produits_de_la_categorie(categorie)),
                     default=0) + 1)
+                nouveau_emoji = (request.POST.get("nouveau_emoji", "")
+                                  or "").strip()[:8]
                 produit = Produit.objects.create(
                     exploitant=exploitant, nom=nom[:150],
                     categorie=categorie, catalogue=catalogue,
                     unite_vente=unite, prix=prix, position=position,
-                    perso=True, emoji=emoji_pour_nom(nom[:150]))
+                    perso=True,
+                    emoji=(nouveau_emoji
+                           or emoji_pour_nom(nom[:150])))
                 messages.success(request, f"Produit « {produit.nom} » "
                                  "ajouté.")
             return redirect(destination)
@@ -2365,8 +2370,6 @@ def produit_edition_rapide(request):
             for cat in Categorie.objects.filter(
                     exploitant=exploitant, catalogue=catalogue):
                 nom = (request.POST.get(f"nom_cat_{cat.pk}", "") or "").strip()
-                emoji_cat = (request.POST.get(f"emoji_cat_{cat.pk}", "")
-                             or "").strip()
                 medias = [u.strip() for u in
                           request.POST.getlist(f"medias_cat_{cat.pk}")
                           if u.strip()]
@@ -2374,9 +2377,6 @@ def produit_edition_rapide(request):
                 modifie = False
                 if nom and nom != cat.nom:
                     cat.nom = nom[:80]
-                    modifie = True
-                if emoji_cat != cat.emoji:
-                    cat.emoji = emoji_cat[:8]
                     modifie = True
                 if medias != anciens:
                     attributs = dict(cat.attributs or {})
@@ -2431,6 +2431,9 @@ def produit_edition_rapide(request):
             brut_desc = request.POST.get(f"desc_{produit.pk}", None)
             desc_cible = (produit.description if brut_desc is None
                           else brut_desc.strip())
+            brut_emoji = request.POST.get(f"emoji_{produit.pk}", None)
+            emoji_cible = (produit.emoji if brut_emoji is None
+                           else brut_emoji.strip()[:8])
             if not nom:
                 erreurs.append(f"« {produit.nom} » : nom vide, non modifié.")
                 continue
@@ -2451,11 +2454,13 @@ def produit_edition_rapide(request):
             if (nom != produit.nom or unite != produit.unite_vente
                     or prix_cible != produit.prix
                     or desc_cible != produit.description
+                    or emoji_cible != produit.emoji
                     or media_cible != produit.image_externe):
                 produit.nom = nom[:150]
                 produit.unite_vente = unite
                 produit.prix = prix_cible
                 produit.description = desc_cible
+                produit.emoji = emoji_cible
                 _enregistrer_image_externe(produit, media_cible)
                 produit.save()
                 modifies += 1

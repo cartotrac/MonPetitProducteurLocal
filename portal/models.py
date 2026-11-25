@@ -618,9 +618,6 @@ class Categorie(models.Model):
     nom = models.CharField("Nom", max_length=80)
     slug = models.SlugField(max_length=100, blank=True)
     position = models.PositiveSmallIntegerField("Position", default=0)
-    # Emoji de la rubrique (facultatif, 8 caractères max) : affiché en tête
-    # de ses groupes dans la saisie des publications et la vitrine.
-    emoji = models.CharField("Emoji", max_length=8, blank=True)
     # Médias externes de la catégorie (liens drive/cloud, un ou
     # plusieurs) : attributs["medias"] = ["https://…", …]
     attributs = models.JSONField(

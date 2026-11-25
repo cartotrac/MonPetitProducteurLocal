@@ -92,6 +92,8 @@
       <h3>➕ Ajouter au catalogue « {{ catalogue.nom }} »</h3>
       <div class="form-row">
         <label>{{ exploitant.vocab.article|capfirst }} <input type="text" name="nouveau_nom" placeholder="Ex : Radis rose"></label>
+        <label>Emoji <input type="text" name="nouveau_emoji" maxlength="8" placeholder="🥕" size="2"
+               title="Facultatif : affiché dans les publications et la vitrine, un emoji est deviné sinon"></label>
         <label>Unité
           <select name="nouveau_unite">
             {% for code, libelle in unite_choices %}
@@ -134,9 +136,6 @@
           <header class="gestion-cat-tete">
             {% if cat.pk %}
               <span class="gestion-poignee" aria-hidden="true" title="Glissez pour réordonner les catégories (à la souris)">⠿</span>
-              <input class="gestion-cat-emoji" type="text" name="emoji_cat_{{ cat.pk }}" maxlength="8"
-               value="{{ cat.emoji|default:'' }}" placeholder="🥕"
-               title="Emoji de la rubrique (facultatif) : affiché en tête de ses groupes dans les publications — enregistré par le 💾 Tout enregistrer">
             <input class="gestion-cat-nom" type="text" name="nom_cat_{{ cat.pk }}" value="{{ cat.nom }}" maxlength="80" title="Libellé de la catégorie — enregistré par le 💾 Tout enregistrer en bas de page">
               <button type="submit" name="mouvement" value="categorie:{{ cat.pk }}:haut" class="btn btn-sm" title="Catégorie vers le haut" aria-label="Monter la catégorie">▲</button>
               <button type="submit" name="mouvement" value="categorie:{{ cat.pk }}:bas" class="btn btn-sm" title="Catégorie vers le bas" aria-label="Descendre la catégorie">▼</button>
@@ -178,6 +177,9 @@
                   {% else %}<span class="gestion-visuel-emoji">{{ produit.emoji|default:"🥕" }}</span>{% endif %}
                 </span>
                 <span class="gestion-origine" role="img" title="{% if produit.origine_standard %}Importé depuis la liste des produits types : {{ produit.origine_standard.get_activite_display }}{% else %}Article créé par vous{% endif %}">{% if produit.origine_standard %}📦{% else %}✍️{% endif %}</span>
+                <label class="gestion-champ"><span>Emoji</span>
+                  <input type="text" name="emoji_{{ produit.pk }}" value="{{ produit.emoji }}" maxlength="8" size="2" placeholder="🥕"
+                         title="Emoji de l'article (facultatif) : affiché dans les publications et la vitrine — enregistré par le 💾 Tout enregistrer"></label>
                 <label class="gestion-champ"><span>Nom</span>
                   <input type="text" name="nom_{{ produit.pk }}" value="{{ produit.nom }}" maxlength="150"></label>
                 <label class="gestion-champ"><span>Unité</span>
