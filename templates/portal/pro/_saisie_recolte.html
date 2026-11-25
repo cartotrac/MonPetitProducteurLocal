@@ -34,9 +34,40 @@ et retour="dashboard" (édition en ligne).
     {% endif %}
   </div>
 
+  <details class="saisie-nouveau card">
+    <summary><strong>✨ Nouveau {{ exploitant_courant.vocab.article }}</strong>
+      <span class="muted">— absent du catalogue ? créez-le ici : il rejoint le catalogue actif ET cette publication en un seul 💾</span></summary>
+    <div class="form-row saisie-nouveau-champs">
+      <label>Nom
+        <input type="text" name="np_nom" maxlength="150" required></label>
+      <label>Emoji
+        <input type="text" name="np_emoji" maxlength="8" placeholder="🥕"
+               title="Facultatif : un emoji est deviné sinon"></label>
+      <label>Rubrique
+        <input type="text" name="np_cat_nom" maxlength="80"
+               placeholder="Ex : Légumes (vide = sans rubrique)"
+               title="Rubrique du catalogue actif : rattachée si elle existe, créée sinon"></label>
+      <label>Unité
+        <select name="np_unite">
+          <option value="KG">le kg</option>
+          <option value="PC">la pièce</option>
+          <option value="BO">la botte</option>
+          <option value="BQ">la barquette</option>
+        </select></label>
+      <label>Prix €
+        <input type="text" name="np_prix" inputmode="decimal" placeholder="Ex : 4,50"
+               title="Devient son prix de référence au catalogue et son prix dans cette publication"></label>
+      <label>Quantité estimée (facultatif)
+        <input type="text" name="np_qty" inputmode="decimal" placeholder="Ex : 20"></label>
+    </div>
+    <p class="muted">Enregistré avec le reste du formulaire (💾 en bas de
+       page) : une fois rechargée, la liste de sa rubrique ci-dessous
+       propose aussi le produit pour les publications suivantes.</p>
+  </details>
+
   {% for groupe in paires %}
     <section class="harvest-cat">
-      <h3>{{ groupe.nom }}
+      <h3>{% if groupe.emoji %}{{ groupe.emoji }} {% endif %}{{ groupe.nom }}
         <span class="muted">({{ groupe.nb_choisis }} retenue{{ groupe.nb_choisis|pluralize }} sur {{ groupe.rows|length }} au catalogue)</span>
         {% for m in groupe.medias %}<img class="vignette-produit recolte-media-cat" src="{{ m }}" alt="" loading="lazy">{% endfor %}</h3>
       <table class="table">
