@@ -6784,6 +6784,33 @@ tr.recolte-tirable.retrait-attente td { opacity: 0.5; }
 html.dark .recolte-zone-rubrique { border-color: rgba(255,255,255,0.3); }
 html.dark .recolte-zone-active { background: rgba(150, 200, 110, 0.2); }
 /* ===== fin V3.46 ===== */
+/* ===== V3.47 — lot 4 : rubriques réordonnables au glisser-déposer
+   (poignée = titre de section), renommage en place (✏️), rubriques
+   sans retenu repliées en bas, bloc « ✨ Nouveau » refondu
+   (3 lignes, unité personnalisée, ➕ immédiat, palette émoji
+   compacte). ===== */
+h3.recolte-cat-tire { cursor: grab; user-select: none; }
+h3.recolte-cat-tire:active { cursor: grabbing; }
+h3.recolte-cat-tire .recolte-renommer { margin-left: 0.35rem; }
+section.harvest-cat { border-radius: 0.4rem; }
+h3.recolte-cat-tire:hover { background: rgba(127, 127, 127, 0.1); }
+details.saisie-sans { margin: 0.9rem 0; padding: 0.7rem 1rem;
+  border: 1px dashed rgba(127, 127, 127, 0.5); }
+details.saisie-sans > summary { cursor: pointer; }
+details.saisie-sans[open] > summary { margin-bottom: 0.6rem; }
+html.dark details.saisie-sans {
+  border-color: rgba(255, 255, 255, 0.25); }
+.saisie-np-ligne { margin-top: 0.15rem; }
+.saisie-np-ligne select, .saisie-np-ligne label {
+  min-width: 12em; }
+.saisie-np-derniere button.btn { align-self: flex-end; margin-bottom: 0.2rem; }
+.emoji2-compacte { max-width: 15rem; }
+.emoji2-compacte .emoji2-grille { max-height: 10rem;
+  overflow-y: auto; }
+.emoji2-compacte .emoji2-choix { font-size: 1rem; padding: 0.05rem 0.2rem; }
+.emoji2-compacte .emoji2-famille, .emoji2-compacte .emoji2-tous {
+  font-size: 0.72rem; padding: 0.1rem 0.35rem; }
+/* ===== fin V3.47 ===== */
 
 /* ===== V3.44 — REVUE PARCOURS PRO lot 2 : palette émojis v2 ===== */
 .emoji2-panneau { position: absolute; z-index: 1200; display: flex; flex-direction: column;

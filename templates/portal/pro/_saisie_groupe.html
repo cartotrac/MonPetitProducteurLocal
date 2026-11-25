@@ -1,0 +1,36 @@
+{% load l10n %}{% comment %}Section « rubrique » de la zone de saisie
+d'une publication : tableau des lignes retenues + produits disponibles
+à l'import. Utilisée DEUX FOIS : rubriques avec retenues (liste
+principale, réordonnables au glisser-déposer) et, repliée en bas,
+rubriques sans aucun retenu (n'apparaissent jamais sur la vitrine).
+Attend : groupe (dict _groupes_publication), est_proprietaire,
+user.{% endcomment %}<section class="harvest-cat" data-cat="{{ groupe.categorie.pk|default:'' }}" data-nom="{{ groupe.nom }}">
+  <h3{% if est_proprietaire or user.is_superuser %} class="recolte-cat-tire" draggable="true" title="Glissez le titre pour réordonner la rubrique (ordre enregistré au catalogue actif, suivi partout)"{% endif %}>{% if groupe.emoji %}{{ groupe.emoji }} {% endif %}<span class="recolte-cat-nom">{{ groupe.nom }}</span>
+    <span class="muted">({{ groupe.nb_choisis }} retenue{{ groupe.nb_choisis|pluralize }} sur {{ groupe.rows|length }} au catalogue)</span>
+    {% for m in groupe.medias %}<img class="vignette-produit recolte-media-cat" src="{{ m }}" alt="" loading="lazy">{% endfor %}
+    {% if groupe.categorie %}{% if est_proprietaire or user.is_superuser %}<button type="button" class="btn btn-sm btn-outline recolte-renommer" title="Renommer la rubrique : répercuté sur le catalogue actif, toutes les publications et la vitrine">✏️</button>{% endif %}{% endif %}</h3>
+  <table class="table">
+    <thead><tr><th>Produit</th><th>Quantité estimée (facultatif)</th><th>Prix unitaire (€)</th><th></th></tr></thead>
+    <tbody>
+    {% for row in groupe.rows %}{% if row.choisi %}{% include "portal/pro/_saisie_ligne.html" %}{% endif %}{% endfor %}
+    </tbody>
+    {% if groupe.nb_dispo %}
+    <tbody class="recolte-dispo" hidden>
+    {% for row in groupe.rows %}{% if not row.choisi %}
+      <tr data-nom="{{ row.produit.nom }}">
+        <td>{% if row.produit.illustration %}<img class="vignette-produit" src="{{ row.produit.illustration.url }}" alt="">{% elif row.produit.image_externe %}<img class="vignette-produit" src="{{ row.produit.image_externe }}" alt="" loading="lazy">{% endif %}{% if row.produit.emoji %}{{ row.produit.emoji }} {% elif row.produit.origine_standard and row.produit.origine_standard.emoji %}{{ row.produit.origine_standard.emoji }} {% endif %}{{ row.produit.nom }}
+          <span class="muted">({{ row.produit.get_unite_vente_display }})</span>
+          {% if row.produit.prix %}<span class="muted">· réf. {{ row.produit.prix }} €</span>{% endif %}
+          {% if row.produit.description %}<br><span class="muted">{{ row.produit.description|truncatechars:70 }}</span>{% endif %}</td>
+        <td><input type="number" step="{{ row.step }}" min="0" name="qty_{{ row.produit.pk }}" placeholder="quantité…"></td>
+        <td><input type="number" step="0.01" min="0" name="price_{{ row.produit.pk }}"
+                   value="" data-ref="{{ row.price|unlocalize }}"
+                   title="Prix de référence du catalogue : {% if row.price %}{{ row.price }} € — {% endif %}cliquez ➕ ou saisissez pour retenir ce produit"></td>
+        <td><button type="button" class="btn btn-sm btn-outline recolte-ajouter" title="Importer ce produit dans la publication (son prix de référence est repris)">➕</button></td>
+      </tr>
+    {% endif %}{% endfor %}
+    </tbody>
+    {% endif %}
+  </table>
+  {% if groupe.nb_dispo %}<button type="button" class="btn btn-sm btn-outline recolte-ajouter-tout" title="Importe la rubrique entière : chaque produit reprend son prix de référence et entre dans la publication">➕ Importer les {{ groupe.nb_dispo }} produit{{ groupe.nb_dispo|pluralize }} non affiché{{ groupe.nb_dispo|pluralize }}</button>{% endif %}
+</section>

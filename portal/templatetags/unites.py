@@ -49,3 +49,14 @@ def get_item(dico, cle):
         return dico.get(cle, "")
     except AttributeError:
         return ""
+
+
+@register.filter
+def contient_sans_choisi(paires):
+    """Vrai si au moins un groupe de la publication saisonnière n'a
+    AUCUN produit retenu : ces rubriques sont repliées en bas de la
+    zone de saisie (elles n'apparaissent jamais sur la vitrine)."""
+    try:
+        return any(not g.get("nb_choisis") for g in paires)
+    except (TypeError, AttributeError):
+        return False
