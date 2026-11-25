@@ -23,6 +23,7 @@ from django.db import transaction
 from django.db.models import Count, Max, Q
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 
@@ -2560,6 +2561,156 @@ def catalogue_organiser(request):
                 "dans « " + rubetiquette + " » (catalogue mis à jour, "
                 "affichage suivi partout).")
         return redirect(suivant)
+
+    if action == "cats_ordonner":
+        # Glisser-déposer d'un TITRE de rubrique : la page renvoie
+        # les rubriques de la liste principale dans leur ordre
+        # affiché ; celles absentes (la publication n'en affiche
+        # aucune retenue, ou la liste est partielle) passent après,
+        # dans leur ordre relatif actuel.
+        id_cats = []
+        for morceau in (request.POST.get("pks") or "").split(","):
+            morceau = morceau.strip()
+            if morceau.isdigit() and int(morceau) not in id_cats:
+                id_cats.append(int(morceau))
+        vues = list(Categorie.objects.filter(
+            pk__in=id_cats, exploitant=exploitant, catalogue=catalogue))
+        par_pk = {c.pk: c for c in vues}
+        classees = [par_pk[x] for x in id_cats if x in par_pk]
+        autres = (Categorie.objects.filter(
+            exploitant=exploitant, catalogue=catalogue)
+            .exclude(pk__in={c.pk for c in classees})
+            .order_by("position", "id"))
+        if not classees:
+            messages.error(request, "Rubriques introuvables : "
+                                    "rafraîchissez la page.")
+        else:
+            with transaction.atomic():
+                for i, cat_ in enumerate(classees, 1):
+                    if cat_.position != i:
+                        cat_.position = i
+                        cat_.save(update_fields=["position"])
+                for j, cat_ in enumerate(autres, len(classees) + 1):
+                    if cat_.position != j:
+                        cat_.position = j
+                        cat_.save(update_fields=["position"])
+            messages.success(
+                request, "Rubriques réordonnées : l'ordre est suivi "
+                "partout (catalogue, publications, vitrine).")
+        return redirect(suivant)
+
+    if action == "cat_renommer":
+        # ✏️ renommage en place ; répercuté au catalogue actif et
+        # donc à toutes les publications et à la vitrine.
+        cat_ = (Categorie.objects.filter(
+            pk=(pk if pk.isdigit() else None), exploitant=exploitant,
+            catalogue=catalogue).first())
+        nom = (request.POST.get("nom") or "").strip()
+        if cat_ is None:
+            return JsonResponse({"statut": "erreur",
+                                 "erreur": "Rubrique introuvable : "
+                                           "rafraîchissez la page."})
+        if not nom:
+            return JsonResponse({"statut": "erreur",
+                                 "erreur": "Nom vide : renommage annulé."})
+        if Categorie.objects.filter(
+                exploitant=exploitant, catalogue=catalogue,
+                nom__iexact=nom).exclude(pk=cat_.pk).exists():
+            return JsonResponse({"statut": "erreur",
+                                 "erreur": "Une rubrique « " + nom
+                                           + " » existe déjà dans ce "
+                                           "catalogue."})
+        cat_.nom = nom[:80]
+        cat_.save(update_fields=["nom"])
+        return JsonResponse({"statut": "ok", "nom": cat_.nom})
+
+    if action == "produit_creer":
+        # ➕ du bloc « ✨ Nouveau » : création immédiate dans le
+        # catalogue actif (fetch). La ligne retournée est insérée
+        # dans la page sans rechargement ; ses quantité/prix seront
+        # enregistrées par le 💾 habituel, comme tout le reste.
+        np_nom = (request.POST.get("np_nom", "") or "").strip()
+        if not np_nom:
+            return JsonResponse({"statut": "erreur",
+                                 "erreur": "Nom vide : article non créé."})
+        np_unite = (request.POST.get("np_unite", "") or "").strip()
+        if np_unite == "__perso":
+            np_unite = (request.POST.get("np_unite_nom", "")
+                        or "").strip()
+        if not (np_unite in Produit.Unite.values
+                or (np_unite and len(np_unite) <= 16)):
+            return JsonResponse({"statut": "erreur",
+                                 "erreur": "Unité inconnue : choisissez "
+                                           "dans la liste ou saisissez un "
+                                           "libellé personnalisé."})
+        np_prix = None
+        np_brut = (request.POST.get("np_prix", "") or "").strip().replace(",", ".")
+        if np_brut:
+            try:
+                np_prix = Decimal(np_brut)
+            except InvalidOperation:
+                return JsonResponse({"statut": "erreur",
+                                     "erreur": "Prix invalide."})
+        np_qty = None
+        np_qty_brut = (request.POST.get("np_qty", "")
+                       or "").strip().replace(",", ".")
+        if np_qty_brut:
+            try:
+                np_qty = Decimal(np_qty_brut)
+            except InvalidOperation:
+                return JsonResponse({"statut": "erreur",
+                                     "erreur": "Quantité invalide."})
+        np_cat = None
+        brut_cat = (request.POST.get("np_cat_pk", "") or "").strip()
+        if brut_cat.isdigit():
+            np_cat = (Categorie.objects.filter(
+                pk=brut_cat, exploitant=exploitant,
+                catalogue=catalogue).first())
+        np_cat_nom = (request.POST.get("np_cat_nom", "") or "").strip()
+        if np_cat is None and np_cat_nom:
+            np_cat = (Categorie.objects.filter(
+                exploitant=exploitant, catalogue=catalogue,
+                nom__iexact=np_cat_nom).first())
+            if np_cat is None:
+                position_cat = (Categorie.objects.filter(
+                    exploitant=exploitant, catalogue=catalogue)
+                    .aggregate(m=Max("position"))["m"] or 0)
+                np_cat = Categorie.objects.create(
+                    exploitant=exploitant, nom=np_cat_nom[:80],
+                    position=position_cat + 1, catalogue=catalogue)
+        np_emoji = (request.POST.get("np_emoji", "") or "").strip()
+        position_p = ((Produit.objects.filter(
+            exploitant=exploitant, catalogue=catalogue, actif=True,
+            categorie=np_cat).aggregate(
+            m=Max("position"))["m"] or 0) + 1)
+        produit = Produit.objects.create(
+            exploitant=exploitant, nom=np_nom[:150], categorie=np_cat,
+            catalogue=catalogue, unite_vente=np_unite, prix=np_prix,
+            position=position_p, perso=True,
+            emoji=(np_emoji or emoji_pour_nom(np_nom[:150])))
+        produit = (Produit.objects
+                   .select_related("categorie", "origine_standard")
+                   .get(pk=produit.pk))
+        row = {
+            "produit": produit, "qty": np_qty, "price": np_prix,
+            "reprise": False, "choisi": True,
+            "step": ("0.01" if produit.unite_vente == "KG" else "1"),
+        }
+        ligne_html = render_to_string(
+            "portal/pro/_saisie_ligne.html",
+            {"row": row, "est_proprietaire": True,
+             "user": request.user}, request)
+        return JsonResponse({
+            "statut": "ok",
+            "produit": produit.pk,
+            "row": ligne_html,
+            "categorie": ({"pk": np_cat.pk, "nom": np_cat.nom}
+                          if np_cat else {"pk": None, "nom": "Sans catégorie"}),
+            "emoji_categorie": (np_cat.produits.filter(actif=True)
+                                .exclude(emoji="").values_list(
+                                    "emoji", flat=True).first()
+                                if np_cat else ""),
+        })
 
     produit = (Produit.objects
                .filter(pk=pk, exploitant=exploitant, catalogue=catalogue,

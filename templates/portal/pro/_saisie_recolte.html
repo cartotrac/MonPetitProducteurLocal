@@ -1,4 +1,5 @@
 {% load l10n %}
+{% load unites %}
 {% comment %}
 Zone de saisie d'une publication saisonnière, partagée entre la page
 de saisie (harvest_form.html) et le dashboard (édition en ligne sous
@@ -36,89 +37,62 @@ et retour="dashboard" (édition en ligne).
 
   <details class="saisie-nouveau card">
     <summary><strong>✨ Nouveau {{ exploitant_courant.vocab.article }}</strong>
-      <span class="muted">— absent du catalogue ? créez-le ici : il rejoint le catalogue actif ET cette publication en un seul 💾</span></summary>
-    <div class="form-row saisie-nouveau-champs">
-      <label>Nom
-        <input type="text" name="np_nom" maxlength="150"></label>
-      <label>Emoji
-        <input type="text" name="np_emoji" maxlength="8" placeholder="🥕" class="emoji-choix"
-               title="Facultatif : cliquez pour choisir, un emoji est deviné sinon"></label>
+      <span class="muted">— absent du catalogue ? créez-le ici : ➕ l'ajoute au catalogue actif et à cette publication, sans rechargement</span></summary>
+    <div class="form-row saisie-nouveau-champs saisie-np-ligne">
       <label>Rubrique
-        <input type="text" name="np_cat_nom" maxlength="80"
-               placeholder="Ex : Légumes (vide = sans rubrique)"
-               title="Rubrique du catalogue actif : rattachée si elle existe, créée sinon"></label>
+        <select id="np-cat-select" name="np_cat_pk">
+          <option value="">— sans rubrique —</option>
+          {% for g in paires %}{% if g.categorie.pk %}<option value="{{ g.categorie.pk }}">{{ g.nom }}</option>{% endif %}{% endfor %}
+          <option value="nouvelle">✨ Nouvelle rubrique…</option>
+        </select>
+        <input type="text" id="np-cat-nom" name="np_cat_nom" maxlength="80"
+               placeholder="Nom de la nouvelle rubrique" hidden></label>
+    </div>
+    <div class="form-row saisie-nouveau-champs saisie-np-ligne">
+      <label>Emoji
+        <input type="text" name="np_emoji" maxlength="8" placeholder="🥕" class="emoji-choix emoji-compacte"
+               title="Facultatif : cliquez pour choisir, un emoji est deviné sinon"></label>
+      <label>Nom
+        <input type="text" id="np-nom" name="np_nom" maxlength="150" placeholder="Ex : Butternut"></label>
+      <label>Quantité estimée (facultatif)
+        <input type="text" name="np_qty" inputmode="decimal" placeholder="Ex : 20"></label>
+    </div>
+    <div class="form-row saisie-nouveau-champs saisie-np-ligne saisie-np-derniere">
+      <label>Prix €
+        <input type="text" name="np_prix" inputmode="decimal" placeholder="Ex : 4,50"
+               title="Devient son prix de référence au catalogue et son prix dans cette publication"></label>
       <label>Unité
-        <select name="np_unite">
+        <select id="np-unite" name="np_unite">
           <option value="KG">le kg</option>
           <option value="PC">la pièce</option>
           <option value="BO">la botte</option>
           <option value="BQ">la barquette</option>
-        </select></label>
-      <label>Prix €
-        <input type="text" name="np_prix" inputmode="decimal" placeholder="Ex : 4,50"
-               title="Devient son prix de référence au catalogue et son prix dans cette publication"></label>
-      <label>Quantité estimée (facultatif)
-        <input type="text" name="np_qty" inputmode="decimal" placeholder="Ex : 20"></label>
+          <option value="__perso">✨ personnalisée…</option>
+        </select>
+        <input type="text" id="np-unite-nom" maxlength="16" placeholder="Ex : le panier"
+               title="Libellé libre (16 caractères max)" hidden></label>
+      <button type="button" id="np-creer" class="btn" title="Créer l'article : ajouté au catalogue actif et à la publication en cours">➕</button>
     </div>
-    <p class="muted">Enregistré avec le reste du formulaire (💾 en bas de
-       page) : une fois rechargée, la liste de sa rubrique ci-dessous
-       propose aussi le produit pour les publications suivantes.</p>
+    <p class="muted">➕ crée l'article immédiatement ; ses quantité et prix sont retenus avec le reste au 💾.</p>
   </details>
 
-  {% for groupe in paires %}
-    <section class="harvest-cat" data-cat="{{ groupe.categorie.pk|default:'' }}" data-nom="{{ groupe.nom }}">
-      <h3>{% if groupe.emoji %}{{ groupe.emoji }} {% endif %}{{ groupe.nom }}
-        <span class="muted">({{ groupe.nb_choisis }} retenue{{ groupe.nb_choisis|pluralize }} sur {{ groupe.rows|length }} au catalogue)</span>
-        {% for m in groupe.medias %}<img class="vignette-produit recolte-media-cat" src="{{ m }}" alt="" loading="lazy">{% endfor %}</h3>
-      <table class="table">
-        <thead><tr><th>Produit</th><th>Quantité estimée (facultatif)</th><th>Prix unitaire (€)</th><th></th></tr></thead>
-        <tbody>
-        {% for row in groupe.rows %}{% if row.choisi %}
-          <tr class="{% if row.reprise %}reprise{% endif %}{% if est_proprietaire or user.is_superuser %} recolte-tirable{% endif %}"
-              {% if est_proprietaire or user.is_superuser %}draggable="true"{% endif %}
-              title="{% if est_proprietaire or user.is_superuser %}Glissez cette ligne pour la déplacer dans la rubrique ou vers une autre rubrique ; {% endif %}⛔ la retire de la publication">
-            <td>{% if row.produit.illustration %}<img class="vignette-produit" src="{{ row.produit.illustration.url }}" alt="">{% elif row.produit.image_externe %}<img class="vignette-produit" src="{{ row.produit.image_externe }}" alt="" loading="lazy">{% endif %}{% if row.produit.emoji %}{{ row.produit.emoji }} {% elif row.produit.origine_standard and row.produit.origine_standard.emoji %}{{ row.produit.origine_standard.emoji }} {% endif %}<strong>{{ row.produit.nom }}</strong>
-              <span class="muted">({{ row.produit.get_unite_vente_display }})</span>
-              {% if row.produit.origine_standard %}<span class="origine-produit importe" title="Importé depuis la liste {{ row.produit.origine_standard.get_activite_display }}">📦</span>{% else %}<span class="origine-produit perso" title="Article créé par vous">✍️</span>{% endif %}
-              {% if est_proprietaire or user.is_superuser %}<a class="btn btn-sm btn-outline" href="{% url 'portal:product_edit' row.produit.pk %}" title="Éditer l'article : libellé, prix de référence, illustration, descriptif">📝</a>{% endif %}
-              {% if row.produit.description %}<br><span class="muted">{{ row.produit.description|truncatechars:70 }}</span>{% endif %}
-              {% if row.reprise %}<span class="badge badge-off">reprise</span>{% endif %}</td>
-            <td><input type="number" step="{{ row.step }}" min="0" name="qty_{{ row.produit.pk }}"
-                       value="{% if row.qty %}{{ row.qty|unlocalize }}{% endif %}"></td>
-            <td><input type="number" step="0.01" min="0" name="price_{{ row.produit.pk }}"
-                       value="{% if row.price %}{{ row.price|unlocalize }}{% endif %}"></td>
-            <td class="recolte-actions">
-              <button type="button" class="btn btn-sm btn-outline recolte-retirer"
-                      title="Retirer de la publication : quantité et prix vidés, la ligne quittera la publication au prochain 💾">⛔</button>
-            </td>
-          </tr>
-        {% endif %}{% endfor %}
-        </tbody>
-        {% if groupe.nb_dispo %}
-        <tbody class="recolte-dispo" hidden>
-        {% for row in groupe.rows %}{% if not row.choisi %}
-          <tr data-nom="{{ row.produit.nom }}">
-            <td>{% if row.produit.illustration %}<img class="vignette-produit" src="{{ row.produit.illustration.url }}" alt="">{% elif row.produit.image_externe %}<img class="vignette-produit" src="{{ row.produit.image_externe }}" alt="" loading="lazy">{% endif %}{% if row.produit.emoji %}{{ row.produit.emoji }} {% elif row.produit.origine_standard and row.produit.origine_standard.emoji %}{{ row.produit.origine_standard.emoji }} {% endif %}{{ row.produit.nom }}
-              <span class="muted">({{ row.produit.get_unite_vente_display }})</span>
-              {% if row.produit.prix %}<span class="muted">· réf. {{ row.produit.prix }} €</span>{% endif %}
-              {% if row.produit.description %}<br><span class="muted">{{ row.produit.description|truncatechars:70 }}</span>{% endif %}</td>
-            <td><input type="number" step="{{ row.step }}" min="0" name="qty_{{ row.produit.pk }}" placeholder="quantité…"></td>
-            <td><input type="number" step="0.01" min="0" name="price_{{ row.produit.pk }}"
-                       value="" data-ref="{{ row.price|unlocalize }}"
-                       title="Prix de référence du catalogue : {% if row.price %}{{ row.price }} € — {% endif %}cliquez ➕ ou saisissez pour retenir ce produit"></td>
-            <td><button type="button" class="btn btn-sm btn-outline recolte-ajouter" title="Importer ce produit dans la publication (son prix de référence est repris)">➕</button></td>
-          </tr>
-        {% endif %}{% endfor %}
-        </tbody>
-        {% endif %}
-      </table>
-      {% if groupe.nb_dispo %}<button type="button" class="btn btn-sm btn-outline recolte-ajouter-tout" title="Importe la rubrique entière : chaque produit reprend son prix de référence et entre dans la publication">➕ Importer les {{ groupe.nb_dispo }} produit{{ groupe.nb_dispo|pluralize }} non affiché{{ groupe.nb_dispo|pluralize }}</button>{% endif %}
-    </section>
-  {% empty %}
+  {% if paires %}
+    {% for groupe in paires %}{% if groupe.nb_choisis %}
+      {% include "portal/pro/_saisie_groupe.html" %}
+    {% endif %}{% endfor %}
+    {% if paires|contient_sans_choisi %}
+    <details class="saisie-sans card" id="saisie-sans">
+      <summary><strong>🗂️ Rubriques restées sans {{ exploitant_courant.vocab.article }} retenu</strong>
+        <span class="muted">— repliées en bas de la publication : rien n'en apparaît sur la vitrine ni chez les clients tant qu'un article n'y est pas retenu</span></summary>
+      {% for groupe in paires %}{% if not groupe.nb_choisis %}
+        {% include "portal/pro/_saisie_groupe.html" %}
+      {% endif %}{% endfor %}
+    </details>
+    {% endif %}
+  {% else %}
     <p class="muted">Ajoutez d'abord des {{ exploitant_courant.vocab.articles }} à votre catalogue
       (par exemple via « Importer des produits types »).</p>
-  {% endfor %}
-
+  {% endif %}
 {% if est_proprietaire or user.is_superuser %}
   <div class="recolte-zone-rubrique" id="recolte-zone-rubrique">➕ Nouvelle rubrique : glissez-déposez ici un article pour créer une rubrique</div>
 {% endif %}
@@ -141,21 +115,66 @@ et retour="dashboard" (édition en ligne).
 {% endif %}
 <script>
 /* Gestion graphique de la publication :
-   - ⛔ retire une ligne retenue : champs vidés, ligne barrée en
-     attente, elle quittera la publication au prochain 💾 ;
-   - GLISSER-DÉPOSER (gérant) réorganise le catalogue actif : dans
-     la rubrique (ordre), vers une autre rubrique (déposez la ligne
-     dessus), ou vers une NOUVELLE rubrique (zone dédiée en bas).
-     Les déplacements partent par fetch (pas de rechargement : les
-     saisies en cours sont conservées). */
+   - ⛔ retire une ligne retenue : champs vidés, ligne barrée, elle
+     quittera la publication au prochain 💾 ;
+   - GLISSER-DÉPOSER une LIGNE (gérant) : réordonne dans la rubrique,
+     change de rubrique, ou crée une rubrique (zone dédiée en bas) ;
+   - GLISSER-DÉPOSER un TITRE de rubrique (gérant) : réordonne les
+     rubriques de la liste principale ;
+   - ✏️ renomme une rubrique (répercuté au catalogue, aux
+     publications et à la vitrine) ;
+   - ➕ du bloc « ✨ Nouveau » crée l'article immédiatement (fetch,
+     sans rechargement : les saisies en cours sont conservées).
+   Tout part par fetch au formulaire org-form, sans rechargement. */
 (function () {
-  var forme = document.getElementById("org-form");
-  var jeton = forme
-    ? forme.querySelector('[name="csrfmiddlewaretoken"]').value : "";
-  var peutGlisser = !!forme;
-  var tiree = null;
-  var urlOrg = forme ? forme.getAttribute("action") : "";
+  var forme = document.querySelector("form.harvest-form");
+  var org = document.getElementById("org-form");
+  var peutGerer = !!org;
+  var jeton = org ? org.querySelector('[name="csrfmiddlewaretoken"]').value : "";
+  var urlOrg = org ? org.getAttribute("action") : "";
+  var tiree = null;        /* <tr> en glissement */
+  var tireeCat = null;     /* <section> en glissement */
 
+  function postOrg(donnees, apres) {
+    donnees.append("suivant", location.pathname + location.search);
+    var corps = new URLSearchParams();
+    donnees.forEach(function (v, k) { corps.append(k, v); });
+    return fetch(urlOrg, {
+      method: "POST", body: corps, credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-CSRFToken": jeton
+      }
+    }).then(function (r) {
+      if (!r.ok) { throw new Error("erreur " + r.status); }
+      return r;
+    });
+  }
+  function esc(t) {
+    return String(t == null ? "" : t)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function rafraichirCompteur() {
+    if (forme) { forme.dispatchEvent(new Event("input")); }
+  }
+  function marquerCompteur(section) {
+    /* met à jour « N retenue(s) sur M au catalogue » depuis le DOM */
+    var h3 = section.querySelector("h3");
+    var span = h3 ? h3.querySelector("span.muted") : null;
+    if (!span) { return; }
+    var retenues = section.querySelectorAll(
+      "tbody:not(.recolte-dispo) tr").length;
+    var total = retenues
+      + section.querySelectorAll(".recolte-dispo tr").length;
+    span.textContent = "(" + retenues + " retenue"
+      + (retenues > 1 ? "s" : "") + " sur " + total + " au catalogue)";
+  }
+  function rafraichirTitres() {
+    forme.querySelectorAll("section.harvest-cat").forEach(marquerCompteur);
+  }
+
+  /* ------- ⛔ retrait (annulable en ressaisissant) ------- */
   document.addEventListener("click", function (e) {
     var retirer = e.target.closest(".recolte-retirer");
     if (retirer) {
@@ -170,96 +189,128 @@ et retour="dashboard" (édition en ligne).
           + "ligne quittera la publication au prochain 💾";
     }
   });
-  /* ⛔ annulé si l'utilisateur ressaisit une valeur */
   document.addEventListener("input", function (e) {
     var tr = e.target.closest("tr");
     if (tr) { tr.classList.remove("retrait-attente"); }
   });
 
-  /* --- moteur de glisser-déposer --- */
-  function pksAffiches(section) {
-    var pks = [];
-    section.querySelectorAll("tbody:not(.recolte-dispo) tr").forEach(
-      function (tr) {
-        var q = tr.querySelector('input[name^="qty_"]');
-        if (q) { pks.push(q.name.slice(4)); }
-      });
-    return pks;
-  }
-  function envoyer(donnees, apres) {
-    donnees.append("op", "ordonner");
-    var corps = new URLSearchParams();
-    donnees.forEach(function (v, k) { corps.append(k, v); });
-    fetch(urlOrg, {
-      method: "POST", body: corps, credentials: "same-origin",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "X-CSRFToken": jeton
+  if (peutGerer) {
+    /* ------- glisser-déposer général (délégation au formulaire) ------- */
+    forme.addEventListener("dragstart", function (e) {
+      var h3 = (e.target.closest ? e.target.closest("h3") : null);
+      var tr = (e.target.closest ? e.target.closest("tr") : null);
+      if (h3 && h3.classList.contains("recolte-cat-tire")
+          && h3.closest("section.harvest-cat")) {
+        tireeCat = h3.closest("section.harvest-cat");
+        e.dataTransfer.effectAllowed = "move";
+        try { e.dataTransfer.setData("text/plain", "mppl-cat"); }
+        catch (err) { }
+        return;
       }
-    }).then(function (r) {
-      if (!r.ok) { throw new Error("erreur " + r.status); }
-      if (apres) { apres(); }
-    }).catch(function (err) {
-      alert("Déplacement non enregistré (" + err.message
-            + "). Rechargez la page et réessayez.");
+      if (tr && tr.closest("tbody:not(.recolte-dispo)")
+          && tr.closest("section.harvest-cat")) {
+        tiree = tr;
+        tr.classList.add("recolte-tiree");
+        e.dataTransfer.effectAllowed = "move";
+        try { e.dataTransfer.setData("text/plain", "mppl"); }
+        catch (err) { }
+      }
     });
-  }
-  function classerSection(section, apres) {
-    if (!peutGlisser || !section) { return; }
-    var pks = pksAffiches(section);
-    if (!pks.length) { return; }
-    var donnees = new FormData();
-    donnees.append("pks", pks.join(","));
-    donnees.append("rubrique_pk", section.getAttribute("data-cat") || "");
-    donnees.append("suivant", location.pathname + location.search);
-    envoyer(donnees, apres);
-  }
-  function propre() {
-    if (tiree) { tiree.classList.remove("recolte-tiree"); }
-    tiree = null;
-    var zone = document.getElementById("recolte-zone-rubrique");
-    if (zone) { zone.classList.remove("recolte-zone-active"); }
-  }
-
-  if (peutGlisser) {
-    document.querySelectorAll(".harvest-form tbody:not(.recolte-dispo)")
-      .forEach(function (tbody) {
-        tbody.addEventListener("dragstart", function (e) {
-          var tr = (e.target.closest ? e.target.closest("tr") : null);
-          if (!tr || !tbody.contains(tr)) { e.preventDefault(); return; }
-          tiree = tr;
-          tr.classList.add("recolte-tiree");
-          e.dataTransfer.effectAllowed = "move";
-          try { e.dataTransfer.setData("text/plain", "mppl"); }
-          catch (err) { }
+    forme.addEventListener("dragend", function () {
+      if (tiree) { tiree.classList.remove("recolte-tiree"); }
+      tiree = null; tireeCat = null;
+    });
+    function pksSection(section) {
+      var pks = [];
+      section.querySelectorAll("tbody:not(.recolte-dispo) tr").forEach(
+        function (tr) {
+          var q = tr.querySelector('input[name^="qty_"]');
+          if (q) { pks.push(q.name.slice(4)); }
         });
-        tbody.addEventListener("dragend", propre);
-        tbody.addEventListener("dragover", function (e) {
-          if (!tiree) { return; }
-          e.preventDefault();
-          e.dataTransfer.dropEffect = "move";
-          var tr = e.target.closest ? e.target.closest("tr") : null;
-          if (tr === tiree) { return; }
-          if (tr) {
-            var rect = tr.getBoundingClientRect();
-            if (e.clientY < rect.top + rect.height / 2) {
-              tbody.insertBefore(tiree, tr);
-            } else {
-              tbody.insertBefore(tiree, tr.nextSibling);
-            }
-          } else if (tbody !== tiree.parentNode) {
-            tbody.appendChild(tiree);
-          }
+      return pks.join(",");
+    }
+    forme.addEventListener("dragover", function (e) {
+      if (tireeCat) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        var cible = e.target.closest ? e.target.closest("section.harvest-cat") : null;
+        if (!cible || cible.closest("#saisie-sans")
+            || cible === tireeCat) { return; }
+        var rect = cible.getBoundingClientRect();
+        var zone = document.getElementById("recolte-zone-rubrique");
+        if (e.clientY < rect.top + rect.height / 2) {
+          forme.insertBefore(tireeCat, cible);
+        } else {
+          forme.insertBefore(tireeCat, cible.nextSibling);
+        }
+        return;
+      }
+      if (!tiree) { return; }
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      var tbody = e.target.closest
+        ? e.target.closest("tbody:not(.recolte-dispo)") : null;
+      if (!tbody || !tbody.closest("section.harvest-cat")) { return; }
+      var tr = e.target.closest("tr");
+      if (tr === tiree) { return; }
+      if (tr) {
+        var rect = tr.getBoundingClientRect();
+        if (e.clientY < rect.top + rect.height / 2) {
+          tbody.insertBefore(tiree, tr);
+        } else {
+          tbody.insertBefore(tiree, tr.nextSibling);
+        }
+      } else if (tbody !== tiree.parentNode) {
+        tbody.appendChild(tiree);
+      }
+    });
+    forme.addEventListener("drop", function (e) {
+      if (tireeCat) {
+        e.preventDefault();
+        var cats = [];
+        forme.querySelectorAll(":scope > section.harvest-cat").forEach(
+          function (sec) { cats.push(sec.getAttribute("data-cat") || ""); });
+        var d = new FormData();
+        d.append("op", "cats_ordonner");
+        d.append("pks", cats.join(","));
+        postOrg(d, null).catch(function (err) {
+          alert("Réordre des rubriques non enregistré (" + err.message
+                + "). Rechargez la page et réessayez.");
         });
-        tbody.addEventListener("drop", function (e) {
-          if (!tiree) { return; }
-          e.preventDefault();
-          var section = tbody.closest("section.harvest-cat");
-          classerSection(section, function () { propre(); compter(); });
-        });
+        tireeCat = null;
+        return;
+      }
+      if (!tiree) { return; }
+      e.preventDefault();
+      var section = tiree.closest("section.harvest-cat");
+      var d = new FormData();
+      d.append("op", "ordonner");
+      d.append("pks", pksSection(section));
+      d.append("rubrique_pk", section.getAttribute("data-cat") || "");
+      postOrg(d, null).catch(function (err) {
+        alert("Déplacement non enregistré (" + err.message
+              + "). Rechargez la page et réessayez.");
       });
+      if (section.closest("#saisie-sans")) {
+        /* une ligne glissée dans une rubrique repliée : la rubrique
+           repart avec les retenues, on la sort du bloc du bas. */
+        extraitSection(section);
+      }
+      tiree.classList.remove("recolte-tiree");
+      tiree = null;
+      rafraichirCompteur();
+    });
+    function extraitSection(section) {
+      var bloc = document.getElementById("saisie-sans");
+      if (bloc && bloc.contains(section)) {
+        forme.insertBefore(section, bloc);
+        if (!bloc.querySelector("section")) {
+          bloc.remove();
+        }
+      }
+    }
 
-    /* dépôt « nouvelle rubrique » : nom demandé, puis classement */
+    /* ------- zone « nouvelle rubrique » (dépôt d'une ligne) ------- */
     var zone = document.getElementById("recolte-zone-rubrique");
     if (zone) {
       zone.addEventListener("dragover", function (e) {
@@ -278,34 +329,207 @@ et retour="dashboard" (édition en ligne).
         var nomArticle = article ? article.textContent.trim() : "";
         var nom = prompt("Nom de la nouvelle rubrique où placer "
                          + "« " + nomArticle + " » :");
-        if (nom === null) { propre(); return; }
+        if (nom === null) { return; }
         nom = nom.trim();
         if (!nom) {
           alert("Nom vide : le déplacement est annulé, la ligne reste "
                 + "dans sa rubrique.");
-          propre();
           return;
         }
         tiree.classList.remove("recolte-tiree");
-        var donnees = new FormData();
-        var pks = [tiree.querySelector('input[name^="qty_"]').name.slice(4)];
-        donnees.append("pks", pks.join(","));
-        donnees.append("rubrique_nom", nom);
-        donnees.append("suivant", location.pathname + location.search);
-        envoyer(donnees, function () {
-          propre();
+        var d = new FormData();
+        d.append("op", "ordonner");
+        d.append("pks", pksSection(tiree.closest("section.harvest-cat")));
+        d.append("rubrique_nom", nom);
+        postOrg(d, null).catch(function (err) {
+          alert("Déplacement non enregistré (" + err.message + ").");
+        }).then(function () {
+          tiree = null;
           alert("Rubrique « " + nom + " » créée : « " + nomArticle
                 + " » y est classé. Enregistrez vos saisies (💾) puis "
                 + "rechargez la page pour voir la rubrique.");
         });
       });
     }
-  }
 
-  /* mise à jour du compteur si le script de comptage est présent */
-  function compter() {
-    var f = document.querySelector("form.harvest-form");
-    if (f) { f.dispatchEvent(new Event("input")); }
+    /* ------- ✏️ renommage d'une rubrique ------- */
+    document.addEventListener("click", function (e) {
+      var crayon = e.target.closest(".recolte-renommer");
+      if (!crayon) { return; }
+      var h3 = crayon.closest("h3");
+      var span = h3.querySelector(".recolte-cat-nom");
+      var actuel = span ? span.textContent.trim() : "";
+      var nom = prompt("Nouveau nom de la rubrique « " + actuel + " » :",
+                       actuel);
+      if (nom === null) { return; }
+      nom = nom.trim();
+      if (!nom || nom === actuel) { return; }
+      var section = h3.closest("section.harvest-cat");
+      var d = new FormData();
+      d.append("op", "cat_renommer:" + (section.getAttribute("data-cat") || ""));
+      d.append("nom", nom);
+      postOrg(d, null).then(function (r) {
+        return r.json();
+      }).then(function (rep) {
+        if (rep && rep.statut === "ok") {
+          span.textContent = rep.nom;
+          section.setAttribute("data-nom", rep.nom);
+          var sel = document.getElementById("np-cat-select");
+          if (sel) {
+            sel.querySelectorAll("option").forEach(function (o) {
+              if (o.value === section.getAttribute("data-cat")) {
+                o.textContent = rep.nom;
+              }
+            });
+          }
+        } else {
+          alert((rep && rep.erreur) || "Renommage refusé : recharger la page.");
+        }
+      }).catch(function () {
+        alert("Renommage non enregistré. Recharger la page et réessayer.");
+      });
+    });
+
+    /* ------- ✨ Nouveau : ➕ crée l'article immédiatement ------- */
+    var selCat = document.getElementById("np-cat-select");
+    var champCatNom = document.getElementById("np-cat-nom");
+    if (selCat) {
+      selCat.addEventListener("change", function () {
+        champCatNom.hidden = selCat.value !== "nouvelle";
+        if (selCat.value !== "nouvelle") { champCatNom.value = ""; }
+      });
+    }
+    var selUnite = document.getElementById("np-unite");
+    var champUniteNom = document.getElementById("np-unite-nom");
+    if (selUnite) {
+      selUnite.addEventListener("change", function () {
+        champUniteNom.hidden = selUnite.value !== "__perso";
+        if (selUnite.value !== "__perso") { champUniteNom.value = ""; }
+      });
+    }
+    var btnCreer = document.getElementById("np-creer");
+    if (btnCreer) {
+      btnCreer.addEventListener("click", function () {
+        var bloc = btnCreer.closest(".saisie-nouveau");
+        var nom = bloc.querySelector('[name="np_nom"]').value.trim();
+        if (!nom) {
+          alert("Donnez un nom à l'article.");
+          bloc.querySelector('[name="np_nom"]').focus();
+          return;
+        }
+        var d = new FormData();
+        d.append("op", "produit_creer");
+        ["np_nom", "np_emoji", "np_prix", "np_qty"].forEach(function (n) {
+          var c = bloc.querySelector('[name="' + n + '"]');
+          d.append(n, c ? c.value : "");
+        });
+        var unite = selUnite.value;
+        if (unite === "__perso") {
+          unite = champUniteNom.value.trim();
+          if (!unite) {
+            alert("Saisissez le libellé de l'unité personnalisée.");
+            champUniteNom.focus();
+            return;
+          }
+        }
+        d.append("np_unite", unite);
+        var catPk = selCat.value;
+        d.append("np_cat_pk", catPk);
+        if (catPk === "nouvelle") {
+          var nomCat = champCatNom.value.trim();
+          if (!nomCat) {
+            alert("Donnez le nom de la nouvelle rubrique.");
+            champCatNom.focus();
+            return;
+          }
+          d.append("np_cat_nom", nomCat);
+        }
+        postOrg(d, null).then(function (r) { return r.json(); })
+          .then(function (rep) {
+            if (!rep || rep.statut !== "ok") {
+              alert((rep && rep.erreur) || "Création refusée. Réessayez.");
+              return;
+            }
+            insererNouveau(rep);
+            bloc.querySelectorAll("input[type=text]").forEach(
+              function (c) { c.value = ""; });
+            selCat.value = "";
+            champCatNom.hidden = true;
+            selUnite.value = "KG";
+            champUniteNom.hidden = true;
+          }).catch(function () {
+            alert("Création non enregistrée. Recharger la page et réessayer.");
+          });
+      });
+    }
+    function sectionNouvelle(cat) {
+      var sec = document.createElement("section");
+      sec.className = "harvest-cat";
+      sec.setAttribute("data-cat", cat.pk ? String(cat.pk) : "");
+      sec.setAttribute("data-nom", cat.nom);
+      var h3 = document.createElement("h3");
+      h3.className = "recolte-cat-tire";
+      h3.draggable = true;
+      h3.title = "Glissez le titre pour réordonner la rubrique";
+      var emoji = cat.emoji ? cat.emoji + " " : "";
+      h3.innerHTML = emoji + '<span class="recolte-cat-nom">'
+        + esc(cat.nom) + '</span> <span class="muted"></span>';
+      if (cat.pk) {
+        var bouton = document.createElement("button");
+        bouton.type = "button";
+        bouton.className = "btn btn-sm btn-outline recolte-renommer";
+        bouton.title = "Renommer la rubrique (répercuté partout)";
+        bouton.textContent = "✏️";
+        h3.appendChild(bouton);
+      }
+      sec.appendChild(h3);
+      var table = document.createElement("table");
+      table.className = "table";
+      table.innerHTML = "<thead><tr><th>Produit</th>"
+        + "<th>Quantité estimée (facultatif)</th>"
+        + "<th>Prix unitaire (€)</th><th></th></tr></thead><tbody></tbody>";
+      sec.appendChild(table);
+      /* position : après la dernière rubrique de la liste principale */
+      var bloc = document.getElementById("saisie-sans");
+      if (bloc) { forme.insertBefore(sec, bloc); }
+      else { forme.appendChild(sec); }
+      return sec;
+    }
+    function insererNouveau(rep) {
+      var cat = rep.categorie || {};
+      var sec = null;
+      forme.querySelectorAll("section.harvest-cat").forEach(function (s) {
+        if (s.getAttribute("data-cat") === (cat.pk ? String(cat.pk) : "")) {
+          sec = s;
+        }
+      });
+      if (!sec) {
+        sec = sectionNouvelle({ pk: cat.pk, nom: cat.nom, emoji: rep.emoji_categorie });
+      }
+      var tbody = sec.querySelector("tbody:not(.recolte-dispo)");
+      tbody.insertAdjacentHTML("beforeend", rep.row);
+      var tr = tbody.lastElementChild;
+      tr.draggable = true;
+      tr.classList.add("recolte-tirable");
+      marquerCompteur(sec);
+      var blocSans = document.getElementById("saisie-sans");
+      var retenu = tr.querySelector('input[name^="qty_"]').value
+        || tr.querySelector('input[name^="price_"]').value;
+      if (retenu && blocSans && blocSans.contains(sec)) {
+        extraitSection(sec);
+      }
+      /* option du sélecteur du bloc ✨ */
+      if (cat.pk) {
+        var sel = document.getElementById("np-cat-select");
+        if (sel && !sel.querySelector('option[value="' + cat.pk + '"]')) {
+          var o = document.createElement("option");
+          o.value = cat.pk; o.textContent = cat.nom;
+          sel.insertBefore(o, sel.querySelector('option[value="nouvelle"]'));
+        }
+      }
+      rafraichirCompteur();
+      tr.scrollIntoView({ block: "nearest" });
+    }
   }
 })();
 </script>
@@ -427,6 +651,9 @@ et retour="dashboard" (édition en ligne).
     champ = c; famille = -1;
     panneau = document.createElement("div");
     panneau.className = "emoji2-panneau";
+    if (champ.classList.contains("emoji-compacte")) {
+      panneau.classList.add("emoji2-compacte");
+    }
     var fra = document.createElement("div"); fra.className = "emoji2-fratrie";
     var t = document.createElement("button");
     t.type = "button"; t.className = "emoji2-famille tous"; t.textContent = "Tous";

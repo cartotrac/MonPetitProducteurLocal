@@ -1,0 +1,24 @@
+{% load l10n %}
+{% comment %}Ligne « retenue » d'une publication saisonnière : partagée
+entre la zone de saisie (_saisie_recolte.html) et la création directe
+ AJAX d'un produit (vue catalogue_organiser, op=produit_creer) pour
+garder UN SEUL markup. Attend : row (dict _groupes_publication) et
+les droits (est_proprietaire, user).{% endcomment %}
+<tr class="{% if row.reprise %}reprise{% endif %}{% if est_proprietaire or user.is_superuser %} recolte-tirable{% endif %}"
+    {% if est_proprietaire or user.is_superuser %}draggable="true"{% endif %}
+    title="{% if est_proprietaire or user.is_superuser %}Glissez cette ligne pour la déplacer dans la rubrique ou vers une autre rubrique ; {% endif %}⛔ la retire de la publication">
+  <td>{% if row.produit.illustration %}<img class="vignette-produit" src="{{ row.produit.illustration.url }}" alt="">{% elif row.produit.image_externe %}<img class="vignette-produit" src="{{ row.produit.image_externe }}" alt="" loading="lazy">{% endif %}{% if row.produit.emoji %}{{ row.produit.emoji }} {% elif row.produit.origine_standard and row.produit.origine_standard.emoji %}{{ row.produit.origine_standard.emoji }} {% endif %}<strong>{{ row.produit.nom }}</strong>
+    <span class="muted">({{ row.produit.get_unite_vente_display }})</span>
+    {% if row.produit.origine_standard %}<span class="origine-produit importe" title="Importé depuis la liste {{ row.produit.origine_standard.get_activite_display }}">📦</span>{% else %}<span class="origine-produit perso" title="Article créé par vous">✍️</span>{% endif %}
+    {% if est_proprietaire or user.is_superuser %}<a class="btn btn-sm btn-outline" href="{% url 'portal:product_edit' row.produit.pk %}" title="Éditer l'article : libellé, prix de référence, illustration, descriptif">📝</a>{% endif %}
+    {% if row.produit.description %}<br><span class="muted">{{ row.produit.description|truncatechars:70 }}</span>{% endif %}
+    {% if row.reprise %}<span class="badge badge-off">reprise</span>{% endif %}</td>
+  <td><input type="number" step="{{ row.step }}" min="0" name="qty_{{ row.produit.pk }}"
+             value="{% if row.qty %}{{ row.qty|unlocalize }}{% endif %}"></td>
+  <td><input type="number" step="0.01" min="0" name="price_{{ row.produit.pk }}"
+             value="{% if row.price %}{{ row.price|unlocalize }}{% endif %}"></td>
+  <td class="recolte-actions">
+    <button type="button" class="btn btn-sm btn-outline recolte-retirer"
+            title="Retirer de la publication : quantité et prix vidés, la ligne quittera la publication au prochain 💾">⛔</button>
+  </td>
+</tr>
