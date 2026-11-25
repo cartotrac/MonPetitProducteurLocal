@@ -88,6 +88,9 @@
   <a class="btn btn-outline" href="{% url 'portal:points_manage' %}">📍 Points & créneaux</a>
   <a class="btn btn-outline" href="{% url 'portal:mes_producteurs' %}">⭐ Mes favoris</a>
 </div>
+<p class="muted raccourcis-astuce">⌨️ Gagnez du temps : touches rapides <kbd>P</kbd> publier,
+   <kbd>C</kbd> clients, <kbd>G</kbd> catalogues, <kbd>L</kbd> points,
+   <kbd>V</kbd> vitrine — appuyez sur <kbd>?</kbd> pour l'aide.</p>
 <div class="quick-actions quick-actions-ligne2">
   {% if exploitant.a_carte_boutique %}
     {% if est_proprietaire or user.is_superuser %}
