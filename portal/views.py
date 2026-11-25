@@ -1742,7 +1742,7 @@ def dashboard(request):
     ]
     onboarding_reste = sum(1 for _, fait in onboarding if not fait)
 
-    # Rappel de ryte : la derniere publication publiee prend de l'age
+    # Rappel de rythme : la derniere publication publiee prend de l'age
     # par rapport a la frequence reglee (hebdomadaire, quinzaine,
     # mensuelle) -> bandeau discret sur le dashboard.
     retard_publication = None
