@@ -1730,6 +1730,18 @@ def dashboard(request):
         carte_active = next(
             (c for c in cartes if c.statut == Carte.Statut.ACTIVE), None)
 
+    # Check-list d'accueil (espaces neufs) : elle disparaît dès que
+    # les trois fondamentaux sont en place. Un compteur d'étapes
+    # reste à faire guide le gérant ; rien ne s'affiche une fois
+    # l'espace rodé, le dashboard reprend toute la place.
+    onboarding = [
+        ("catalogue", len(produits) > 0),
+        ("publication", SemaineRecolte.objects.filter(
+            exploitant=exploitant, publiee=True).exists()),
+        ("livraison", exploitant.points_livraison.exists()),
+    ]
+    onboarding_reste = sum(1 for _, fait in onboarding if not fait)
+
     return render(request, "portal/pro/dashboard.html", {
         "exploitant": exploitant,
         "nb_produits": len(produits),
@@ -1753,6 +1765,8 @@ def dashboard(request):
                              .order_by("-creee_le")[:10],
         "paniers_en_cours": exploitant.paniers
                             .exclude(statut=Panier.Statut.RECU).count(),
+        "onboarding": onboarding,
+        "onboarding_reste": onboarding_reste,
     })
 
 def _catalogue_actif(exploitant):
