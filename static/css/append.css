@@ -6742,6 +6742,24 @@ html.dark .aide-raccourcis kbd { background: #3c4433;
                                   border-color: #5a684c; }
 /* ============ fin REVUE V3.37 ======================================= */
 
+/* ===== V3.44 — REVUE PARCOURS PRO lot 2 : palette émojis v2 ===== */
+.emoji2-panneau { position: absolute; z-index: 1200; display: flex; flex-direction: column;
+  gap: 0.35rem; width: min(19rem, 92vw); max-height: 17rem; overflow: auto;
+  padding: 0.5rem; background: var(--tbl-fond, #fff);
+  border: 1px solid rgba(127, 127, 127, 0.4); border-radius: 0.6rem;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25); }
+.emoji2-fratrie { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.emoji2-famille { font-size: 0.74rem; padding: 0.15rem 0.5rem; border-radius: 999px;
+  border: 1px solid rgba(127, 127, 127, 0.4); background: transparent; cursor: pointer; }
+.emoji2-famille.actif { background: #2e7d32; color: #fff; border-color: #2e7d32; }
+.emoji2-grille { display: flex; flex-wrap: wrap; gap: 0.15rem; }
+.emoji2-choix { width: 2rem; height: 2rem; display: inline-flex; align-items: center;
+  justify-content: center; font-size: 1.15rem; background: transparent;
+  border: none; border-radius: 0.4rem; cursor: pointer; }
+.emoji2-choix:hover { background: rgba(127, 127, 127, 0.2); }
+.emoji2-aide { font-size: 0.7rem; opacity: 0.65; }
+/* ===== fin V3.44 ===== */
+
 /* ============ REVUE V3.43 — confort saisie publication =========
    Itération 0 (revue parcours pro) : compteur en direct et
    Ctrl+Entrée dans la barre d'enregistrement de la saisie. == */

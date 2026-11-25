@@ -420,20 +420,26 @@ class Exploitant(models.Model):
                 "MENSUEL": "du mois"}.get(freq, "de la semaine")
 
     @property
+    def titre_publications(self):
+        """Rubrique du dashboard pro, accordée au rythme choisi :
+        « Publications de la semaine / de la quinzaine / du mois »."""
+        return f"Publications {self.libelle_rythme}"
+
+    @property
     def titre_semaine(self):
         """Titre de l'encart vitrine, accordé à l'activité, à l'équipe
         (Mes/Notre) et au rythme choisi : « Récolte de la semaine »,
         « Ma carte de la semaine », « Nos plats du mois », « Mes
         produits de la semaine », « Mes productions du mois »…"""
-        nous = self.membres.exists()
+        nous = self.membres.filter(user__is_superuser=False).exists()
         rythme = self.libelle_rythme
         if self.activite in (self.Activite.MARAICHER,
                              self.Activite.ARBORICULTEUR):
             return f"Nos récoltes {rythme}" if nous \
                 else f"Récolte {rythme}"
         if self.activite == self.Activite.FOODTRUCK:
-            return f"Notre carte {rythme}" if nous \
-                else f"Ma carte {rythme}"
+            return f"Nos produits {rythme}" if nous \
+                else f"Mes produits {rythme}"
         if self.activite == self.Activite.TRAITEUR:
             return f"Nos plats {rythme}" if nous \
                 else f"Mes plats {rythme}"
@@ -482,7 +488,7 @@ class Exploitant(models.Model):
         """« Ma carte » (foodtruck, restaurant), « Mes menus » (traiteur), « Ma
         boutique » (fromager, apiculteur, conserverie, brasseur, éleveur) —
         « Notre » dès que l'équipe s'étoffe."""
-        nous = self.membres.exists()
+        nous = self.membres.filter(user__is_superuser=False).exists()
         if self.activite in (self.Activite.FOODTRUCK,
                              self.Activite.RESTAURANT):
             return "Notre carte" if nous else "Ma carte"
