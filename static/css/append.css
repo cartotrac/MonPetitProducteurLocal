@@ -6675,6 +6675,13 @@ html.dark .categorie-media-lien:hover { background: #33422a; }
 /* ============ fin REVUE V3.33 ======================================= */
 
 
+/* ============ REVUE V3.41 — emoji de rubrique ======================
+   Champ emoji court devant le nom de rubrique (edition rapide
+   produits) ; largeur mini, centre. ============================= */
+.gestion-cat-emoji { width: 4.5rem; text-align: center; }
+/* ============ fin REVUE V3.41 ======================================= */
+
+
 /* ============ REVUE V3.34 — etats vides guides ==============
    Le motif .card.etat-vide (emoji + texte + boutons d'action),
    deja utilise dans commandes/paniers/points, devient la norme :
@@ -6767,3 +6774,19 @@ html.dark :focus-visible { outline-color: #a5d6a7; }
    d'ecran (l'operation n'est pas possible au clavier). */
 .gestion-poignee { cursor: grab; }
 /* ============ fin REVUE V3.39 ======================================= */
+
+
+/* ============ REVUE V3.40 — creation en direct (publications) ==
+   Bloc replie ✨ de la saisie : mini-formulaire du nouveau
+   produit, enregistre avec le reste de la publication. ======== */
+.saisie-nouveau { margin: 0.9rem 0; padding: 0.75rem 1rem; }
+.saisie-nouveau > summary { cursor: pointer; margin-bottom: 0.2rem; }
+.saisie-nouveau[open] > summary { margin-bottom: 0.6rem; }
+.saisie-nouveau-champs { align-items: flex-end; }
+.saisie-nouveau-champs label { display: flex; flex-direction: column;
+                               gap: 0.2rem; font-weight: 600;
+                               font-size: 0.9rem; }
+.saisie-nouveau-champs input, .saisie-nouveau-champs select {
+  min-width: 8rem; margin-top: 0.2rem;
+}
+/* ============ fin REVUE V3.40 ======================================= */

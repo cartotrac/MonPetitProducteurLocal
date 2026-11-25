@@ -70,6 +70,8 @@
         <input type="hidden" name="carte_id" value="{{ carte_courante.pk }}">
         <input class="gestion-catalogue-nom" type="text" name="nouveau_nom" value="{{ carte_courante.nom }}" maxlength="120" title="Nom de la carte — modifiable à tout moment, même publiée">
         <button class="btn btn-sm" name="action" value="renommer" type="submit" title="Enregistrer le nouveau nom de la carte">✏️ Renommer</button>
+          <button class="btn btn-sm btn-outline" name="action" value="dupliquer" type="submit"
+                  title="Copier cette carte en brouillon (lignes reprises) : ajustez-la puis publiez-la">📑 Dupliquer</button>
       </form>
       <form method="post" class="inline carte-actions">
         {% csrf_token %}
