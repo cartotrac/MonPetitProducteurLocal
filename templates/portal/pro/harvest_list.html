@@ -25,6 +25,12 @@
         <a class="btn btn-sm" href="{% url 'portal:harvest_manage' courante.pk %}">✏️ Modifier</a>
         <form method="post" class="inline">{% csrf_token %}
           <input type="hidden" name="pk" value="{{ courante.pk }}">
+          <input type="hidden" name="action" value="dupliquer">
+          <button class="btn btn-sm btn-outline" type="submit"
+                  title="Copier cette publication sur la prochaine période libre (brouillon à relire avant publication)">📑 Dupliquer</button>
+        </form>
+        <form method="post" class="inline">{% csrf_token %}
+          <input type="hidden" name="pk" value="{{ courante.pk }}">
           <input type="hidden" name="action" value="{{ courante.publiee|yesno:'depublier,publier' }}">
           <button class="btn btn-sm btn-outline" type="submit">{{ courante.publiee|yesno:'Masquer de la vitrine,Publier' }}</button>
         </form>
@@ -55,6 +61,12 @@
         <a class="btn btn-sm" href="{% url 'portal:harvest_manage' s.pk %}">✏️ Modifier</a>
         <form method="post" class="inline">{% csrf_token %}
           <input type="hidden" name="pk" value="{{ s.pk }}">
+          <input type="hidden" name="action" value="dupliquer">
+          <button class="btn btn-sm btn-outline" type="submit"
+                  title="Copier cette publication sur la prochaine période libre (brouillon à relire avant publication)">📑 Dupliquer</button>
+        </form>
+        <form method="post" class="inline">{% csrf_token %}
+          <input type="hidden" name="pk" value="{{ s.pk }}">
           <input type="hidden" name="action" value="{{ s.publiee|yesno:'depublier,publier' }}">
           <button class="btn btn-sm btn-outline" type="submit">{{ s.publiee|yesno:'Masquer,Publier' }}</button>
         </form>
@@ -81,6 +93,12 @@
       </div>
       <div class="harvest-actions">
         <a class="btn btn-sm btn-outline" href="{% url 'portal:harvest_manage' s.pk %}">✏️ Modifier</a>
+        <form method="post" class="inline">{% csrf_token %}
+          <input type="hidden" name="pk" value="{{ s.pk }}">
+          <input type="hidden" name="action" value="dupliquer">
+          <button class="btn btn-sm btn-outline" type="submit"
+                  title="Copier cette publication sur la prochaine période libre (brouillon à relire avant publication)">📑 Dupliquer</button>
+        </form>
         <form method="post" class="inline" onsubmit="return
  confirm('Supprimer la {{ exploitant.vocab.recolte }} du {{ s.lundi|date:'d/m/Y' }} ?');">{% csrf_token %}
           <input type="hidden" name="pk" value="{{ s.pk }}">

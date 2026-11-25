@@ -32,6 +32,8 @@
     </form>
   </details>
 </nav>
+<p class="raccourcis-astuce">⌨️ Raccourcis clavier : <kbd>N</kbd> nouvelle
+   carte · <kbd>A</kbd> ajouter une ligne · <kbd>?</kbd> aide</p>
 {% endif %}
 
 {% if not cartes %}
@@ -70,13 +72,16 @@
         <input type="hidden" name="carte_id" value="{{ carte_courante.pk }}">
         <input class="gestion-catalogue-nom" type="text" name="nouveau_nom" value="{{ carte_courante.nom }}" maxlength="120" title="Nom de la carte — modifiable à tout moment, même publiée">
         <button class="btn btn-sm" name="action" value="renommer" type="submit" title="Enregistrer le nouveau nom de la carte">✏️ Renommer</button>
+          <button class="btn btn-sm btn-outline" name="action" value="dupliquer" type="submit"
+                  title="Copier cette carte en brouillon (lignes reprises) : ajustez-la puis publiez-la">📑 Dupliquer</button>
       </form>
       <form method="post" class="inline carte-actions">
         {% csrf_token %}
         <input type="hidden" name="carte_id" value="{{ carte_courante.pk }}">
         {% if carte_courante.statut != 'ACTIVE' %}<button class="btn btn-sm" name="action" value="activer" type="submit">✅ Publier sur la vitrine</button>{% endif %}
         {% if carte_courante.statut == 'ACTIVE' %}<button class="btn btn-sm btn-outline" name="action" value="archiver" type="submit">📦 Archiver</button>{% endif %}
-        <button class="btn btn-sm btn-outline" name="action" value="dupliquer" type="submit">📄 Dupliquer</button>
+        <button class="btn btn-sm btn-outline" name="action" value="dupliquer" type="submit"
+                title="Copier cette carte en BROUILLON « (copie) » : toutes les lignes reprises (produits, sections, prix, stocks), ajustez-la puis publiez-la">📑 Dupliquer</button>
         <button class="btn btn-sm btn-outline" name="action" value="supprimer" type="submit">🗑️ Supprimer</button>
       </form>
     </div>
@@ -181,6 +186,56 @@
         }
       });
     });
+})();
+</script>
+<script>
+/* Raccourcis clavier de la page Cartes : N crée une carte (ouvre le
+   bloc replié et focus le nom), A ouvre l'ajout de ligne, « ? »
+   ouvre l'aide. Inactifs pendant la saisie. */
+(function () {
+  function saisie(cible) {
+    if (!cible) { return false; }
+    var t = cible.tagName;
+    return t === "INPUT" || t === "TEXTAREA" || t === "SELECT"
+      || cible.isContentEditable;
+  }
+  function aide() {
+    var p = document.querySelector(".aide-raccourcis");
+    if (p) { p.remove(); return; }
+    p = document.createElement("div");
+    p.className = "aide-raccourcis";
+    p.innerHTML = "<span class='fermer'>✕</span>Raccourcis de la page" +
+      "<ul>" +
+      "<li><kbd>N</kbd> nouvelle carte</li>" +
+      "<li><kbd>A</kbd> ajouter une ligne</li>" +
+      "<li><kbd>?</kbd> ouvrir / fermer cette aide</li>" +
+      "</ul>";
+    document.body.appendChild(p);
+    p.addEventListener("click", function () { p.remove(); });
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey || saisie(e.target)) { return; }
+    if (e.key === "?") { e.preventDefault(); aide(); return; }
+    var k = (e.key || "").toLowerCase();
+    if (k === "n") {
+      e.preventDefault();
+      var bloc = document.querySelector(".carte-creation-inline");
+      if (bloc) { bloc.open = true; }
+      var champ = document.getElementById("id_nom_carte");
+      if (champ) { champ.focus(); }
+      return;
+    }
+    if (k === "a") {
+      e.preventDefault();
+      var ajout = document.querySelector("details.carte-ajout");
+      if (ajout) {
+        ajout.open = true;
+        ajout.scrollIntoView({block: "center"});
+        var sel = ajout.querySelector("select.carte-select-produit");
+        if (sel) { sel.focus(); }
+      }
+    }
+  });
 })();
 </script>
 {% endblock %}

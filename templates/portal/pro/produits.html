@@ -20,6 +20,9 @@
       {{ c.nom }}{% if c.pk == catalogue_actif.pk %} ✅{% endif %}</a>
   {% endfor %}
 </nav>
+<p class="raccourcis-astuce">⌨️ Raccourcis clavier : <kbd>N</kbd> nouveau
+   {{ exploitant.vocab.article }} · <kbd>S</kbd> tout enregistrer ·
+   <kbd>?</kbd> aide</p>
 
 <form method="post" action="{% url 'portal:product_quick_edit' %}" id="form-produits">
     {% csrf_token %}
@@ -131,7 +134,10 @@
           <header class="gestion-cat-tete">
             {% if cat.pk %}
               <span class="gestion-poignee" aria-hidden="true" title="Glissez pour réordonner les catégories (à la souris)">⠿</span>
-              <input class="gestion-cat-nom" type="text" name="nom_cat_{{ cat.pk }}" value="{{ cat.nom }}" maxlength="80" title="Libellé de la catégorie — enregistré par le 💾 Tout enregistrer en bas de page">
+              <input class="gestion-cat-emoji" type="text" name="emoji_cat_{{ cat.pk }}" maxlength="8"
+               value="{{ cat.emoji|default:'' }}" placeholder="🥕"
+               title="Emoji de la rubrique (facultatif) : affiché en tête de ses groupes dans les publications — enregistré par le 💾 Tout enregistrer">
+            <input class="gestion-cat-nom" type="text" name="nom_cat_{{ cat.pk }}" value="{{ cat.nom }}" maxlength="80" title="Libellé de la catégorie — enregistré par le 💾 Tout enregistrer en bas de page">
               <button type="submit" name="mouvement" value="categorie:{{ cat.pk }}:haut" class="btn btn-sm" title="Catégorie vers le haut" aria-label="Monter la catégorie">▲</button>
               <button type="submit" name="mouvement" value="categorie:{{ cat.pk }}:bas" class="btn btn-sm" title="Catégorie vers le bas" aria-label="Descendre la catégorie">▼</button>
               <button type="submit" name="action" value="categorie_supprimer:{{ cat.pk }}"
@@ -474,6 +480,53 @@
     if (champ) {
       champ.value = direct;
       champ.dispatchEvent(new Event("input", {bubbles: true}));
+    }
+  });
+})();
+</script>
+<script>
+/* Raccourcis clavier de la page Catalogues : N crée un nouvel
+   article (focus dans le champ du bloc ➕), S enregistre tout le
+   formulaire, « ? » ouvre l'aide. Inactifs pendant la saisie. */
+(function () {
+  function saisie(cible) {
+    if (!cible) { return false; }
+    var t = cible.tagName;
+    return t === "INPUT" || t === "TEXTAREA" || t === "SELECT"
+      || cible.isContentEditable;
+  }
+  function aide() {
+    var p = document.querySelector(".aide-raccourcis");
+    if (p) { p.remove(); return; }
+    p = document.createElement("div");
+    p.className = "aide-raccourcis";
+    p.innerHTML = "<span class='fermer'>✕</span>Raccourcis de la page" +
+      "<ul>" +
+      "<li><kbd>N</kbd> nouveau {{ exploitant.vocab.article }}</li>" +
+      "<li><kbd>S</kbd> tout enregistrer</li>" +
+      "<li><kbd>?</kbd> ouvrir / fermer cette aide</li>" +
+      "</ul>";
+    document.body.appendChild(p);
+    p.addEventListener("click", function () { p.remove(); });
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey || saisie(e.target)) { return; }
+    if (e.key === "?") { e.preventDefault(); aide(); return; }
+    var k = (e.key || "").toLowerCase();
+    if (k === "n") {
+      e.preventDefault();
+      var champ = document.querySelector(
+        "#ajout-catalogue input[name='nouveau_nom']");
+      if (champ) { champ.focus(); }
+      var bloc = document.getElementById("ajout-catalogue");
+      if (bloc) { bloc.scrollIntoView({block: "center"}); }
+      return;
+    }
+    if (k === "s") {
+      e.preventDefault();
+      var form = document.getElementById("form-produits");
+      var bouton = form ? form.querySelector(".btn-enregistrer") : null;
+      if (form) { form.requestSubmit(bouton); }
     }
   });
 })();
