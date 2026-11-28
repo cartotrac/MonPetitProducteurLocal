@@ -4,6 +4,17 @@
 {% block content %}
 <h1>Bienvenue {{ exploitant.nom_espace }} 👋</h1>
 
+{% if exploitant.est_demo %}
+<div class="card bandeau-demo-pro" role="status">
+  <span class="bandeau-demo-badge">🧪 ESPACE DE DÉMONSTRATION</span>
+  <strong>{{ exploitant.nom_espace }} est un espace fictif.</strong>
+  Tout ce que vous y faites (publications, commandes, paniers) sert à
+  découvrir le portail : les données sont réinitialisables par le
+  gestionnaire et rien n'est destiné à de vrais clients.
+  <span class="muted">Les visiteurs voient ce même badge sur votre vitrine.</span>
+</div>
+{% endif %}
+
 {% if meteo %}
 <div class="meteo-hero card">
   <span class="meteo-emoji">{{ meteo.emoji }}</span>
@@ -73,7 +84,7 @@
 {% if retard_publication %}
 <div class="card rappel-publication">
   ⏰ Dernière publication publiée il y a {{ retard_publication }} jours :
-  la fréquence réglée de l'espace ({{ exploitant.frequence_publication }})
+  la fréquence réglée de l'espace ({{ exploitant.get_frequence_publication_display|lower }})
   laisse penser qu'une nouvelle est attendue.
   <a href="{% url 'portal:harvest_new' %}">Publier maintenant</a>
 </div>

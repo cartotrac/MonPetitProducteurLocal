@@ -38,8 +38,12 @@
       <h1 class="producer-title">{{ exploitant.nom_espace }}</h1>
       <p class="muted producer-address">📍 {{ exploitant.adresse }} — {{ exploitant.code_postal }} {{ exploitant.ville }}</p>
 
-      {# Telephone protege : restauration seulement (restaurant, traiteur, foodtruck). #}
-      {% if exploitant.telephone and exploitant.activite == 'RESTAURANT' or exploitant.telephone and exploitant.activite == 'TRAITEUR' or exploitant.telephone and exploitant.activite == 'FOODTRUCK' %}
+      {# Téléphone protégé anti-pillage : visible pour TOUS les
+         métiers (le gérant a saisi un numéro pour être joint — le
+         cacher aux maraîchers et éleveurs n'avait pas de raison
+         d'être). L'ancienne condition cumulait aussi un bug
+         d'opérateurs : « A and B or C » s'évaluait en (A and B) or C. #}
+      {% if exploitant.telephone %}
       <p class="producer-tel">
         <button type="button" class="btn-tel-protege"
                 data-a="{{ exploitant.telephone|slice:':5' }}"
