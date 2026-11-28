@@ -3,6 +3,7 @@
 {% block title %}{% if visu == "restauration" %}Restauration & Foodtrucks{% elif visu == "marches" %}Marchés & Boutiques{% elif visu == "tout" %}All-in-1{% else %}Recherche{% endif %} — MonPetitProducteurLocal{% endblock %}
 {% block extrahead %}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
 {% endblock %}
 {% block retour_dashboard %}{% endblock %}
 {% block content %}
@@ -583,7 +584,8 @@ window.mpplSoumettre = function (form, garderVue) {
 })();
 </script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="{% static 'js/search-map.js' %}?v=2"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="{% static 'js/search-map.js' %}?v=3"></script>
 
 <script>
 /* Filtres ACTIFS : bouton « ✕ Retirer les filtres » posé sur la

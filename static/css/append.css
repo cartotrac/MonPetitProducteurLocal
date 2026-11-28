@@ -6943,3 +6943,27 @@ html.dark .producer-address {
 .emoji-choix { width: 3.2rem; text-align: center; font-size: 1.05rem; }
 .saisie-nouveau-champs input.emoji-choix { min-width: 0; }
 /* ===== fin REVUE V3.50 ========================================== */
+
+
+/* ===== REVUE V3.51 — L4 : clustering des marqueurs de la carte
+       de recherche (Leaflet.markercluster). ==================== */
+/* Pastille compteur : pastille verte arrondie, lisible sur tous les
+   fonds (Plan IGN comme ortho). La bibliothèque fournit ses propres
+   classes par défaut : on s'appuie sur la nôtre (iconCreateFunction)
+   pour homogénéiser avec la charte. */
+.marker-cluster-mppl {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--accent, #2e7d32);
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  color: #fff; font-weight: 800; font-size: 0.9rem;
+  text-align: center; line-height: 1;
+}
+.marker-cluster-mppl:hover { background: #1b5e20; }
+html.dark .marker-cluster-mppl {
+  background: #4c7c3f;
+  border-color: rgba(30, 38, 26, 0.9);
+}
+html.dark .marker-cluster-mppl:hover { background: #5d9450; }
+/* ===== fin REVUE V3.51 ========================================== */
