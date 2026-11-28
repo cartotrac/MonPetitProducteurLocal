@@ -6811,6 +6811,23 @@ html.dark details.saisie-sans {
 .emoji2-compacte .emoji2-famille, .emoji2-compacte .emoji2-tous {
   font-size: 0.72rem; padding: 0.1rem 0.35rem; }
 /* ===== fin V3.47 ===== */
+/* ===== V3.48 — lot 6 quick wins : bandeau « espace de
+   démonstration » bien visible en tête du dashboard (le gérant
+   d'un espace démo ne doit jamais le perdre de vue), téléphone
+   vitrine ouvert à tous les métiers, libellé de fréquence
+   traduit. ===== */
+.bandeau-demo-pro { display: flex; flex-wrap: wrap; gap: 0.5rem 0.9rem;
+  align-items: center; margin: 0.7rem 0 1rem;
+  border: 2px solid rgba(230, 126, 34, 0.55);
+  background: rgba(230, 126, 34, 0.12);
+  font-size: 0.95rem; }
+.bandeau-demo-badge { font-weight: 700; letter-spacing: 0.04em;
+  padding: 0.15rem 0.5rem; border-radius: 0.4rem;
+  background: rgba(230, 126, 34, 0.25); }
+html.dark .bandeau-demo-pro {
+  border-color: rgba(255, 152, 84, 0.6);
+  background: rgba(255, 152, 84, 0.12); }
+/* ===== fin V3.48 ===== */
 
 /* ===== V3.44 — REVUE PARCOURS PRO lot 2 : palette émojis v2 ===== */
 .emoji2-panneau { position: absolute; z-index: 1200; display: flex; flex-direction: column;
