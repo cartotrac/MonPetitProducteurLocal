@@ -6934,3 +6934,12 @@ html.dark .producer-address {
 /* Légende des points sous la mini-carte. */
 .emplacements-carte-legende { margin-top: 0.6rem; font-size: 0.95rem; }
 /* ===== fin REVUE V3.49 ========================================== */
+
+
+/* ===== REVUE V3.50 — Champs emoji : styles du nettoyage V3.42
+       restaurés (le bloc supprimé portait aussi les règles des
+       inputs .emoji-choix, toujours utilisés dans la saisie
+       rapide et la fiche produits). ============================= */
+.emoji-choix { width: 3.2rem; text-align: center; font-size: 1.05rem; }
+.saisie-nouveau-champs input.emoji-choix { min-width: 0; }
+/* ===== fin REVUE V3.50 ========================================== */
