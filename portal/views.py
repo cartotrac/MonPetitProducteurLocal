@@ -27,6 +27,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 
+from .geocodage import geocoder_adresse
 from .forms import (AnnonceForm, BulletinForm, InscriptionClientForm,
                     InscriptionExploitantForm, InscriptionFermeSeuleForm,
                     MessagerieForm, ProduitForm, ProfilExploitantForm,
@@ -397,13 +398,76 @@ def charte_logo(request):
     return render(request, "portal/charte_logo.html")
 
 
+ACTIVITES_RESTAURATION = (Exploitant.Activite.FOODTRUCK,
+                           Exploitant.Activite.TRAITEUR,
+                           Exploitant.Activite.RESTAURANT)
+
+
+def _photo_quotidienne():
+    """Photo quotidienne COMPLÈTE des dénombrements du portail (les
+    13 colonnes de StatistiqueQuotidienne, avec et sans les comptes
+    de démonstration) : enregistrée pour aujourd'hui, avec
+    rattrapage UNE FOIS des lignes antérieures jamais enrichies
+    (toutes colonnes à zéro). Partagée par home() et
+    producer_search() : la page d'accueil ne remplissait auparavant
+    que 3 champs sur 13, l'historique segmenté restait vide tant
+    que la recherche n'avait pas été visitée (O2 du diagnostic)."""
+    aujourdhui = timezone.localdate()
+    tous_visibles = Exploitant.objects.filter(visible=True)
+    reels = tous_visibles.exclude(est_demo=True)
+    nb_clients = (User.objects
+                  .filter(exploitant__isnull=True,
+                          membres_exploitation__isnull=True).count())
+    marches_tous = identifier_marches(inclure_demo=True)
+    nb_marches_tous = sum(1 for m in marches_tous if m["est_marche"])
+    nb_boutiques_tous = len(marches_tous) - nb_marches_tous
+    marches_reels = identifier_marches(inclure_demo=False)
+    nb_marches_reels = sum(1 for m in marches_reels if m["est_marche"])
+    nb_boutiques_reels = len(marches_reels) - nb_marches_reels
+    photo = {
+        "nb_producteurs": tous_visibles.count(),
+        "nb_clients": nb_clients,
+        "nb_visiteurs": Visiteur.objects.count(),
+        "nb_pros_reels": reels.count(),
+        "nb_locaux": tous_visibles.exclude(
+            activite__in=ACTIVITES_RESTAURATION).count(),
+        "nb_locaux_reels": reels.exclude(
+            activite__in=ACTIVITES_RESTAURATION).count(),
+        "nb_restauration": tous_visibles.filter(
+            activite__in=ACTIVITES_RESTAURATION).count(),
+        "nb_restauration_reels": reels.filter(
+            activite__in=ACTIVITES_RESTAURATION).count(),
+        "nb_marches": nb_marches_tous,
+        "nb_boutiques": nb_boutiques_tous,
+        "nb_marches_reels": nb_marches_reels,
+        "nb_boutiques_reels": nb_boutiques_reels,
+    }
+    StatistiqueQuotidienne.objects.update_or_create(
+        date=aujourdhui, defaults=photo)
+    # Compléter une seule fois les lignes antérieures au
+    # déploiement de ces champs (tous à zéro = jamais enrichies) :
+    # on y reporte la photo du jour pour un historique continu,
+    # les jours suivants s'enrichissent naturellement.
+    StatistiqueQuotidienne.objects.exclude(date=aujourdhui).filter(
+        nb_pros_reels=0, nb_locaux=0, nb_restauration=0,
+        nb_marches=0).update(
+            nb_pros_reels=photo["nb_pros_reels"],
+            nb_locaux=photo["nb_locaux"],
+            nb_locaux_reels=photo["nb_locaux_reels"],
+            nb_restauration=photo["nb_restauration"],
+            nb_restauration_reels=photo["nb_restauration_reels"],
+            nb_marches=photo["nb_marches"],
+            nb_boutiques=photo["nb_boutiques"],
+            nb_marches_reels=photo["nb_marches_reels"],
+            nb_boutiques_reels=photo["nb_boutiques_reels"])
+    return photo
+
+
 def home(request):
     """Landing : bandeau, hero, présentation du portail — et les
     chiffres clés segmentés (pros par métier, marchés et boutiques
     identifiés, clients, visiteurs) avec historique 30 jours."""
-    activites_restauration = (Exploitant.Activite.FOODTRUCK,
-                              Exploitant.Activite.TRAITEUR,
-                              Exploitant.Activite.RESTAURANT)
+    activites_restauration = ACTIVITES_RESTAURATION
     nb_pros = (Exploitant.objects.filter(visible=True).count())
     nb_visibles = Exploitant.objects.filter(visible=True).count()
     nb_producteurs_locaux = (Exploitant.objects
@@ -428,11 +492,10 @@ def home(request):
                           membres_exploitation__isnull=True).count())
     nb_visiteurs = Visiteur.objects.count()
     aujourdhui = timezone.localdate()
-    StatistiqueQuotidienne.objects.update_or_create(
-        date=aujourdhui,
-        defaults={"nb_producteurs": nb_visibles,
-                  "nb_clients": nb_clients,
-                  "nb_visiteurs": nb_visiteurs})
+    # Photo quotidienne COMPLÈTE (13 colonnes, démo et réel) :
+    # l'accueil participe à l'historique segmenté autant que la
+    # recherche, au lieu de 3 champs sur 13.
+    _photo_quotidienne()
     lignes_stats = list(StatistiqueQuotidienne.objects.filter(
         date__gte=aujourdhui - datetime.timedelta(days=29))
         .order_by("date"))
@@ -644,55 +707,10 @@ def producer_search(request):
     nb_marches = sum(1 for m in tous_marches if m["est_marche"])
     nb_boutiques = len(tous_marches) - nb_marches
     aujourdhui = timezone.localdate()
-    # Photo quotidienne enrichie : les fenêtres de stats des badges
-    # suivent la bascule 🎃 Démo / 🧡 Réel ET le mode de
-    # visualisation — chaque dénombrement est donc enregistré en
-    # deux variantes, avec et sans les comptes de démonstration.
-    tous_visibles = Exploitant.objects.filter(visible=True)
-    reels = tous_visibles.exclude(est_demo=True)
-    marches_tous = identifier_marches(inclure_demo=True)
-    nb_marches_tous = sum(1 for m in marches_tous if m["est_marche"])
-    nb_boutiques_tous = len(marches_tous) - nb_marches_tous
-    marches_reels = identifier_marches(inclure_demo=False)
-    nb_marches_reels = sum(1 for m in marches_reels
-                           if m["est_marche"])
-    nb_boutiques_reels = len(marches_reels) - nb_marches_reels
-    photo = {
-        "nb_producteurs": nb_producteurs,
-        "nb_clients": nb_clients,
-        "nb_visiteurs": nb_visiteurs,
-        "nb_pros_reels": reels.count(),
-        "nb_locaux": tous_visibles.exclude(
-            activite__in=activites_restauration).count(),
-        "nb_locaux_reels": reels.exclude(
-            activite__in=activites_restauration).count(),
-        "nb_restauration": tous_visibles.filter(
-            activite__in=activites_restauration).count(),
-        "nb_restauration_reels": reels.filter(
-            activite__in=activites_restauration).count(),
-        "nb_marches": nb_marches_tous,
-        "nb_boutiques": nb_boutiques_tous,
-        "nb_marches_reels": nb_marches_reels,
-        "nb_boutiques_reels": nb_boutiques_reels,
-    }
-    StatistiqueQuotidienne.objects.update_or_create(
-        date=aujourdhui, defaults=photo)
-    # Compléter une seule fois les lignes antérieures au
-    # déploiement de ces champs (tous à zéro = jamais enrichies) :
-    # on y reporte la photo du jour pour un historique continu,
-    # les jours suivants s'enrichissent naturellement.
-    StatistiqueQuotidienne.objects.exclude(date=aujourdhui).filter(
-        nb_pros_reels=0, nb_locaux=0, nb_restauration=0,
-        nb_marches=0).update(
-            nb_pros_reels=photo["nb_pros_reels"],
-            nb_locaux=photo["nb_locaux"],
-            nb_locaux_reels=photo["nb_locaux_reels"],
-            nb_restauration=photo["nb_restauration"],
-            nb_restauration_reels=photo["nb_restauration_reels"],
-            nb_marches=photo["nb_marches"],
-            nb_boutiques=photo["nb_boutiques"],
-            nb_marches_reels=photo["nb_marches_reels"],
-            nb_boutiques_reels=photo["nb_boutiques_reels"])
+    # Photo quotidienne enrichie : helper PARTAGÉ avec la page
+    # d'accueil (13 colonnes, avec et sans comptes de démonstration,
+    # rattrapage des lignes antérieures jamais enrichies).
+    _photo_quotidienne()
     lignes_stats = list(StatistiqueQuotidienne.objects.filter(
         date__gte=aujourdhui - datetime.timedelta(days=89))
         .order_by("date"))
@@ -4516,6 +4534,15 @@ def points_manage(request):
             if not nom or not ville:
                 messages.error(request, "Nom et ville du point requis.")
             else:
+                position_auto = None
+                if latitude is None or longitude is None:
+                    # Géocodage automatique depuis l'adresse saisie
+                    # (filet de sécurité : la carte reste le geste
+                    # précis, l'adresse seule suffit ici).
+                    position_auto = geocoder_adresse(
+                        adresse, ville, code_postal)
+                    if position_auto:
+                        latitude, longitude = position_auto
                 PointLivraison.objects.create(
                     exploitant=exploitant, nom=nom[:150],
                     adresse=adresse[:255], ville=ville[:100],
@@ -4525,7 +4552,10 @@ def points_manage(request):
                 libelle_type = dict(
                     PointLivraison.Type.choices).get(type_point, "")
                 messages.success(request,
-                                 f"{libelle_type} « {nom} » créé.")
+                                 f"{libelle_type} « {nom} » créé."
+                                 + (" Position géocodée automatiquement "
+                                    "depuis l'adresse." if position_auto
+                                    else ""))
         elif action == "point_geo":
             # Position du point : géocodée (Nominatim) ou posée sur la
             # carte par le maraîcher — transmise au client au moment de
@@ -4585,12 +4615,25 @@ def points_manage(request):
                     point.latitude = nouvelle_lat
                 if nouvelle_lon is not None:
                     point.longitude = nouvelle_lon
+                position_auto = None
+                if point.latitude is None or point.longitude is None:
+                    # Filet de sécurité : le point n'a jamais été
+                    # positionné sur la carte — on géocode l'adresse
+                    # (nouvelle ou ancienne) pour qu'il n'apparaisse
+                    # plus comme « non localisé ».
+                    position_auto = geocoder_adresse(
+                        point.adresse, point.ville, point.code_postal)
+                    if position_auto:
+                        point.latitude, point.longitude = position_auto
                 point.save()
                 messages.success(request,
                                  f"Point « {point.nom} » mis à jour "
                                  "(les paniers déjà livrés conservent "
                                  "les infos transmises aux clients)."
-                                 + type_change)
+                                 + type_change
+                                 + (" Position géocodée automatiquement "
+                                    "depuis l'adresse." if position_auto
+                                    else ""))
         elif action == "point_supprimer":
             point = get_object_or_404(PointLivraison,
                                      pk=request.POST.get("pk"),

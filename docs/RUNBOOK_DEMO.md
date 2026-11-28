@@ -129,3 +129,16 @@ Puis dans le navigateur (Ctrl+Shift+R) :
 > ⚠️ Toutes les données de démo sont FICTIVES : noms, SIRET (valides au
 > format Luhn mais inventés), adresses et coordonnées ne référencent
 > aucune entreprise réelle.
+
+## 7. Géocodage des points non localisés
+
+Après un `--demo` (ou sur une base existante), les points de livraison
+sans position peuvent être géocodés depuis leur adresse :
+
+```bash
+python3 manage.py geocoder_points          # tous les points sans lat/lon
+python3 manage.py geocoder_points --limit 20
+```
+
+Les points déjà positionnés (clic carte) ne sont jamais modifiés ; le
+bilan liste les points géocodés, introuvables et sans adresse.
