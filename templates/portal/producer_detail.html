@@ -38,11 +38,14 @@
       <h1 class="producer-title">{{ exploitant.nom_espace }}</h1>
       <p class="muted producer-address">📍 {{ exploitant.adresse }} — {{ exploitant.code_postal }} {{ exploitant.ville }}</p>
 
-      {# Téléphone protégé anti-pillage : visible pour TOUS les
-         métiers (le gérant a saisi un numéro pour être joint — le
-         cacher aux maraîchers et éleveurs n'avait pas de raison
-         d'être). L'ancienne condition cumulait aussi un bug
-         d'opérateurs : « A and B or C » s'évaluait en (A and B) or C. #}
+      {% comment %}
+        Téléphone protégé anti-pillage : visible pour TOUS les
+        métiers (le gérant a saisi un numéro pour être joint — le
+        cacher aux maraîchers et éleveurs n'avait pas de raison
+        d'être). L'ancienne condition cumulait aussi un bug
+        d'opérateurs : « A and B or C » s'évaluait en (A and B) or C.
+      {% endcomment %}
+      <div class="producer-coordonnees">
       {% if exploitant.telephone %}
       <p class="producer-tel">
         <button type="button" class="btn-tel-protege"
@@ -76,6 +79,7 @@
             </form>
           {% endif %}
         {% endif %}
+      </div>
       </div>
     </div>
   </div>
@@ -200,13 +204,20 @@
   </div>
 </section>
   {% endif %}
-  {% if modules.carte and exploitant.latitude and exploitant.longitude %}
+  {% if modules.carte and points_geo %}
 <section class="producer-section">
   <div class="vitrine-module card module-carte">
     <h2>📍 Nous trouver</h2>
+    {{ points_geo|json_script:"vitrine-points-geo" }}
     <div id="vitrine-mini-carte" class="mini-carte"
-         data-lat="{{ exploitant.latitude }}" data-lng="{{ exploitant.longitude }}"></div>
+         data-lat="{{ exploitant.latitude|default_if_none:'' }}"
+         data-lng="{{ exploitant.longitude|default_if_none:'' }}"></div>
+    {% if exploitant.latitude and exploitant.longitude %}
     <p class="muted">📍 {{ exploitant.adresse }} — {{ exploitant.code_postal }} {{ exploitant.ville }}</p>
+    {% endif %}
+    {% if points_localises %}
+    <p class="muted emplacements-carte-legende">{{ exploitant.vocab.points }} : {% for p in points_localises %}{{ p.emoji_type }} {{ p.nom }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+    {% endif %}
   </div>
 </section>
   {% endif %}
@@ -357,8 +368,9 @@
    appelable (protection anti-pillage de base). */
 (function () {
   /* Mini-carte « Nous trouver » (module activable) : Leaflet n'est
-     chargé que si le bloc existe, puis marqueur sur la position GPS
-     de l'établissement. */
+     chargé que si le bloc existe. Marqueurs de l'établissement ET
+     de chaque point de livraison positionné (emplacements foodtruck,
+     marchés, boutiques) ; la carte se cale sur l'ensemble. */
   var carteDiv = document.getElementById("vitrine-mini-carte");
   if (carteDiv) {
     var feuille = document.createElement("link");
@@ -368,14 +380,41 @@
     var s = document.createElement("script");
     s.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
     s.onload = function () {
-      var lat = parseFloat(carteDiv.dataset.lat);
-      var lng = parseFloat(carteDiv.dataset.lng);
+      var geo = [];
+      var source = document.getElementById("vitrine-points-geo");
+      if (source) { geo = JSON.parse(source.textContent || "[]"); }
       var mini = L.map("vitrine-mini-carte",
-                       { scrollWheelZoom: false }).setView([lat, lng], 13);
+                       { scrollWheelZoom: false });
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                   { maxZoom: 19,
                     attribution: "© OpenStreetMap" }).addTo(mini);
-      L.marker([lat, lng]).addTo(mini);
+      var bornes = [];
+      geo.forEach(function (pt) {
+        if (typeof pt.lat !== "number" ||
+            typeof pt.lon !== "number") { return; }
+        var marqueur = L.marker([pt.lat, pt.lon]).addTo(mini);
+        if (pt.nom) {
+          marqueur.bindPopup((pt.emoji ? pt.emoji + " " : "") + pt.nom +
+                             (pt.adresse ? "<br><small>" + pt.adresse +
+                              "</small>" : ""));
+        }
+        bornes.push([pt.lat, pt.lon]);
+      });
+      if (!bornes.length) {
+        var lat = parseFloat(carteDiv.dataset.lat);
+        var lng = parseFloat(carteDiv.dataset.lng);
+        if (!isNaN(lat) && !isNaN(lng)) {
+          L.marker([lat, lng]).addTo(mini);
+          bornes.push([lat, lng]);
+        }
+      }
+      if (bornes.length === 1) {
+        mini.setView(bornes[0], 13);
+      } else if (bornes.length > 1) {
+        mini.fitBounds(L.latLngBounds(bornes).pad(0.25));
+      } else {
+        mini.setView([46.6, 2.4], 5);
+      }
     };
     document.head.appendChild(s);
   }

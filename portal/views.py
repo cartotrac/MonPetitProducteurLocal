@@ -1097,6 +1097,27 @@ def producer_detail(request, slug):
                 reste = stocks_carte.get(l.produit_id, (None, None))[1]
                 if reste is not None:
                     restes_carte[l.pk] = reste
+    # Carte « Nous trouver » : l'établissement s'il est localisé, puis
+    # chaque point de livraison/vente positionné (foodtruck : ses
+    # emplacements, maraîcher : ses marchés et boutiques). Un point
+    # sans position est simplement absent de la carte — le filet de
+    # géocodage du lot 7 limite ce cas aux adresses introuvables.
+    points_localises = [p for p in exploitant.points_livraison.all()
+                        if p.latitude is not None and p.longitude is not None]
+    points_geo = []
+    if exploitant.latitude is not None and exploitant.longitude is not None:
+        points_geo.append({
+            "nom": exploitant.nom_espace,
+            "emoji": exploitant.emoji_vitrine,
+            "lat": exploitant.latitude, "lon": exploitant.longitude,
+            "adresse": (f"{exploitant.adresse} — {exploitant.code_postal} "
+                        f"{exploitant.ville}").strip(" —"),
+        })
+    points_geo += [{
+        "nom": p.nom, "emoji": p.emoji_type,
+        "lat": p.latitude, "lon": p.longitude,
+        "adresse": (f"{p.adresse} — {p.code_postal} {p.ville}").strip(" —"),
+    } for p in points_localises]
     return render(request, "portal/producer_detail.html", {
         "exploitant": exploitant,
         "restes_carte": restes_carte,
@@ -1118,6 +1139,8 @@ def producer_detail(request, slug):
         "est_compte_pro": exploitant_actif(request) is not None,
         "meteo": meteo_synthese(exploitant),
         "points_livraison": exploitant.points_livraison.all(),
+        "points_localises": points_localises,
+        "points_geo": points_geo,
         "creneaux": exploitant.creneaux.select_related("point_livraison"),
     })
 
