@@ -308,6 +308,30 @@ legend.addTo(carte);
 var markers = [];
 var exploitants = JSON.parse(bloc.textContent);
 
+/* ------------------------------------------------------- L4 : clustering
+   Regroupement des marqueurs proches (Leaflet.markercluster) :
+   au zoom national, chaque zone dense montre UNE pastille compteur
+   au lieu de dizaines d'emojis superposés ; en zoomant, les
+   marqueurs individuels réapparaissent (comportement standard).
+   Repli gracieux : si la bibliothèque ne charge pas (CDN coupé),
+   les marqueurs passent directement sur la carte, sans erreur. */
+var groupe = (typeof L.markerClusterGroup === "function")
+  ? L.markerClusterGroup({
+      maxClusterRadius: 45,
+      showCoverageOnHover: false,
+      spiderfyDistanceMultiplier: 1.4,
+      iconCreateFunction: function (cluster) {
+        return L.divIcon({
+          className: "marker-cluster-mppl",
+          html: "<span>" + cluster.getChildCount() + "</span>",
+          iconSize: [34, 34]
+        });
+      }
+    })
+  : null;
+if (groupe) { carte.addLayer(groupe); }
+var calqueMarkers = groupe || carte;
+
 exploitants.forEach(function (e) {
   /* Marché / boutique de producteurs : marqueur dédié (🎪 orange,
      🏪 rose), popup avec les horaires déduits et lien vers la
@@ -333,7 +357,7 @@ exploitants.forEach(function (e) {
     );
     markerM._activite = e.type;
     markers.push(markerM);
-    carte.addLayer(markerM);
+    calqueMarkers.addLayer(markerM);
     return;
   }
   var style = CAT_STYLES[e.mode_production] || CAT_STYLES.CONV;
@@ -397,7 +421,7 @@ exploitants.forEach(function (e) {
   marker._category = e.mode_production;
   marker._activite = e.activite;
   markers.push(marker);
-  carte.addLayer(marker);
+  calqueMarkers.addLayer(marker);
 });
 
 /* --------------------------- filtre spatial dynamique + dénombrements */

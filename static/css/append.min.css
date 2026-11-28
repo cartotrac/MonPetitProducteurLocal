@@ -1898,3 +1898,7 @@ html.dark .producer-address{background:rgba(255,255,255,0.05);border-color:#4a56
 .emplacements-carte-legende{margin-top:0.6rem;font-size:0.95rem}
 .emoji-choix{width:3.2rem;text-align:center;font-size:1.05rem}
 .saisie-nouveau-champs input.emoji-choix{min-width:0}
+.marker-cluster-mppl{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:var(--accent,#2e7d32);border:3px solid rgba(255,255,255,0.85);box-shadow:0 2px 8px rgba(0,0,0,0.35);color:#fff;font-weight:800;font-size:0.9rem;text-align:center;line-height:1}
+.marker-cluster-mppl:hover{background:#1b5e20}
+html.dark .marker-cluster-mppl{background:#4c7c3f;border-color:rgba(30,38,26,0.9)}
+html.dark .marker-cluster-mppl:hover{background:#5d9450}
