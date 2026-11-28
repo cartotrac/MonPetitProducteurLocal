@@ -12,6 +12,7 @@ Usage :  python manage.py charger_catalogues_activites
 from decimal import Decimal
 import unicodedata
 
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 from portal.models import Exploitant, Produit, ProduitStandard
@@ -340,6 +341,19 @@ class Command(BaseCommand):
             "(idempotent : lancez-le après chaque mise à jour).")
 
     def handle(self, *args, **options):
+        # 0. Base vierge : le catalogue maraîcher historique vient du
+        #    fixture produits_standard.json (aucun autre endroit ne
+        #    le crée). On le charge s'il est totalement absent, pour
+        #    que l'ordre des commandes (fresh install → peupler_demo)
+        #    ne dépende plus d'un loaddata manuel oublié.
+        if not ProduitStandard.objects.filter(
+                activite=Exploitant.Activite.MARAICHER).exists() \
+           and not ProduitStandard.objects.filter(activite="").exists():
+            call_command("loaddata", "produits_standard")
+            self.stdout.write(
+                "Fixture produits_standard.json chargé (catalogue "
+                "maraîcher historique absent de la base).")
+
         # 1. Le catalogue existant est explicitement classé maraîcher
         #    et enrichi de prix indicatifs réalistes par défaut.
         ProduitStandard.objects.filter(activite="").update(
