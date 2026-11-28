@@ -12,6 +12,15 @@
   --shadow: 0 2px 10px rgba(46, 125, 50, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
   --shadow-lift: 0 6px 18px rgba(46, 125, 50, 0.14);
 }
+html.dark {
+  --bg: #181c16;
+  --card: #22271f;
+  --text: #e8ece4;
+  --border: #384133;
+  --accent-light: #263827;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  --shadow-lift: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
 
 * { box-sizing: border-box; }
 body {
@@ -50,9 +59,7 @@ a { color: var(--accent-dark); }
               padding: 1.6rem 0 0.4rem; }
 .hero { text-align: center; padding: 1.5rem 0; }
 .hero h1 { color: var(--accent-dark); font-size: 2.1rem; }
-.hero-lead { m
-
-ax-width: 760px; margin: 0.6rem auto 0; }
+.hero-lead { max-width: 760px; margin: 0.6rem auto 0; }
 .features { margin-top: 1.5rem; text-align: left; }
 .feature { background: var(--card); border: 1px solid var(--border);
            border-radius: var(--radius); padding: 1.1rem;
@@ -86,8 +93,7 @@ ax-width: 760px; margin: 0.6rem auto 0; }
 .btn-lg { padding: 0.7rem 1.6rem; font-size: 1.05rem; }
 .btn-sm { padding: 0.2rem 0.7rem; font-size: 0.85rem; }
 
-.
-btn-danger { background: var(--terre); border-color: var(--terre);
+.btn-danger { background: var(--terre); border-color: var(--terre);
               box-shadow: 0 2px 6px rgba(181, 83, 60, 0.25); }
 .btn-danger:hover { background: #8f3f2e; border-color: #8f3f2e; }
 .btn-link { background: none; border: none; color: #fff; cursor: pointer;
