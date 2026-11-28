@@ -6922,3 +6922,40 @@ html.dark :focus-visible { outline-color: #a5d6a7; }
   min-width: 8rem; margin-top: 0.2rem;
 }
 /* ============ fin REVUE V3.40 ======================================= */
+
+
+/* ===== REVUE V3.49 — Vitrine : en-tête restructuré + carte
+       « Nous trouver » multi-marqueurs. ========================= */
+/* En-tête : badges, titre, coordonnées (téléphone) et CTA se
+   suivent en colonne serrée, sans marges parasites. */
+.producer-hero-info { display: flex; flex-direction: column; gap: 0.35rem; }
+.producer-badges-row { margin-bottom: 0; }
+.producer-badges-row .badge {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  padding: 0.28rem 0.65rem; border-radius: 999px;
+  font-size: 0.85rem; font-weight: 600; line-height: 1.2;
+  border: 1px solid transparent;
+}
+.badge-activite { border-color: rgba(46, 125, 50, 0.25); }
+.badge-demo { border-color: rgba(156, 39, 176, 0.3); }
+.badge-off { border-color: rgba(120, 120, 120, 0.3); }
+.producer-title { margin: 0.15rem 0 0; }
+.producer-address {
+  margin: 0;
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.25rem 0.6rem; border-radius: 999px;
+  background: #f4f7f0; border: 1px solid #e1ebdc;
+  font-size: 0.95rem; width: fit-content;
+}
+html.dark .producer-address {
+  background: rgba(255, 255, 255, 0.05); border-color: #4a5640;
+}
+/* Bloc coordonnées : téléphone + boutons d'action alignés. */
+.producer-coordonnees {
+  display: flex; flex-direction: column; gap: 0.55rem; margin-top: 0.45rem;
+}
+.producer-coordonnees .producer-tel { margin: 0; }
+.producer-coordonnees .producer-cta { margin-top: 0; }
+/* Légende des points sous la mini-carte. */
+.emplacements-carte-legende { margin-top: 0.6rem; font-size: 0.95rem; }
+/* ===== fin REVUE V3.49 ========================================== */
