@@ -104,8 +104,9 @@ from django.utils import timezone
 from portal.models import (Bulletin, Carte, Categorie, Commande,
                            CreneauLivraison, Exploitant, LigneCarte,
                            LigneCommande, LignePanier, LigneRecolte,
-                           Panier, PointLivraison, Produit,
-                           ProduitStandard, ProfilClient, SemaineRecolte)
+                           Panier, ParametresVitrine, PointLivraison,
+                           Produit, ProduitStandard, ProfilClient,
+                           SemaineRecolte)
 
 MOT_DE_PASSE_DEMO = "demo1234!"
 
@@ -232,6 +233,45 @@ CATEGORIES_SPECIALITE_ELEVEUR = {
     S.PORCINE: ["Viandes"],
     S.VOLAILLE: ["Volaille", "Œufs"],
 }
+
+
+JOURS_FR = {1: "Lundi", 2: "Mardi", 3: "Mercredi", 4: "Jeudi",
+            5: "Vendredi", 6: "Samedi", 7: "Dimanche"}
+
+
+def _modules_demo(exploitant):
+    """Modules vitrine du jeu de démonstration : bloc « À propos »
+    (texte de la fiche), « Horaires » déduits des créneaux RÉELS de
+    l'espace (jour, heures, point), FAQ générique et mini-carte
+    (les espaces de démo sont géolocalisés). Utilisé à la création
+    ET en rattrapage des espaces de démo plus anciens."""
+    horaires = []
+    for c in (exploitant.creneaux.all()
+              .select_related("point_livraison")
+              .order_by("jour", "heure_debut")):
+        heures = (c.heure_debut.strftime("%H:%M") + "–"
+                  + c.heure_fin.strftime("%H:%M"))
+        if c.point_livraison:
+            heures += " · " + c.point_livraison.nom
+        horaires.append({"jour": JOURS_FR.get(c.jour, "Jour"),
+                         "heures": heures})
+    texte = (exploitant.description or exploitant.nom_espace).strip()
+    return {
+        "apropos": {"texte": texte + "\n\n🧪 Espace de démonstration : "
+                     "données fictives pour découvrir le portail de "
+                     "bout en bout."},
+        "horaires": horaires,
+        "faq": [
+            {"q": "Comment passer commande ?",
+             "r": "Directement sur cette vitrine : choisissez la "
+                  "publication de la semaine, indiquez vos quantités "
+                  "et envoyez — le producteur vous répond."},
+            {"q": "Où récupérer ma commande ?",
+             "r": "Aux points et créneaux affichés sur la vitrine, "
+                  "selon le jour choisi."},
+        ],
+        "carte": True,
+    }
 
 
 def _type_deduit(nom):
@@ -2319,6 +2359,12 @@ class Command(BaseCommand):
                 heure_fin=datetime.time.fromisoformat(fin),
                 frequence=CreneauLivraison.Frequence.HEBDO)
 
+        # Vitrine : modules de démonstration (à propos, horaires
+        # déduits des créneaux, FAQ générique, mini-carte).
+        ParametresVitrine.objects.update_or_create(
+            exploitant=exploitant,
+            defaults={"modules": _modules_demo(exploitant)})
+
         # Récolte de la semaine en cours (publiée) + une semaine à venir
         lundi = self._lundi()
         # Semaine en cours publiée + semaine à venir publiée + une
@@ -2669,6 +2715,13 @@ class Command(BaseCommand):
             if resultat is None:
                 continue
             exploitant, produits, points = resultat
+            if not produits:
+                # Garde-fou : catalogue vide (produits types absents
+                # de la base) — on ne crée pas de commandes vides.
+                self.stdout.write(self.style.NOTICE(
+                    f"{spec['utilisateur']} : catalogue vide, commandes "
+                    "de démo non générées pour cette ferme."))
+                continue
             # Garde-fou : les catalogues types comptent une dizaine de
             # produits, mais on reste robuste si un est plus court.
             def pick(i):
@@ -2729,6 +2782,22 @@ class Command(BaseCommand):
             annul_pro.statut = Commande.Statut.ANNULEE
             annul_pro.annulee_par = Commande.AnnulationPar.PRODUCTEUR
             annul_pro.save()
+        # Rattrapage des espaces de démo plus anciens : tout espace
+        # démo sans modules vitrine (jeux créés avant le remplissage
+        # automatique) reçoit le jeu de démonstration.
+        rattrapes = 0
+        for exploitant in Exploitant.objects.filter(est_demo=True):
+            vitrine, _cree = ParametresVitrine.objects.get_or_create(
+                exploitant=exploitant)
+            if not vitrine.modules:
+                vitrine.modules = _modules_demo(exploitant)
+                vitrine.save(update_fields=["modules"])
+                rattrapes += 1
+        if rattrapes:
+            self.stdout.write(self.style.SUCCESS(
+                f"Modules vitrine de démonstration remplis pour "
+                f"{rattrapes} espace(s)."))
+
         self._cartes_demo()
 
         self.stdout.write(self.style.SUCCESS(
