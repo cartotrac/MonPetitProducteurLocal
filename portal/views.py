@@ -2,12 +2,15 @@ import csv
 import datetime
 import io
 import json
+import logging
 import re
 from decimal import Decimal, InvalidOperation
 from urllib.parse import parse_qsl, urlencode
 
 import django.core.mail
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
@@ -5386,6 +5389,8 @@ def order_create(request, slug):
                 LigneCommande.objects.create(
                     commande=commande, produit=produit,
                     quantite=qty, prix_unitaire=prix)
+        # M2 : confirmation e-mail au client (jamais bloquant).
+        _envoyer_confirmation_commande(commande, request)
         if client:
             messages.success(
                 request, "Commande envoyée ! Le producteur va la valider, "
@@ -6293,6 +6298,61 @@ def param_rubrique(request, rubrique):
         "form_messagerie": form_messagerie,
         "est_proprietaire": est_proprietaire,
     })
+
+
+def _envoyer_confirmation_commande(commande, request):
+    """M2 du diagnostic : e-mail de confirmation au client dès que sa
+    commande est enregistrée (order_create). Jamais bloquant : la
+    commande est déjà en base, un échec d'envoi n'entraîne qu'un
+    avertissement journalisé (le producteur recontacte de toute
+    façon son client pour valider). Expédié via la messagerie SMTP
+    de l'exploitation si elle est configurée, sinon le backend du
+    serveur (console sans EMAIL_HOST)."""
+    if not commande.email_client:
+        return
+    exploitant = commande.exploitant
+    vitrine = ParametresVitrine.objects.filter(
+        exploitant=exploitant).first()
+    lignes = "\n".join(
+        f"  - {l.produit.nom} × {l.quantite} "
+        f"({l.prix_unitaire} €/u)"
+        for l in commande.lignes.select_related("produit"))
+    corps = (f"Bonjour {commande.nom_client},\n\n"
+             f"Votre commande pour {exploitant.nom_espace} est bien "
+             f"enregistrée (n° {commande.pk}).\n"
+             f"Le producteur va la valider et vous recontactera en "
+             f"cas de besoin.\n\n"
+             f"Récapitulatif :\n{lignes}\n\n"
+             f"Total : {commande.total} €\n")
+    if commande.date_livraison:
+        corps += (f"Livraison souhaitée le : "
+                  f"{commande.date_livraison:%d/%m/%Y}\n")
+    point = commande.point_livraison
+    if point:
+        adresse_point = ", ".join(
+            m for m in (point.adresse,
+                        f"{point.code_postal} {point.ville}".strip())
+            if m)
+        corps += (f"Point de retrait : {point.nom}"
+                  + (f" — {adresse_point}" if adresse_point else "")
+                  + "\n")
+    if commande.note:
+        corps += f"Votre note : {commande.note}\n"
+    corps += (f"\nMerci de votre confiance !\n{exploitant.nom_espace}")
+    expediteur = (((vitrine.messagerie if vitrine else None) or {})
+                  .get("email_from")) or settings.DEFAULT_FROM_EMAIL
+    connexion = _connexion_email(vitrine) if vitrine else None
+    try:
+        django.core.mail.EmailMessage(
+            f"[{exploitant.nom_espace}] Votre commande est enregistrée",
+            corps, expediteur, [commande.email_client],
+            connection=connexion).send()
+        messages.info(request, "✉️ Un e-mail de confirmation vous a "
+                      "été envoyé.")
+    except Exception as err:
+        logger.warning(
+            "Confirmation de commande n° %s non envoyée à %s : %s",
+            commande.pk, commande.email_client, err)
 
 
 def _connexion_email(vitrine):
